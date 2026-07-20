@@ -3,19 +3,32 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
+
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   async function handleAuth(mode: 'signUp' | 'signIn') {
-    setLoading(true);
     setError(null);
 
+    if (mode === 'signUp' && !USERNAME_PATTERN.test(username)) {
+      setError('Username must be 3–20 characters: letters, numbers, or underscores only.');
+      return;
+    }
+
+    setLoading(true);
+
     const { error } = mode === 'signUp'
-      ? await supabase.auth.signUp({ email, password })
+      ? await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { username } }, // → auth.users.raw_user_meta_data, read by the trigger
+        })
       : await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
@@ -38,6 +51,13 @@ export default function LoginScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Username (required to sign up)"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}

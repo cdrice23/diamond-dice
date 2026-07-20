@@ -15,12 +15,12 @@ export default function HomeScreen() {
       setEmail(sessionData.session?.user.email ?? null);
 
       const { data, error } = await supabase
-        .from('hello_world')
-        .select('message')
-        .limit(1)
+        .from('profiles')
+        .select('username, status, created_at')
+        .eq('id', sessionData.session?.user.id)
         .single();
 
-      if (!error) setMessage(data.message);
+      if (!error) setMessage(`Signed in as ${data.username}, account status: ${data.status}`);
       setLoading(false);
     }
 
