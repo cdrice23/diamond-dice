@@ -85,7 +85,13 @@ def process_roster(roster: list[dict], levels: list[dict], existing_ids: set[str
     if record is None:
       continue
 
-    upsert_player(record)
+    try:
+      upsert_player(record)
+    except Exception as error:
+      print(f"  SKIPPED {name} ({player_id}): write failed -- {error}")
+      record_failed_player(player_id_str, str(error))
+      continue
+    
     clear_failed_player(player_id_str)
     existing_ids.add(player_id_str)
     print(f"  UPSERTED {name}: batter={record['is_qualified_batter']}, pitcher={record['is_qualified_pitcher']}, positions={record['eligible_positions']}")
