@@ -43,3 +43,4 @@ app-example
 /android
 etl/venv/
 etl/.env
+scratch
