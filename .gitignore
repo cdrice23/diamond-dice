@@ -44,3 +44,7 @@ app-example
 etl/venv/
 etl/.env
 scratch
+
+# python cache
+etl/__pycache__/
+etl/*.pyc

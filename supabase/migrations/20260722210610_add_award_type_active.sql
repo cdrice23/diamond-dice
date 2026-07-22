@@ -1,0 +1,1 @@
+alter table award_types add column active boolean not null default false;
