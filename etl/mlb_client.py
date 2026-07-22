@@ -8,6 +8,9 @@ import requests
 
 from config import BASE_URL, MAX_RETRIES, RETRY_BACKOFF_SECONDS, REQUEST_PACING_SECONDS
 
+HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+}
 
 class MlbApiError(Exception):
   """Raised when a request fails after all retries are exhausted."""
@@ -19,7 +22,7 @@ def mlb_get(path: str, params: dict | None = None) -> dict:
 
   for attempt in range(1, MAX_RETRIES + 1):
       try:
-          response = requests.get(url, params=params or {}, timeout=30)
+          response = requests.get(url, params=params or {}, headers=HEADERS, timeout=30)
           response.raise_for_status()
           time.sleep(REQUEST_PACING_SECONDS)
           return response.json()
@@ -59,3 +62,7 @@ def get_all_teams() -> list[dict]:
 def get_all_awards() -> list[dict]:
   data = mlb_get("/awards", {"sportId": 1})
   return data.get("awards", [])
+
+def get_historical_roster(team_id: int, season: int) -> list[dict]:
+  data = mlb_get(f"/teams/{team_id}/roster", {"rosterType": "fullSeason", "season": str(season)})
+  return data.get("roster", [])
