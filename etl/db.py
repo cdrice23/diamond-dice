@@ -26,3 +26,22 @@ def get_levels() -> list[dict]:
 def get_existing_external_ids() -> set[str]:
   result = get_client().table("players").select("external_id").execute()
   return {row["external_id"] for row in result.data}
+
+def seed_mlb_teams(teams: list[dict]) -> None:
+  rows = [
+    {"external_id": str(t["id"]), "name": t["name"], "abbreviation": t.get("abbreviation")}
+    for t in teams
+  ]
+  get_client().table("mlb_teams").upsert(rows, on_conflict="external_id").execute()
+
+def seed_award_types(awards: list[dict]) -> None:
+  rows = []
+  for a in awards:
+    league_id = str(a["league"]["id"]) if "league" in a else None
+    rows.append({
+      "external_id": a["id"],
+      "name": a["name"],
+      "league": league_id,
+      "active": a.get("active", False),
+    })
+  get_client().table("award_types").upsert(rows, on_conflict="external_id").execute()

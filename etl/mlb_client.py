@@ -51,3 +51,11 @@ def get_career_stats(player_id: int, group: str, start_date: str, end_date: str)
 def get_all_team_ids() -> list[int]:
   data = mlb_get("/teams", {"sportId": 1})
   return [team["id"] for team in data.get("teams", [])]
+
+def get_all_teams() -> list[dict]:
+  data = mlb_get("/teams", {"sportId": 1})
+  return data.get("teams", [])
+
+def get_all_awards() -> list[dict]:
+  data = mlb_get("/awards", {"sportId": 1})
+  return data.get("awards", [])
