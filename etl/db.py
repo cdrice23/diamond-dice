@@ -46,18 +46,6 @@ def seed_award_types(awards: list[dict]) -> None:
     })
   get_client().table("award_types").upsert(rows, on_conflict="external_id").execute()
 
-def get_last_processed_season(default: int) -> int:
-  result = get_client().table("system_config").select("value").eq("key", "etl_last_processed_season").execute()
-  if result.data:
-    return int(result.data[0]["value"])
-
-  return default
-
-def set_last_processed_season(season: int) -> None:
-  get_client().table("system_config").upsert(
-    {"key": "etl_last_processed_season", "value": str(season)}, on_conflict="key"
-  ).execute()
-
 def record_failed_player(player_id: str, error: str) -> None:
   get_client().table("etl_failed_players").upsert(
     {"player_id": player_id, "last_error": error, "last_attempted_at": "now()"}, on_conflict="player_id"
@@ -69,3 +57,13 @@ def clear_failed_player(player_id: str) -> None:
 def get_failed_player_ids() -> list[str]:
   result = get_client().table("etl_failed_players").select("player_id").execute()
   return [row["player_id"] for row in result.data]
+
+def get_config_value(key: str, default: str | None = None) -> str | None:
+  result = get_client().table("system_config").select("value").eq("key", key).execute()
+  if result.data:
+    return result.data[0]["value"]
+
+  return default
+
+def set_config(key: str, value: str) -> None:
+  get_client().table("system_config").upsert({"key": key, "value": value}, on_conflict="key").execute()

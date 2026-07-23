@@ -1,0 +1,33 @@
+# .github/workflows/retry-failed-players.yml
+name: Retry Failed Players
+
+on:
+  schedule:
+    - cron: "0 15 * * *"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: etl
+
+jobs:
+  retry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: bootstrap-crawl
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - run: python retry_failed.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}

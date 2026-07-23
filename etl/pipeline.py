@@ -1,4 +1,4 @@
-from mlb_client import get_player_bio, get_career_stats, MlbApiError
+from mlb_client import get_player_bio, get_career_stats, breaker, MlbApiError
 from transform import (
   select_all_split, to_number, extract_side, build_hometown, build_image_url,
   aggregate_fielding_games, compute_eligible_positions,
@@ -7,7 +7,6 @@ from transform import (
 )
 from db import upsert_player, record_failed_player, clear_failed_player
 from config import CAREER_START_DATE
-
 
 def build_player_record(player_id: int, levels: list[dict], end_date: str) -> dict | None:
   bio = get_player_bio(player_id)
@@ -80,9 +79,12 @@ def process_roster(roster: list[dict], levels: list[dict], existing_ids: set[str
     except MlbApiError as error:
       print(f"  SKIPPED {name} ({player_id}): {error}")
       record_failed_player(player_id_str, str(error))
+      breaker.record_failure()
+      breaker.trip_if_needed()
       continue
 
     if record is None:
+      breaker.record_success()
       continue
 
     try:
@@ -91,7 +93,8 @@ def process_roster(roster: list[dict], levels: list[dict], existing_ids: set[str
       print(f"  SKIPPED {name} ({player_id}): write failed -- {error}")
       record_failed_player(player_id_str, str(error))
       continue
-    
+
     clear_failed_player(player_id_str)
     existing_ids.add(player_id_str)
+    breaker.record_success()
     print(f"  UPSERTED {name}: batter={record['is_qualified_batter']}, pitcher={record['is_qualified_pitcher']}, positions={record['eligible_positions']}")
