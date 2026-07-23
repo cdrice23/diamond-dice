@@ -51,6 +51,8 @@ class CircuitBreaker:
           f"cooling down for {CIRCUIT_BREAKER_COOLDOWN_SECONDS}s.")
     time.sleep(CIRCUIT_BREAKER_COOLDOWN_SECONDS)
 
+breaker = CircuitBreaker()
+
 def mlb_get(path: str, params: dict | None = None) -> dict:
   url = f"{BASE_URL}{path}"
   last_error: Exception | None = None
