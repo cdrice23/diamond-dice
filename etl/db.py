@@ -67,3 +67,25 @@ def get_config_value(key: str, default: str | None = None) -> str | None:
 
 def set_config(key: str, value: str) -> None:
   get_client().table("system_config").upsert({"key": key, "value": value}, on_conflict="key").execute()
+
+def get_player_uuid(external_id: str) -> str | None:
+  result = get_client().table("players").select("id").eq("external_id", external_id).execute()
+  return result.data[0]["id"] if result.data else None
+
+def get_team_uuid(external_id: str) -> str | None:
+  result = get_client().table("mlb_teams").select("id").eq("external_id", external_id).execute()
+  return result.data[0]["id"] if result.data else None
+
+def upsert_team_tenure(player_uuid: str, team_uuid: str, start_date: str, end_date: str) -> None:
+  row = {"player_id": player_uuid, "mlb_team_id": team_uuid, "start_date": start_date, "end_date": end_date}
+  get_client().table("player_mlb_team_history").upsert(row, on_conflict="player_id,mlb_team_id,start_date").execute()
+
+def get_award_type_uuid(external_id: str) -> str | None:
+  result = get_client().table("award_types").select("id").eq("external_id", external_id).execute()
+  return result.data[0]["id"] if result.data else None
+
+def get_player_ids_missing_team_history() -> list[str]:
+  all_players = get_client().table("players").select("id, external_id").execute().data
+  history_rows = get_client().table("player_mlb_team_history").select("player_id").execute().data
+  ids_with_history = {row["player_id"] for row in history_rows}
+  return [p["external_id"] for p in all_players if p["id"] not in ids_with_history]

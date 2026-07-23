@@ -1,13 +1,16 @@
 import os
 
-from mlb_client import get_player_bio, get_career_stats, breaker, MlbApiError
+from mlb_client import get_player_bio, get_career_stats, breaker, MlbApiError, mlb_get
 from transform import (
   select_all_split, to_number, extract_side, build_hometown, build_image_url,
   aggregate_fielding_games, compute_eligible_positions,
   compute_is_qualified_batter, compute_is_qualified_pitcher,
   resolve_batting_level, resolve_pitching_level,
 )
-from db import upsert_player, record_failed_player, clear_failed_player, get_failed_player_ids
+from db import (
+  upsert_player, record_failed_player, clear_failed_player, get_failed_player_ids, 
+  get_player_uuid, get_team_uuid, upsert_team_tenure
+)
 from config import CAREER_START_DATE
 
 def write_run_summary(existing_ids: set[str], season: int) -> None:
@@ -80,6 +83,44 @@ def build_player_record(player_id: int, levels: list[dict], end_date: str) -> di
     "image_url": build_image_url(player_id),
   }
 
+def record_player_team_history(external_id: int, season_start_date_month: str = "03-01", season_end_date_month: str = "11-01") -> None:
+  player_uuid = get_player_uuid(str(external_id))
+  if not player_uuid:
+    return
+
+  seen_team_seasons = set()
+
+  for group in ("hitting", "pitching"):
+    try:
+      data = mlb_get(f"/people/{external_id}/stats", {"stats": "yearByYear", "group": group})
+    except MlbApiError as error:
+      print(f"    SKIPPED team history ({group}) for {external_id}: {error}")
+      continue
+
+    stats = data.get("stats", [])
+    splits = stats[0].get("splits", []) if stats else []
+
+    for split in splits:
+      team = split.get("team")
+      season = split.get("season")
+      if not team or not season:
+        continue
+
+      key = (team["id"], season)
+      if key in seen_team_seasons:
+        continue
+      seen_team_seasons.add(key)
+
+      team_uuid = get_team_uuid(str(team["id"]))
+      if not team_uuid:
+        continue
+
+      upsert_team_tenure(
+        player_uuid, team_uuid,
+        f"{season}-{season_start_date_month}",
+        f"{season}-{season_end_date_month}",
+      )
+
 def process_roster(roster: list[dict], levels: list[dict], existing_ids: set[str], end_date: str, skip_existing: bool) -> None:
   for entry in roster:
     player_id, name = entry["person"]["id"], entry["person"]["fullName"]
@@ -108,6 +149,7 @@ def process_roster(roster: list[dict], levels: list[dict], existing_ids: set[str
       record_failed_player(player_id_str, str(error))
       continue
 
+    record_player_team_history(player_id)
     clear_failed_player(player_id_str)
     existing_ids.add(player_id_str)
     breaker.record_success()

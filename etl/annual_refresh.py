@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from config import TEAM_BATCH_SIZE
 from mlb_client import get_all_team_ids, get_historical_roster, get_all_teams, get_all_awards, mlb_get, MlbApiError, CircuitBreakerAbort
-from db import get_levels, get_existing_external_ids, get_config_value, set_config, seed_mlb_teams, seed_award_types, get_client
+from db import get_award_type_uuid, get_levels, get_existing_external_ids, get_config_value, get_player_uuid, set_config, seed_mlb_teams, seed_award_types, get_client
 from pipeline import process_roster, write_run_summary
 
 
@@ -18,14 +18,6 @@ def get_target_season_for_refresh() -> int | None:
   if now < season_end_cutoff:
     return None
   return now.year
-
-def get_player_uuid(external_id: str) -> str | None:
-  result = get_client().table("players").select("id").eq("external_id", external_id).execute()
-  return result.data[0]["id"] if result.data else None
-
-def get_award_type_uuid(external_id: str) -> str | None:
-  result = get_client().table("award_types").select("id").eq("external_id", external_id).execute()
-  return result.data[0]["id"] if result.data else None
 
 def seed_player_awards() -> None:
   print("--- Seeding player awards ---")

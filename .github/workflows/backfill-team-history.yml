@@ -1,0 +1,31 @@
+name: Backfill Player Team History
+
+on:
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: etl
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    concurrency:
+      group: bootstrap-crawl
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - run: python backfill_team_history.py
+        env:
+          PYTHONUNBUFFERED: "1"
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
