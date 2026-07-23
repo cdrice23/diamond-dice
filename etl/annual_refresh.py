@@ -4,9 +4,9 @@ import sys
 from datetime import datetime, timezone
 
 from config import TEAM_BATCH_SIZE
-from mlb_client import get_all_team_ids, get_historical_roster, get_all_teams, get_all_awards, mlb_get, MlbApiError, CircuitBreakerAbort
-from db import get_award_type_uuid, get_levels, get_existing_external_ids, get_config_value, get_player_uuid, set_config, seed_mlb_teams, seed_award_types, get_client
-from pipeline import process_roster, write_run_summary
+from mlb_client import get_all_team_ids, get_historical_roster, get_all_teams, get_all_awards, CircuitBreakerAbort
+from db import get_levels, get_existing_external_ids, get_config_value, set_config, seed_mlb_teams, seed_award_types
+from pipeline import process_roster, seed_player_awards, write_run_summary
 
 
 def get_refresh_end_date(season: int) -> str:
@@ -18,29 +18,6 @@ def get_target_season_for_refresh() -> int | None:
   if now < season_end_cutoff:
     return None
   return now.year
-
-def seed_player_awards() -> None:
-  print("--- Seeding player awards ---")
-  for award in get_all_awards():
-    award_type_id = get_award_type_uuid(award["id"])
-    if not award_type_id:
-      continue
-
-    try:
-      data = mlb_get(f"/awards/{award['id']}/recipients")
-    except MlbApiError as error:
-      print(f"  SKIPPED award {award['id']}: {error}")
-      continue
-
-    for recipient in data.get("awards", []):
-      player_id = get_player_uuid(str(recipient["player"]["id"]))
-      if not player_id:
-        continue  # not in our qualified pool -- expected, not an error
-
-      row = {"player_id": player_id, "award_type_id": award_type_id, "season": int(recipient["season"])}
-      get_client().table("player_awards").upsert(row, on_conflict="player_id,award_type_id,season").execute()
-
-  print("Player awards seeding complete.")
 
 def run_annual_refresh_batch() -> None:
   seed_mlb_teams(get_all_teams())

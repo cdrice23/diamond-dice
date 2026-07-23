@@ -1,6 +1,6 @@
 import os
 
-from mlb_client import get_player_bio, get_career_stats, breaker, MlbApiError, mlb_get
+from mlb_client import get_all_awards, get_player_bio, get_career_stats, breaker, MlbApiError, mlb_get
 from transform import (
   select_all_split, to_number, extract_side, build_hometown, build_image_url,
   aggregate_fielding_games, compute_eligible_positions,
@@ -8,7 +8,7 @@ from transform import (
   resolve_batting_level, resolve_pitching_level,
 )
 from db import (
-  upsert_player, record_failed_player, clear_failed_player, get_failed_player_ids, 
+  get_award_type_uuid, get_client, upsert_player, record_failed_player, clear_failed_player, get_failed_player_ids, 
   get_player_uuid, get_team_uuid, upsert_team_tenure
 )
 from config import CAREER_START_DATE
@@ -154,3 +154,26 @@ def process_roster(roster: list[dict], levels: list[dict], existing_ids: set[str
     existing_ids.add(player_id_str)
     breaker.record_success()
     print(f"  UPSERTED {name}: batter={record['is_qualified_batter']}, pitcher={record['is_qualified_pitcher']}, positions={record['eligible_positions']}")
+
+def seed_player_awards() -> None:
+  print("--- Seeding player awards ---")
+  for award in get_all_awards():
+    award_type_id = get_award_type_uuid(award["id"])
+    if not award_type_id:
+      continue
+
+    try:
+      data = mlb_get(f"/awards/{award['id']}/recipients")
+    except MlbApiError as error:
+      print(f"  SKIPPED award {award['id']}: {error}")
+      continue
+
+    for recipient in data.get("awards", []):
+      player_id = get_player_uuid(str(recipient["player"]["id"]))
+      if not player_id:
+        continue  # not in our qualified pool -- expected, not an error
+
+      row = {"player_id": player_id, "award_type_id": award_type_id, "season": int(recipient["season"])}
+      get_client().table("player_awards").upsert(row, on_conflict="player_id,award_type_id,season").execute()
+
+  print("Player awards seeding complete.")

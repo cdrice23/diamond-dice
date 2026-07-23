@@ -2,10 +2,9 @@ import json
 import sys
 
 from config import BOOTSTRAP_START_SEASON, ERA_FLOOR_SEASON, TEAM_BATCH_SIZE, BOOTSTRAP_END_DATE
-from annual_refresh import seed_player_awards
 from mlb_client import get_all_team_ids, get_historical_roster, CircuitBreakerAbort
 from db import get_levels, get_existing_external_ids, get_config_value, set_config
-from pipeline import process_roster, write_run_summary
+from pipeline import process_roster, write_run_summary, seed_player_awards
 
 
 def run_bootstrap_batch() -> None:
