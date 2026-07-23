@@ -1,4 +1,3 @@
-# .github/workflows/bootstrap-crawl.yml
 name: Bootstrap Player Data
 
 on:

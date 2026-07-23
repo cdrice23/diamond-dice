@@ -1,3 +1,5 @@
+import os
+
 from mlb_client import get_player_bio, get_career_stats, breaker, MlbApiError
 from transform import (
   select_all_split, to_number, extract_side, build_hometown, build_image_url,
@@ -5,8 +7,20 @@ from transform import (
   compute_is_qualified_batter, compute_is_qualified_pitcher,
   resolve_batting_level, resolve_pitching_level,
 )
-from db import upsert_player, record_failed_player, clear_failed_player
+from db import upsert_player, record_failed_player, clear_failed_player, get_failed_player_ids
 from config import CAREER_START_DATE
+
+def write_run_summary(existing_ids: set[str], season: int) -> None:
+  summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+  if not summary_path:
+    return
+
+  failed_count = len(get_failed_player_ids())
+  with open(summary_path, "a") as f:
+    f.write(f"## Bootstrap run summary\n")
+    f.write(f"- Total players in database: {len(existing_ids)}\n")
+    f.write(f"- Currently failed/pending retry: {failed_count}\n")
+    f.write(f"- Season marker after this run: {season}\n")
 
 def build_player_record(player_id: int, levels: list[dict], end_date: str) -> dict | None:
   bio = get_player_bio(player_id)
