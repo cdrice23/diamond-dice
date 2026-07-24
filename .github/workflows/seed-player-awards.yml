@@ -26,7 +26,7 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - run: python seed_player_awards_job.py
+      - run: python seed_player_awards.py
         env:
           PYTHONUNBUFFERED: "1"
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
