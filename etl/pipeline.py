@@ -39,22 +39,41 @@ def write_run_summary(existing_ids: set[str], season: int) -> None:
     if not summary_path:
         return
 
-    failed_count = len(get_failed_player_ids())
+    try:
+        failed_count = len(get_failed_player_ids())
+    except Exception as error:
+        print(f"  Could not fetch failed-player count for summary: {error}")
+        failed_count = "unknown"
+
     with open(summary_path, "a") as f:
-        f.write("## Bootstrap run summary\n")
+        f.write("## Run summary\n")
         f.write(f"- Total players in database: {len(existing_ids)}\n")
         f.write(f"- Currently failed/pending retry: {failed_count}\n")
         f.write(f"- Season marker after this run: {season}\n")
 
 
-def build_player_record(player_id: int, levels: list[dict], end_date: str) -> dict | None:
+def build_player_record(
+    player_id: int, levels: list[dict], end_date: str
+) -> dict | None:
     bio = get_player_bio(player_id)
     if not bio:
         return None
 
-    hitting = select_all_split(get_career_stats(player_id, "hitting", CAREER_START_DATE, end_date)) or {}
-    pitching = select_all_split(get_career_stats(player_id, "pitching", CAREER_START_DATE, end_date)) or {}
-    fielding_splits = get_career_stats(player_id, "fielding", CAREER_START_DATE, end_date)
+    hitting = (
+        select_all_split(
+            get_career_stats(player_id, "hitting", CAREER_START_DATE, end_date)
+        )
+        or {}
+    )
+    pitching = (
+        select_all_split(
+            get_career_stats(player_id, "pitching", CAREER_START_DATE, end_date)
+        )
+        or {}
+    )
+    fielding_splits = get_career_stats(
+        player_id, "fielding", CAREER_START_DATE, end_date
+    )
 
     hitting_stat = hitting.get("stat", {})
     pitching_stat = pitching.get("stat", {})
@@ -69,7 +88,9 @@ def build_player_record(player_id: int, levels: list[dict], end_date: str) -> di
 
     qualified_batter = compute_is_qualified_batter(mlb_career_pa)
     qualified_pitcher = compute_is_qualified_pitcher(mlb_career_ip_raw)
-    eligible_positions = compute_eligible_positions(aggregate_fielding_games(fielding_splits), qualified_pitcher)
+    eligible_positions = compute_eligible_positions(
+        aggregate_fielding_games(fielding_splits), qualified_pitcher
+    )
 
     return {
         "external_id": str(player_id),
@@ -107,7 +128,9 @@ def build_player_record(player_id: int, levels: list[dict], end_date: str) -> di
 
 
 def record_player_team_history(
-    external_id: int, season_start_date_month: str = "03-01", season_end_date_month: str = "11-01"
+    external_id: int,
+    season_start_date_month: str = "03-01",
+    season_end_date_month: str = "11-01",
 ) -> None:
     player_uuid = get_player_uuid(str(external_id))
     if not player_uuid:
@@ -117,7 +140,9 @@ def record_player_team_history(
 
     for group in ("hitting", "pitching"):
         try:
-            data = mlb_get(f"/people/{external_id}/stats", {"stats": "yearByYear", "group": group})
+            data = mlb_get(
+                f"/people/{external_id}/stats", {"stats": "yearByYear", "group": group}
+            )
         except MlbApiError as error:
             print(f"    SKIPPED team history ({group}) for {external_id}: {error}")
             continue
@@ -149,7 +174,11 @@ def record_player_team_history(
 
 
 def process_roster(
-    roster: list[dict], levels: list[dict], existing_ids: set[str], end_date: str, skip_existing: bool
+    roster: list[dict],
+    levels: list[dict],
+    existing_ids: set[str],
+    end_date: str,
+    skip_existing: bool,
 ) -> None:
     for entry in roster:
         player_id, name = entry["person"]["id"], entry["person"]["fullName"]
@@ -205,7 +234,13 @@ def seed_player_awards() -> None:
             if not player_id:
                 continue  # not in our qualified pool -- expected, not an error
 
-            row = {"player_id": player_id, "award_type_id": award_type_id, "season": int(recipient["season"])}
-            get_client().table("player_awards").upsert(row, on_conflict="player_id,award_type_id,season").execute()
+            row = {
+                "player_id": player_id,
+                "award_type_id": award_type_id,
+                "season": int(recipient["season"]),
+            }
+            get_client().table("player_awards").upsert(
+                row, on_conflict="player_id,award_type_id,season"
+            ).execute()
 
     print("Player awards seeding complete.")

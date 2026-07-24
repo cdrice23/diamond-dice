@@ -8,7 +8,7 @@ from config import (
 )
 from db import get_config_value, get_existing_external_ids, get_levels, set_config
 from mlb_client import CircuitBreakerAbort, get_all_team_ids, get_historical_roster
-from pipeline import process_roster, seed_player_awards, write_run_summary
+from pipeline import process_roster, write_run_summary
 
 
 def run_bootstrap_batch() -> None:
@@ -16,8 +16,12 @@ def run_bootstrap_batch() -> None:
     existing_ids = get_existing_external_ids()
     team_ids = sorted(get_all_team_ids())
 
-    season = int(get_config_value("etl_current_season", default=str(BOOTSTRAP_START_SEASON)))
-    completed_teams = set(json.loads(get_config_value("etl_completed_teams_this_season", default="[]")))
+    season = int(
+        get_config_value("etl_current_season", default=str(BOOTSTRAP_START_SEASON))
+    )
+    completed_teams = set(
+        json.loads(get_config_value("etl_completed_teams_this_season", default="[]"))
+    )
 
     try:
         if season < ERA_FLOOR_SEASON:
@@ -38,16 +42,27 @@ def run_bootstrap_batch() -> None:
                 continue
 
             team_id = remaining_teams[0]
-            print(f"--- Season {season}, team {team_id} ({len(completed_teams) + 1}/{len(team_ids)}) ---")
+            print(
+                f"--- Season {season}, team {team_id} ({len(completed_teams) + 1}/{len(team_ids)}) ---"
+            )
             roster = get_historical_roster(team_id, season)
-            process_roster(roster, levels, existing_ids, end_date=BOOTSTRAP_END_DATE, skip_existing=True)
+            process_roster(
+                roster,
+                levels,
+                existing_ids,
+                end_date=BOOTSTRAP_END_DATE,
+                skip_existing=True,
+            )
 
             completed_teams.add(str(team_id))
-            set_config("etl_completed_teams_this_season", json.dumps(sorted(completed_teams)))
+            set_config(
+                "etl_completed_teams_this_season", json.dumps(sorted(completed_teams))
+            )
             pairs_processed += 1
 
-        seed_player_awards()
-        print(f"Batch complete. Currently at season {season}, {len(completed_teams)}/{len(team_ids)} teams done.")
+        print(
+            f"Batch complete. Currently at season {season}, {len(completed_teams)}/{len(team_ids)} teams done."
+        )
     finally:
         write_run_summary(existing_ids, season)
 

@@ -1,0 +1,33 @@
+name: Seed Player Awards
+
+on:
+  schedule:
+    - cron: "30 15 * * *"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: etl
+
+jobs:
+  seed-awards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: seed-player-awards
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - run: python seed_player_awards_job.py
+        env:
+          PYTHONUNBUFFERED: "1"
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
