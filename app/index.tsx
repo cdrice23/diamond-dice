@@ -79,10 +79,10 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontSize: 24, fontWeight: '600', marginBottom: 24, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
+  title: { fontFamily: 'VT323_400Regular', fontSize: 24, marginBottom: 24, textAlign: 'center' },
+  input: { fontFamily: 'VT323_400Regular', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
   button: { backgroundColor: '#1a1a1a', padding: 14, borderRadius: 8, alignItems: 'center' },
   buttonSecondary: { backgroundColor: '#666', padding: 14, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600' },
-  error: { color: 'red', textAlign: 'center' },
+  buttonText: { fontFamily: 'VT323_400Regular', color: '#fff' },
+  error: { fontFamily: 'VT323_400Regular', color: 'red', textAlign: 'center' },
 });

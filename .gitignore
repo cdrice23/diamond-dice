@@ -47,4 +47,4 @@ scratch
 
 # python cache
 etl/__pycache__/
-etl/*.pyc
+etl/*.pycCLAUDE.md

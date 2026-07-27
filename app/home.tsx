@@ -49,8 +49,8 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 24, gap: 16 },
-  title: { fontSize: 18, textAlign: 'center' },
-  message: { fontSize: 16, textAlign: 'center', fontStyle: 'italic' },
+  title: { fontFamily: 'VT323_400Regular', fontSize: 18, textAlign: 'center' },
+  message: { fontFamily: 'VT323_400Regular', fontSize: 16, textAlign: 'center', fontStyle: 'italic' },
   button: { backgroundColor: '#1a1a1a', padding: 14, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600' },
+  buttonText: { fontFamily: 'VT323_400Regular', color: '#fff' },
 });
