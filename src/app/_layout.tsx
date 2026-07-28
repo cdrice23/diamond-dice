@@ -1,3 +1,5 @@
+import "@/global.css";
+import { NAV_THEME } from "@/utils/theme";
 import { Silkscreen_400Regular } from "@expo-google-fonts/silkscreen";
 import { VT323_400Regular } from "@expo-google-fonts/vt323";
 import { ThemeProvider } from "@react-navigation/native";
@@ -7,8 +9,6 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
-import "../global.css";
-import { NAV_THEME } from "../lib/theme";
 
 SplashScreen.preventAutoHideAsync();
 

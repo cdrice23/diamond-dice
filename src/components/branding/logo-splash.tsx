@@ -1,9 +1,8 @@
 import { Text, useWindowDimensions, View } from "react-native";
-import { LogoIcon } from "./LogoIcon";
+import { BASE_CONTENT_WIDTH, BASE_FONT_SIZE, HORIZONTAL_PADDING, LOGO_COLOR_DEFAULT_ACCENT, LOGO_COLOR_DEFAULT_MAIN, LOGO_SPLASH_FONT_FAMILY } from "./constants";
+import { LogoIcon } from "./logo-icon";
 
-const HORIZONTAL_PADDING = 24; 
-const BASE_FONT_SIZE = 42;
-const BASE_CONTENT_WIDTH = 340;
+
 
 type LogoSplashProps = {
   mainColor?: string;
@@ -14,11 +13,11 @@ type LogoSplashProps = {
 };
 
 export function LogoSplash({
-  mainColor = "#05162A",
-  accentColor = "#000000",
-  symbolSquareColor = "#000000",
-  symbolCubeColor = "#000000",
-  fontFamily = "Silkscreen_400Regular",
+  mainColor = LOGO_COLOR_DEFAULT_MAIN,
+  accentColor = LOGO_COLOR_DEFAULT_ACCENT,
+  symbolSquareColor = LOGO_COLOR_DEFAULT_MAIN,
+  symbolCubeColor = LOGO_COLOR_DEFAULT_MAIN,
+  fontFamily = LOGO_SPLASH_FONT_FAMILY,
 }: LogoSplashProps) {
   const { width: screenWidth } = useWindowDimensions();
   const availableWidth = screenWidth - HORIZONTAL_PADDING * 2;

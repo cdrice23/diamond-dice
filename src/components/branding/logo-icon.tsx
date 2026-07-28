@@ -1,5 +1,5 @@
-// components/LogoIcon.tsx
 import Svg, { Line, Polygon, Rect } from "react-native-svg";
+import { LOGO_COLOR_DEFAULT_MAIN, LOGO_SIZE, LOGO_STROKE_WIDTH_CUBE, LOGO_STROKE_WIDTH_SQUARE } from "./constants";
 
 type LogoIconProps = {
   size?: number;
@@ -7,9 +7,9 @@ type LogoIconProps = {
   symbolCubeColor?: string;
 };
 
-export function LogoIcon({ size = 100, symbolSquareColor = "#000000", symbolCubeColor = "#000000" }: LogoIconProps) {
-  const strokeWidthSquare = 8
-  const strokeWidthCube = 8
+export function LogoIcon({ size = LOGO_SIZE, symbolSquareColor = LOGO_COLOR_DEFAULT_MAIN, symbolCubeColor = LOGO_COLOR_DEFAULT_MAIN }: LogoIconProps) {
+  const strokeWidthSquare = LOGO_STROKE_WIDTH_SQUARE
+  const strokeWidthCube = LOGO_STROKE_WIDTH_CUBE
 
   return (
     <Svg width={size} height={size} viewBox="0 0 327.5 377.8">

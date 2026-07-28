@@ -1,6 +1,6 @@
-import { LogoSplash } from '@/components/LogoSplash';
-import { supabase } from '@/lib/supabase';
-import { THEME } from '@/lib/theme';
+import { LogoSplash } from '@/components/branding/logo-splash';
+import { supabase } from '@/utils/supabase';
+import { THEME } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, useColorScheme } from 'react-native';
