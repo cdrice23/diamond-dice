@@ -1,15 +1,20 @@
+import { Silkscreen_400Regular } from "@expo-google-fonts/silkscreen";
+import { VT323_400Regular } from "@expo-google-fonts/vt323";
+import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
-import { useFonts, VT323_400Regular } from "@expo-google-fonts/vt323";
-import * as SplashScreen from "expo-splash-screen";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { useColorScheme } from "react-native";
 import "../global.css";
+import { NAV_THEME } from "../lib/theme";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ VT323_400Regular });
+  const colorScheme = useColorScheme();
+  const [fontsLoaded] = useFonts({ VT323_400Regular, Silkscreen_400Regular });
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -22,9 +27,9 @@ export default function RootLayout() {
   }
 
   return (
-    <View className="flex-1 font-sans">
+    <ThemeProvider value={colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light}>
       <Stack />
       <PortalHost />
-    </View>
+    </ThemeProvider>
   );
 }

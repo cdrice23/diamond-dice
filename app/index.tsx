@@ -1,7 +1,9 @@
+import { LogoSplash } from '@/components/LogoSplash';
 import { supabase } from '@/lib/supabase';
+import { THEME } from '@/lib/theme';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View, useColorScheme } from 'react-native';
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -12,6 +14,8 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const colors = colorScheme === 'dark' ? THEME.dark : THEME.light;
 
   async function handleAuth(mode: 'signUp' | 'signIn') {
     setError(null);
@@ -27,7 +31,7 @@ export default function LoginScreen() {
       ? await supabase.auth.signUp({
           email,
           password,
-          options: { data: { username } }, // → auth.users.raw_user_meta_data, read by the trigger
+          options: { data: { username } },
         })
       : await supabase.auth.signInWithPassword({ email, password });
 
@@ -43,7 +47,12 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Diamond Dice</Text>
+      <LogoSplash
+        mainColor={colors.primary}
+        accentColor={colors.level2}
+        symbolSquareColor={colors.primary}
+        symbolCubeColor={colors.primary}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -78,11 +87,10 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontFamily: 'VT323_400Regular', fontSize: 24, marginBottom: 24, textAlign: 'center' },
-  input: { fontFamily: 'VT323_400Regular', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
-  button: { backgroundColor: '#1a1a1a', padding: 14, borderRadius: 8, alignItems: 'center' },
-  buttonSecondary: { backgroundColor: '#666', padding: 14, borderRadius: 8, alignItems: 'center' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 12 },
+  input: { fontFamily: 'VT323_400Regular', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, width: '100%' },
+  button: { backgroundColor: '#1a1a1a', padding: 14, borderRadius: 8, alignItems: 'center', width: '100%' },
+  buttonSecondary: { backgroundColor: '#666', padding: 14, borderRadius: 8, alignItems: 'center', width: '100%' },
   buttonText: { fontFamily: 'VT323_400Regular', color: '#fff' },
   error: { fontFamily: 'VT323_400Regular', color: 'red', textAlign: 'center' },
 });
