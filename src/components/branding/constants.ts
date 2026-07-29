@@ -4,13 +4,54 @@ export const BASE_FONT_SIZE = 42;
 export const BASE_CONTENT_WIDTH = 340;
 
 // Logo General
-export const LOGO_COLOR_DEFAULT_MAIN = "#F7F7F7";
+export const LOGO_COLOR_DEFAULT_MAIN = "#888888";
 export const LOGO_COLOR_DEFAULT_ACCENT = "#6BA4E7";
 
 // Logo Icon
-export const LOGO_SIZE = 10;
+export const LOGO_SIZE = 100;
 export const LOGO_STROKE_WIDTH_SQUARE = 8;
 export const LOGO_STROKE_WIDTH_CUBE = 8;
+export const LOGO_ICON_VIEWBOX = "0 0 327.5 377.8";
+export const LOGO_SQUARE_RECT = {
+  x: 33.75,
+  y: 58.9,
+  width: 260,
+  height: 260,
+} as const;
+export const LOGO_SQUARE_PERIMETER =
+  2 * (LOGO_SQUARE_RECT.width + LOGO_SQUARE_RECT.height);
+export const LOGO_CUBE_POLYGON_POINTS =
+  "163.75,1.25 326.25,95.1 326.25,282.7 163.75,376.55 1.25,282.7 1.25,95.1";
+export const LOGO_CUBE_POLYGON_PERIMETER = 1126;
+export const LOGO_CUBE_LINES = [
+  { x1: 163.75, y1: 188.9, x2: 163.75, y2: 1.25 },
+  { x1: 163.75, y1: 188.9, x2: 326.25, y2: 282.7 },
+  { x1: 163.75, y1: 188.9, x2: 1.25, y2: 282.7 },
+] as const;
+export const LOGO_CUBE_LINE_LENGTH = 188;
+export const LOGO_FALLBACK_COLOR = "#888888";
 
 // Logo Splash
 export const LOGO_SPLASH_FONT_FAMILY = "Silkscreen_400Regular";
+
+// Loading Spinner
+export const ELEMENT_COUNT = 5;
+export const DRAW_DURATION_MAX = 900;
+export const RATE_MS_PER_UNIT = DRAW_DURATION_MAX / LOGO_CUBE_POLYGON_PERIMETER;
+export const DRAW_STAGGER = 150;
+export const SETTLE_DURATION = 150;
+export const SQUARE_ORDER_INDEX = 4;
+export const SQUARE_DURATION = LOGO_SQUARE_PERIMETER * RATE_MS_PER_UNIT;
+export const DRAW_PHASE_DURATION =
+  SQUARE_ORDER_INDEX * DRAW_STAGGER + SQUARE_DURATION + SETTLE_DURATION;
+export const PAUSE_BEFORE_ROTATE = 150;
+export const ROTATE_PHASE_START = DRAW_PHASE_DURATION + PAUSE_BEFORE_ROTATE;
+export const ROTATE_DURATION = 1500;
+export const PAUSE_BEFORE_REPEAT = 300;
+export const CYCLE_DURATION =
+  ROTATE_PHASE_START + ROTATE_DURATION + PAUSE_BEFORE_REPEAT;
+export const ROTATE_SWING_OUT_FRACTION = 0.4;
+export const ROTATE_OVERSHOOT_DEGREES = 45;
+export const ROTATE_DECAY_OSCILLATIONS = 2;
+export const ROTATE_DECAY_RATE = 4;
+export const LOGO_SQUARE_POLYGON_POINTS = `${LOGO_SQUARE_RECT.x},${LOGO_SQUARE_RECT.y} ${LOGO_SQUARE_RECT.x + LOGO_SQUARE_RECT.width},${LOGO_SQUARE_RECT.y} ${LOGO_SQUARE_RECT.x + LOGO_SQUARE_RECT.width},${LOGO_SQUARE_RECT.y + LOGO_SQUARE_RECT.height} ${LOGO_SQUARE_RECT.x},${LOGO_SQUARE_RECT.y + LOGO_SQUARE_RECT.height}`;
