@@ -22,7 +22,8 @@ export const LOGO_SQUARE_PERIMETER =
   2 * (LOGO_SQUARE_RECT.width + LOGO_SQUARE_RECT.height);
 export const LOGO_CUBE_POLYGON_POINTS =
   "163.75,1.25 326.25,95.1 326.25,282.7 163.75,376.55 1.25,282.7 1.25,95.1";
-export const LOGO_CUBE_POLYGON_PERIMETER = 1126;
+export const LOGO_CUBE_POLYGON_PERIMETER = 1125.8;
+export const STROKE_CLOSE_OVERLAP = 1.5;
 export const LOGO_CUBE_LINES = [
   { x1: 163.75, y1: 188.9, x2: 163.75, y2: 1.25 },
   { x1: 163.75, y1: 188.9, x2: 326.25, y2: 282.7 },

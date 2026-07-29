@@ -33,6 +33,7 @@ import {
   ROTATE_PHASE_START,
   ROTATE_SWING_OUT_FRACTION,
   SETTLE_DURATION,
+  STROKE_CLOSE_OVERLAP,
 } from './constants';
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
@@ -44,6 +45,7 @@ function useElementAnimatedProps(
   length: number,
   blendColors: [string, string, string],
   settledColor: string,
+  overlap: number = 0,
 ) {
   const startDelay = orderIndex * DRAW_STAGGER;
   const duration = length * RATE_MS_PER_UNIT;
@@ -54,7 +56,7 @@ function useElementAnimatedProps(
     const t = cycleMs.value;
 
     const drawT = interpolate(t, [startDelay, drawEnd], [0, 1], Extrapolation.CLAMP);
-    const dashoffset = interpolate(drawT, [0, 1], [length, 0]);
+    const dashoffset = interpolate(drawT, [0, 1], [length, -overlap]);
 
     const colorT = interpolate(t, [startDelay, drawEnd, settleEnd], [0, 2, 3], Extrapolation.CLAMP);
     const stroke = interpolateColor(colorT, [0, 1, 2, 3], [blendColors[0], blendColors[1], blendColors[2], settledColor]);
@@ -86,11 +88,11 @@ export function LoadingSpinner({ size = 100, color, blendColors }: LoadingSpinne
     );
   }, [cycleMs]);
 
-  const hexagonProps = useElementAnimatedProps(cycleMs, 0, LOGO_CUBE_POLYGON_PERIMETER, resolvedBlend, settledColor);
+  const hexagonProps = useElementAnimatedProps(cycleMs, 0, LOGO_CUBE_POLYGON_PERIMETER, resolvedBlend, settledColor, STROKE_CLOSE_OVERLAP);
   const line1Props = useElementAnimatedProps(cycleMs, 1, LOGO_CUBE_LINE_LENGTH, resolvedBlend, settledColor);
   const line2Props = useElementAnimatedProps(cycleMs, 2, LOGO_CUBE_LINE_LENGTH, resolvedBlend, settledColor);
   const line3Props = useElementAnimatedProps(cycleMs, 3, LOGO_CUBE_LINE_LENGTH, resolvedBlend, settledColor);
-  const squareProps = useElementAnimatedProps(cycleMs, 4, LOGO_SQUARE_PERIMETER, resolvedBlend, settledColor);
+  const squareProps = useElementAnimatedProps(cycleMs, 4, LOGO_SQUARE_PERIMETER, resolvedBlend, settledColor, STROKE_CLOSE_OVERLAP);
 
   const rotateStyle = useAnimatedStyle(() => {
   const t = cycleMs.value;
@@ -122,11 +124,11 @@ export function LoadingSpinner({ size = 100, color, blendColors }: LoadingSpinne
   return (
     <Animated.View style={[{ width: size, height: size }, rotateStyle]}>
       <Svg width={size} height={size} viewBox={LOGO_ICON_VIEWBOX}>
-        <AnimatedPolygon points={LOGO_CUBE_POLYGON_POINTS} fill="none" strokeWidth={LOGO_STROKE_WIDTH_CUBE} strokeDasharray={LOGO_CUBE_POLYGON_PERIMETER} animatedProps={hexagonProps} />
+        <AnimatedPolygon points={LOGO_CUBE_POLYGON_POINTS} fill="none" strokeWidth={LOGO_STROKE_WIDTH_CUBE} strokeDasharray={LOGO_CUBE_POLYGON_PERIMETER} animatedProps={hexagonProps} strokeLinecap="round" strokeLinejoin="round" />
         <AnimatedLine {...LOGO_CUBE_LINES[0]} strokeWidth={LOGO_STROKE_WIDTH_CUBE} strokeDasharray={LOGO_CUBE_LINE_LENGTH} animatedProps={line1Props} />
         <AnimatedLine {...LOGO_CUBE_LINES[1]} strokeWidth={LOGO_STROKE_WIDTH_CUBE} strokeDasharray={LOGO_CUBE_LINE_LENGTH} animatedProps={line2Props} />
         <AnimatedLine {...LOGO_CUBE_LINES[2]} strokeWidth={LOGO_STROKE_WIDTH_CUBE} strokeDasharray={LOGO_CUBE_LINE_LENGTH} animatedProps={line3Props} />
-        <AnimatedPolygon points={LOGO_SQUARE_POLYGON_POINTS} fill="none" strokeWidth={LOGO_STROKE_WIDTH_SQUARE} strokeDasharray={LOGO_SQUARE_PERIMETER} animatedProps={squareProps} />
+        <AnimatedPolygon points={LOGO_SQUARE_POLYGON_POINTS} fill="none" strokeWidth={LOGO_STROKE_WIDTH_SQUARE} strokeDasharray={LOGO_SQUARE_PERIMETER} animatedProps={squareProps} strokeLinecap="round" strokeLinejoin="round" />
       </Svg>
     </Animated.View>
   );
