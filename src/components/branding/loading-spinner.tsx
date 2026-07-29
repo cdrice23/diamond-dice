@@ -10,7 +10,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withTiming,
+  withTiming
 } from 'react-native-reanimated';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import {
@@ -74,7 +74,7 @@ export function LoadingSpinner({ size = 100, color, blendColors }: LoadingSpinne
   const theme = colorScheme === 'dark' ? THEME.dark : THEME.light;
 
   const settledColor = color ?? theme.foreground;
-  const resolvedBlend: [string, string, string] = blendColors ?? [theme.level1, theme.level2, theme.level3];
+  const resolvedBlend: [string, string, string] = blendColors ?? [theme.level3, theme.level1, theme.level2];
 
   const cycleMs = useSharedValue(0);
 
@@ -84,7 +84,7 @@ export function LoadingSpinner({ size = 100, color, blendColors }: LoadingSpinne
       -1,
       false,
     );
-  }, []);
+  }, [cycleMs]);
 
   const hexagonProps = useElementAnimatedProps(cycleMs, 0, LOGO_CUBE_POLYGON_PERIMETER, resolvedBlend, settledColor);
   const line1Props = useElementAnimatedProps(cycleMs, 1, LOGO_CUBE_LINE_LENGTH, resolvedBlend, settledColor);

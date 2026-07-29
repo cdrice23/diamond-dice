@@ -1,3 +1,4 @@
+import { LoadingSpinner } from '@/components/branding/loading-spinner';
 import { LogoSplash } from '@/components/branding/logo-splash';
 import { supabase } from '@/utils/supabase';
 import { THEME } from '@/utils/theme';
@@ -47,6 +48,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <LoadingSpinner size={80} />
       <LogoSplash
         mainColor={colors.primary}
         accentColor={colors.level2}
