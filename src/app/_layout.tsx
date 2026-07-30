@@ -33,7 +33,7 @@ export default function RootLayout() {
   }, []);
 
   if (!fontsLoaded) {
-    return null;
+    return <LoadingScreen />;
   }
 
   return (
@@ -55,10 +55,10 @@ function RootLayoutNav() {
     <ThemeProvider value={colorScheme === 'dark' ? NAV_THEME.dark : NAV_THEME.light}>
       <Stack>
         <Stack.Protected guard={!!session}>
-          <Stack.Screen name="home" />
+          <Stack.Screen name="(app)" />
         </Stack.Protected>
         <Stack.Protected guard={!session}>
-          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
         </Stack.Protected>
       </Stack>
       <PortalHost />
