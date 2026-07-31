@@ -1,4 +1,4 @@
-import { LoadingSpinner } from '@/components/branding/loading-spinner';
+import { LoadingSpinner } from '@/components/branding/loading-spinner.component';
 import '@/global.css';
 import { SessionProvider, useSession } from '@/utils/session-provider';
 import { NAV_THEME, THEME } from '@/utils/theme';
@@ -8,11 +8,7 @@ import { ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
 import { useColorScheme, View } from 'react-native';
-
-SplashScreen.preventAutoHideAsync();
 
 function LoadingScreen() {
   const colorScheme = useColorScheme();
@@ -27,10 +23,6 @@ function LoadingScreen() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ VT323_400Regular, Silkscreen_400Regular });
-
-  useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
 
   if (!fontsLoaded) {
     return <LoadingScreen />;

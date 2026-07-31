@@ -2,14 +2,20 @@ const { hairlineWidth } = require("nativewind/theme");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
+  darkMode: 'class',
+  content: ["./src/app/**/*.{js,jsx,ts,tsx}", "./src/components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       fontFamily: {
         sans: ["VT323_400Regular"],
+        display: ["Silkscreen_400Regular"],
+        body: ["VT323_400Regular"],
       },
       colors: {
+        level1: "hsl(var(--level1))",
+        level2: "hsl(var(--level2))",
+        level3: "hsl(var(--level3))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

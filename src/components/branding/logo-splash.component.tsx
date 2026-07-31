@@ -1,6 +1,6 @@
 import { Text, useWindowDimensions, View } from "react-native";
-import { BASE_CONTENT_WIDTH, BASE_FONT_SIZE, HORIZONTAL_PADDING, LOGO_COLOR_DEFAULT_ACCENT, LOGO_COLOR_DEFAULT_MAIN, LOGO_SPLASH_FONT_FAMILY } from "./constants";
-import { LogoIcon } from "./logo-icon";
+import { BASE_CONTENT_WIDTH, BASE_FONT_SIZE, HORIZONTAL_PADDING, LOGO_COLOR_DEFAULT_ACCENT, LOGO_COLOR_DEFAULT_MAIN, LOGO_SPLASH_FONT_FAMILY } from "./branding.constants";
+import { LogoIcon } from "./logo-icon.component";
 
 
 

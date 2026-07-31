@@ -1,0 +1,13 @@
+env: load .env
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+Starting project at /Users/chrisrice/projects/diamond-dice
+Using src/app as the root directory for Expo Router.
+React Compiler enabled
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+iOS node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+iOS node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 86.6% ( 935/1005)
+iOS Bundled 5662ms node_modules/expo-router/entry.js (1619 modules)
+ LOG  NativeWind colorScheme: light

@@ -19,10 +19,11 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@rn-primitives/portal": "^1.5.2",
+    "@rn-primitives/slot": "^1.5.2",
     "@supabase/supabase-js": "^2.110.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "expo": "~54.0.34",
+    "expo": "~54.0.36",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.12",
     "expo-haptics": "~15.0.8",
@@ -50,6 +51,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "autoprefixer": "^10.5.4",
     "babel-preset-expo": "~54.0.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
@@ -61,6 +63,7 @@
   "allowScripts": {
     "fsevents@2.3.3": true,
     "unrs-resolver@1.12.2": true,
-    "react-native-svg@15.15.5": true
+    "react-native-svg@15.15.5": true,
+    "@rn-primitives/slot@1.5.2": true
   }
 }

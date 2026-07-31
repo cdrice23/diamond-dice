@@ -1,0 +1,9 @@
+export const SLOT_COUNT = 5;
+export const FIELD_HEIGHT = 44;
+export const HELPER_TEXT_HEIGHT = 20;
+export const SLOT_GAP = 8;
+export const SLOT_HEIGHT = FIELD_HEIGHT + HELPER_TEXT_HEIGHT + SLOT_GAP;
+export const SLOT_TRANSITION_DURATION = 350;
+export const FADE_TRANSITION_DURATION = 300;
+export const CASCADE_STAGGER = 80;
+export const LEAD_DURATION = 120

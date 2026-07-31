@@ -34,7 +34,7 @@ import {
   ROTATE_SWING_OUT_FRACTION,
   SETTLE_DURATION,
   STROKE_CLOSE_OVERLAP,
-} from './constants';
+} from './branding.constants';
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 const AnimatedLine = Animated.createAnimatedComponent(Line);
