@@ -1,7 +1,7 @@
 import { cn } from '@/utils/utils';
 import { Platform, TextInput } from 'react-native';
 
-function Input({ className, ...props }: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
+function Input({ className, error, style, ...props }: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput> & { error?: boolean }) {
   return (
     <TextInput
       className={cn(
@@ -19,8 +19,10 @@ function Input({ className, ...props }: React.ComponentProps<typeof TextInput> &
           ),
           native: 'placeholder:text-muted-foreground/50',
         }),
-        className
+        className,
+        error && 'border-level3',
       )}
+      style={[Platform.OS === 'android' && { textAlignVertical: 'center' as const }, style]}
       {...props}
     />
   );

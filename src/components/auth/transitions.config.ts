@@ -11,6 +11,13 @@ export const TRANSITIONS: Record<string, Partial<Record<FieldKey, TimingRole>>> 
     back: 'leadOut',
     secondaryAction: 'leadIn',
   },
+  'initial->signUpForm': {
+    primaryAction: 'leadOut',
+  },
+  'signUpForm->initial': {
+    back: 'leadOut',
+    primaryAction: 'leadIn',
+  },
 };
 
 export function getTimingRole(from: string, to: string, field: FieldKey): TimingRole {

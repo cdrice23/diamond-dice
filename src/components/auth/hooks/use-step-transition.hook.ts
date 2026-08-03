@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
-import { CASCADE_STAGGER, FADE_TRANSITION_DURATION, LEAD_DURATION, SLOT_TRANSITION_DURATION } from './auth.constants';
-import type { FieldKey, StepDefinition } from './steps.config';
-import { getTimingRole } from './transitions.config';
+import { CASCADE_STAGGER, FADE_TRANSITION_DURATION, LEAD_DURATION, SLOT_TRANSITION_DURATION } from '../auth.constants';
+import type { FieldKey, StepDefinition } from '../steps.config';
+import { getTimingRole } from '../transitions.config';
 
 type EffectiveSlotState = { position: number; visible: boolean; moveDelay: number; fadeDelay: number; fadeDuration: number };
 export type EffectiveStepDefinition = Record<FieldKey, EffectiveSlotState>;

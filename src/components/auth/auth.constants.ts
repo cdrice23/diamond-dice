@@ -1,4 +1,4 @@
-export const SLOT_COUNT = 5;
+export const SLOT_COUNT = 6;
 export const FIELD_HEIGHT = 44;
 export const HELPER_TEXT_HEIGHT = 20;
 export const SLOT_GAP = 8;
@@ -7,3 +7,6 @@ export const SLOT_TRANSITION_DURATION = 350;
 export const FADE_TRANSITION_DURATION = 300;
 export const CASCADE_STAGGER = 80;
 export const LEAD_DURATION = 120
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const USERNAME_PATTERN = /^[a-zA-Z0-9_](?:[a-zA-Z0-9_.]{1,18}[a-zA-Z0-9_])?$/;
+export const MIN_PASSWORD_LENGTH = 10;

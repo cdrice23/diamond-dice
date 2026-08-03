@@ -1,5 +1,5 @@
+import { LOGO_COLOR_DEFAULT_MAIN, LOGO_CUBE_LINES, LOGO_CUBE_POLYGON_POINTS, LOGO_ICON_VIEWBOX, LOGO_SIZE, LOGO_SQUARE_RECT, LOGO_STROKE_WIDTH_CUBE, LOGO_STROKE_WIDTH_SQUARE } from '@/components/branding/branding.constants';
 import Svg, { Line, Polygon, Rect } from "react-native-svg";
-import { LOGO_COLOR_DEFAULT_MAIN, LOGO_CUBE_LINES, LOGO_CUBE_POLYGON_POINTS, LOGO_ICON_VIEWBOX, LOGO_SIZE, LOGO_SQUARE_RECT, LOGO_STROKE_WIDTH_CUBE, LOGO_STROKE_WIDTH_SQUARE } from "./branding.constants";
 
 type LogoIconProps = {
   size?: number;

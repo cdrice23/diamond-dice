@@ -1,4 +1,4 @@
-import { LoadingSpinner } from '@/components/branding/loading-spinner.component';
+import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
 import '@/global.css';
 import { SessionProvider, useSession } from '@/utils/session-provider';
 import { NAV_THEME, THEME } from '@/utils/theme';
