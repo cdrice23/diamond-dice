@@ -1,3 +1,4 @@
+import { RESET_CODE_LENGTH } from '@/components/auth/auth.constants';
 import { AnimatedSlotContainer } from '@/components/auth/components/animated-slot-container.component';
 import { AnimatedSlot } from '@/components/auth/components/animated-slot.component';
 import { PasswordInput } from '@/components/auth/components/password-input.component';
@@ -5,6 +6,7 @@ import { useAuthForm } from '@/components/auth/hooks/use-auth-form.hook';
 import { useFormStep } from '@/components/auth/hooks/use-form-step.hook';
 import { useStepTransition } from '@/components/auth/hooks/use-step-transition.hook';
 import { FieldKey, FormStep, STEPS } from '@/components/auth/steps.config';
+import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
 import { LogoSplash } from '@/components/branding/components/logo-splash.component';
 import { Button } from '@/components/primitives/button.component';
 import { Input } from '@/components/primitives/input.component';
@@ -54,10 +56,7 @@ export default function LoginScreen() {
   async function handleSignUp() {
     setError(null);
     form.setFieldErrors({});
-
-    if (!form.isSignUpValid) {
-      return;
-    }
+    if (!form.isSignUpValid) return;
 
     setLoading(true);
     const { error } = await supabase.auth.signUp({
@@ -71,7 +70,6 @@ export default function LoginScreen() {
       setError(error.message);
       return;
     }
-
     setStep('checkEmail');
   }
 
@@ -80,7 +78,7 @@ export default function LoginScreen() {
       setStep('loginForm');
     } else if (formStep === 'loginForm') {
       handleLogin();
-    } else {
+    } else if (formStep === 'signUpForm') {
       handleSignUp();
     }
   }
@@ -91,10 +89,47 @@ export default function LoginScreen() {
     }
   }
 
-  function handleBack() {
-    setStep('initial');
+  function handleForgotPasswordPress() {
+    setStep('forgotPasswordForm');
+  }
+
+  async function handleResetActionPress() {
     setError(null);
-    form.reset();
+    if (formStep === 'forgotPasswordForm') {
+      setLoading(true);
+      const ok = await form.sendResetCode();
+      setLoading(false);
+      if (ok) setStep('codeEntryForm');
+    } else if (formStep === 'resetPasswordForm') {
+      setLoading(true);
+      await form.submitNewPassword(() => setStep('loginForm'));
+      setLoading(false);
+    }
+  }
+
+  async function handleResendCode() {
+    setLoading(true);
+    await form.sendResetCode();
+    setLoading(false);
+  }
+
+  function handleResetCodeChange(value: string) {
+    form.handleResetCodeChange(value);
+    if (value.length === RESET_CODE_LENGTH) {
+      form.verifyResetCode(value, () => setStep('resetPasswordForm'));
+    }
+  }
+
+  function handleBackPress() {
+    setError(null);
+    if (formStep === 'forgotPasswordForm') {
+      setStep('loginForm');
+    } else if (formStep === 'codeEntryForm') {
+      setStep('forgotPasswordForm');
+    } else {
+      setStep('initial');
+      form.reset();
+    }
   }
 
   return (
@@ -163,31 +198,86 @@ export default function LoginScreen() {
                 />
               </AnimatedSlot>
 
+              <AnimatedSlot {...slotProps('resetCode')} errorText={form.fieldErrors.resetCode}>
+                <Input
+                  placeholder="Reset Code"
+                  className="border-primary text-primary"
+                  error={!!form.fieldErrors.resetCode}
+                  value={form.resetCode}
+                  onChangeText={handleResetCodeChange}
+                  keyboardType="number-pad"
+                  maxLength={RESET_CODE_LENGTH}
+                />
+              </AnimatedSlot>
+
+              <AnimatedSlot {...slotProps('newPassword')} errorText={form.fieldErrors.newPassword}>
+                <PasswordInput
+                  placeholder="New Password"
+                  className="border-primary text-primary"
+                  error={!!form.fieldErrors.newPassword}
+                  iconColor={colors.primary}
+                  value={form.newPassword}
+                  onChangeText={form.handleNewPasswordChange}
+                  onBlur={form.checkNewPasswordsMatch}
+                />
+              </AnimatedSlot>
+
+              <AnimatedSlot {...slotProps('confirmNewPassword')} errorText={form.fieldErrors.confirmNewPassword}>
+                <PasswordInput
+                  placeholder="Confirm New Password"
+                  className="border-primary text-primary"
+                  error={!!form.fieldErrors.confirmNewPassword}
+                  iconColor={colors.primary}
+                  value={form.confirmNewPassword}
+                  onChangeText={form.handleConfirmNewPasswordChange}
+                  onBlur={form.checkNewPasswordsMatch}
+                />
+              </AnimatedSlot>
+
               <AnimatedSlot {...slotProps('primaryAction')}>
                 <Button
                   className="bg-level2"
                   onPress={handlePrimaryActionPress}
                   disabled={loading || (formStep === 'loginForm' ? !form.isLoginValid : formStep === 'signUpForm' ? !form.isSignUpValid : false)}
                 >
-                  <Text>{formStep === 'signUpForm' ? 'Sign Up' : 'Login'}</Text>
+                  <Text className="text-primary">{formStep === 'signUpForm' ? 'Sign Up' : 'Login'}</Text>
                 </Button>
               </AnimatedSlot>
 
               <AnimatedSlot {...slotProps('secondaryAction')}>
                 <Button className="bg-level1" onPress={handleSecondaryActionPress} disabled={loading}>
-                  <Text>Sign Up</Text>
+                  <Text className="text-primary">Sign Up</Text>
                 </Button>
               </AnimatedSlot>
 
               <AnimatedSlot {...slotProps('forgotPassword')}>
-                <Button variant="link" onPress={() => {}}>
-                  {/* TODO: password reset flow */}
+                <Button variant="link" onPress={handleForgotPasswordPress}>
                   <Text>Forgot Password?</Text>
                 </Button>
               </AnimatedSlot>
 
+              <AnimatedSlot {...slotProps('resetAction')}>
+                <Button
+                  className="bg-level2"
+                  onPress={handleResetActionPress}
+                  disabled={loading || (formStep === 'resetPasswordForm' ? !form.isResetPasswordValid : form.email.trim().length === 0)}
+                >
+                  {loading ? (
+                    <LoadingSpinner size={20} color={colors.primary} blendColors={[colors.primary, colors.primary, colors.primary]} />
+                  ) : (
+                    <Text>{formStep === 'resetPasswordForm' ? 'Set New Password' : 'Get Confirmation Code'}</Text>
+                  )}
+                </Button>
+              </AnimatedSlot>
+
+              <AnimatedSlot {...slotProps('resendCode')}>
+                <Button variant="link" onPress={handleResendCode} disabled={loading}>
+                  <Text>Resend Confirmation Email</Text>
+                </Button>
+              </AnimatedSlot>
+
               <AnimatedSlot {...slotProps('back')}>
-                <Button variant="ghost" onPress={handleBack}>
+                <Button variant="ghost" onPress={handleBackPress}>
                   <Text>Back</Text>
                 </Button>
               </AnimatedSlot>

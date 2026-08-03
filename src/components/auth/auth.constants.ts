@@ -10,3 +10,4 @@ export const LEAD_DURATION = 120
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const USERNAME_PATTERN = /^[a-zA-Z0-9_](?:[a-zA-Z0-9_.]{1,18}[a-zA-Z0-9_])?$/;
 export const MIN_PASSWORD_LENGTH = 10;
+export const RESET_CODE_LENGTH = 8;

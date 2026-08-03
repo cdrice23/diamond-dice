@@ -9,6 +9,9 @@ export function useAuthForm(formStep: FormStep) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
 
   async function checkUsernameAvailability(value: string) {
@@ -33,6 +36,11 @@ export function useAuthForm(formStep: FormStep) {
   function checkPasswordsMatch() {
     if (confirmPassword.length === 0) return;
     setFieldErrors((prev) => ({ ...prev, confirmPassword: password === confirmPassword ? undefined : 'Passwords do not match.' }));
+  }
+
+  function checkNewPasswordsMatch() {
+    if (confirmNewPassword.length === 0) return;
+    setFieldErrors((prev) => ({ ...prev, confirmNewPassword: newPassword === confirmNewPassword ? undefined : 'Passwords do not match.' }));
   }
 
   function handleEmailChange(value: string) {
@@ -65,11 +73,70 @@ export function useAuthForm(formStep: FormStep) {
     }
   }
 
+  function handleNewPasswordChange(value: string) {
+    setNewPassword(value);
+    if (confirmNewPassword.length > 0 && value === confirmNewPassword) {
+      setFieldErrors((prev) => ({ ...prev, confirmNewPassword: undefined }));
+    }
+  }
+
+  function handleConfirmNewPasswordChange(value: string) {
+    setConfirmNewPassword(value);
+    if (value.length === 0 || value === newPassword) {
+      setFieldErrors((prev) => ({ ...prev, confirmNewPassword: undefined }));
+    }
+  }
+
+  function handleResetCodeChange(value: string) {
+    setResetCode(value);
+    setFieldErrors((prev) => ({ ...prev, resetCode: undefined }));
+  }
+
+  async function sendResetCode(): Promise<boolean> {
+    setFieldErrors((prev) => ({ ...prev, email: undefined }));
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) {
+      setFieldErrors((prev) => ({ ...prev, email: error.message }));
+      return false;
+    }
+    return true;
+  }
+
+  async function verifyResetCode(code: string, onSuccess: () => void) {
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
+    if (error) {
+      setFieldErrors((prev) => ({ ...prev, resetCode: 'Invalid or expired code.' }));
+    } else {
+      onSuccess();
+    }
+  }
+
+  async function submitNewPassword(onSuccess: () => void) {
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setFieldErrors((prev) => ({ ...prev, newPassword: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` }));
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setFieldErrors((prev) => ({ ...prev, confirmNewPassword: 'Passwords do not match.' }));
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      setFieldErrors((prev) => ({ ...prev, newPassword: error.message }));
+    } else {
+      await supabase.auth.signOut();
+      onSuccess();
+    }
+  }
+
   function reset() {
     setEmail('');
     setUsername('');
     setPassword('');
     setConfirmPassword('');
+    setResetCode('');
+    setNewPassword('');
+    setConfirmNewPassword('');
     setFieldErrors({});
   }
 
@@ -80,11 +147,16 @@ export function useAuthForm(formStep: FormStep) {
     !fieldErrors.username &&
     password.length >= MIN_PASSWORD_LENGTH &&
     password === confirmPassword;
+  const isResetPasswordValid =
+    newPassword.length >= MIN_PASSWORD_LENGTH && newPassword === confirmNewPassword;
 
   return {
-    email, username, password, confirmPassword, fieldErrors, setFieldErrors,
+    email, username, password, confirmPassword, resetCode, newPassword, confirmNewPassword,
+    fieldErrors, setFieldErrors,
     handleEmailChange, handleUsernameChange, handlePasswordChange, handleConfirmPasswordChange,
-    checkEmailFormat, checkUsernameAvailability, checkPasswordsMatch,
-    isLoginValid, isSignUpValid, reset,
+    handleNewPasswordChange, handleConfirmNewPasswordChange, handleResetCodeChange,
+    checkEmailFormat, checkUsernameAvailability, checkPasswordsMatch, checkNewPasswordsMatch,
+    sendResetCode, verifyResetCode, submitNewPassword,
+    isLoginValid, isSignUpValid, isResetPasswordValid, reset,
   };
 }

@@ -1,15 +1,11 @@
+export type FormStep = 'initial' | 'loginForm' | 'signUpForm' | 'forgotPasswordForm' | 'codeEntryForm' | 'resetPasswordForm';
+
 export type FieldKey =
-  | 'email'
-  | 'username'
-  | 'password'
-  | 'confirmPassword'
-  | 'primaryAction'
-  | 'secondaryAction'
-  | 'forgotPassword'
-  | 'back';
+  | 'email' | 'username' | 'password' | 'confirmPassword'
+  | 'resetAction' | 'resendCode' | 'resetCode' | 'newPassword' | 'confirmNewPassword'
+  | 'primaryAction' | 'secondaryAction' | 'forgotPassword' | 'back';
 
 type SlotState = { position: number; visible: boolean };
-export type FormStep = 'initial' | 'loginForm' | 'signUpForm';
 export type StepDefinition = Record<FieldKey, SlotState>;
 
 export const STEPS: Record<FormStep, StepDefinition> = {
@@ -21,6 +17,11 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     primaryAction: { position: 0, visible: true },
     secondaryAction: { position: 1, visible: true },
     forgotPassword: { position: 3, visible: false },
+    resetAction: { position: 4, visible: false },
+    resendCode: { position: 1, visible: false },
+    resetCode: { position: 0, visible: false },
+    newPassword: { position: 0, visible: false },
+    confirmNewPassword: { position: 1, visible: false },
     back: { position: 4, visible: false },
   },
   loginForm: {
@@ -31,6 +32,11 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     primaryAction: { position: 2, visible: true },
     secondaryAction: { position: 1, visible: false },
     forgotPassword: { position: 3, visible: true },
+    resetAction: { position: 4, visible: false },
+    resendCode: { position: 1, visible: false },
+    resetCode: { position: 0, visible: false },
+    newPassword: { position: 0, visible: false },
+    confirmNewPassword: { position: 1, visible: false },
     back: { position: 4, visible: true },
   },
   signUpForm: {
@@ -41,6 +47,56 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     primaryAction: { position: 4, visible: true },
     secondaryAction: { position: 4, visible: false },
     forgotPassword: { position: 3, visible: false },
+    resetAction: { position: 5, visible: false },
+    resendCode: { position: 1, visible: false },
+    resetCode: { position: 0, visible: false },
+    newPassword: { position: 0, visible: false },
+    confirmNewPassword: { position: 1, visible: false },
     back: { position: 5, visible: true },
+  },
+  forgotPasswordForm: {
+    email: { position: 0, visible: true },
+    username: { position: 0, visible: false },
+    password: { position: 1, visible: false },
+    confirmPassword: { position: 3, visible: false },
+    primaryAction: { position: 2, visible: false },
+    secondaryAction: { position: 1, visible: false },
+    forgotPassword: { position: 3, visible: false },
+    resetAction: { position: 1, visible: true },
+    resendCode: { position: 1, visible: false },
+    resetCode: { position: 0, visible: false },
+    newPassword: { position: 0, visible: false },
+    confirmNewPassword: { position: 1, visible: false },
+    back: { position: 2, visible: true },
+  },
+  codeEntryForm: {
+    email: { position: 0, visible: false },
+    username: { position: 0, visible: false },
+    password: { position: 1, visible: false },
+    confirmPassword: { position: 3, visible: false },
+    primaryAction: { position: 2, visible: false },
+    secondaryAction: { position: 1, visible: false },
+    forgotPassword: { position: 3, visible: false },
+    resetAction: { position: 1, visible: false },
+    resendCode: { position: 1, visible: true },
+    resetCode: { position: 0, visible: true },
+    newPassword: { position: 0, visible: false },
+    confirmNewPassword: { position: 1, visible: false },
+    back: { position: 2, visible: true },
+  },
+  resetPasswordForm: {
+    email: { position: 0, visible: false },
+    username: { position: 0, visible: false },
+    password: { position: 1, visible: false },
+    confirmPassword: { position: 3, visible: false },
+    primaryAction: { position: 2, visible: false },
+    secondaryAction: { position: 1, visible: false },
+    forgotPassword: { position: 3, visible: false },
+    resetAction: { position: 2, visible: true },
+    resendCode: { position: 1, visible: false },
+    resetCode: { position: 0, visible: false },
+    newPassword: { position: 0, visible: true },
+    confirmNewPassword: { position: 1, visible: true },
+    back: { position: 2, visible: false },
   },
 };

@@ -37,19 +37,21 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { session, isLoading } = useSession();
+  const { session, isLoading, isPasswordRecovery } = useSession();
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
+  const isAuthenticated = !!session && !isPasswordRecovery;
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? NAV_THEME.dark : NAV_THEME.light}>
       <Stack>
-        <Stack.Protected guard={!!session}>
+        <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(app)" />
         </Stack.Protected>
-        <Stack.Protected guard={!session}>
+        <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
       </Stack>
