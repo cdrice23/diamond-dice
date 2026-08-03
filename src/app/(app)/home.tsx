@@ -1,56 +1,73 @@
+import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
+import { Button } from '@/components/primitives/button.component';
+import { Text } from '@/components/primitives/text.component';
+import { useSession } from '@/utils/session-provider';
 import { supabase } from '@/utils/supabase';
-import { useRouter } from 'expo-router';
+import { THEME } from '@/utils/theme';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 
 export default function HomeScreen() {
-  const [email, setEmail] = useState<string | null>(null);
+  const { session } = useSession();
+  const colorScheme = useColorScheme();
+  const colors = colorScheme === 'dark' ? THEME.dark : THEME.light;
+
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
-    async function loadData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      setEmail(sessionData.session?.user.email ?? null);
+    async function loadProfile() {
+      if (!session) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('profiles')
         .select('username, status, created_at')
-        .eq('id', sessionData.session?.user.id)
+        .eq('id', session.user.id)
         .single();
 
-      if (!error) setMessage(`Signed in as ${data.username}, account status: ${data.status}`);
+      if (!error) {
+        setMessage(`Signed in as ${data.username}, account status: ${data.status}`);
+      }
       setLoading(false);
     }
 
-    loadData();
-  }, []);
+    loadProfile();
+  }, [session]);
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.replace('/');
+    setSigningOut(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setSigningOut(false);
+      console.error('Sign out failed:', error.message);
+    }
   }
 
-  if (loading) return <ActivityIndicator style={styles.container} />;
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <LoadingSpinner size={80} color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Signed in as {email}</Text>
-      <Text style={styles.message}>
-        {message ?? 'No message found — check the table or RLS policy'}
+    <View className="flex-1 items-center justify-center gap-4 bg-background p-6">
+      <Text variant="h3">Signed in as {session?.user.email}</Text>
+      <Text className="text-muted-foreground text-center italic">
+        {message ?? 'No profile message found — check the table or RLS policy'}
       </Text>
-      <Pressable style={styles.button} onPress={handleSignOut}>
-        <Text style={styles.buttonText}>Sign Out</Text>
-      </Pressable>
+      <Button className="bg-level2 w-full" onPress={handleSignOut} disabled={signingOut}>
+        {signingOut ? (
+          <LoadingSpinner size={20} color="#FFFFFF" blendColors={['#FFFFFF', '#FFFFFF', '#FFFFFF']} />
+        ) : (
+          <Text className="text-white">Sign Out</Text>
+        )}
+      </Button>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 16 },
-  title: { fontFamily: 'VT323_400Regular', fontSize: 18, textAlign: 'center' },
-  message: { fontFamily: 'VT323_400Regular', fontSize: 16, textAlign: 'center', fontStyle: 'italic' },
-  button: { backgroundColor: '#1a1a1a', padding: 14, borderRadius: 8, alignItems: 'center' },
-  buttonText: { fontFamily: 'VT323_400Regular', color: '#fff' },
-});
