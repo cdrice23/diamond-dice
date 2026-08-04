@@ -34,6 +34,16 @@ export const LOGO_FALLBACK_COLOR = "#888888";
 
 // Logo Splash
 export const LOGO_SPLASH_FONT_FAMILY = "Silkscreen_400Regular";
+export const SUBTITLE_FONT_FAMILY = 'Poppins_200ExtraLight';
+export const SUBTITLE_LETTER_SPACING = 8;
+export const SUBTITLE_SCALE_RATIO = 0.4;
+export const SUBTITLE_ACCENT_LONG_WIDTH = 20;
+export const SUBTITLE_ACCENT_SHORT_WIDTH = 10;
+export const SUBTITLE_ACCENT_THICKNESS = 1;
+export const SUBTITLE_ACCENT_LINE_GAP = 4;
+export const SUBTITLE_ACCENT_VERTICAL_OFFSET = 4;
+export const SUBTITLE_ACCENT_MARGIN = 10;
+export const SUBTITLE_MARGIN_TOP = 4
 
 // Loading Spinner
 export const ELEMENT_COUNT = 5;

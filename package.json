@@ -11,6 +11,7 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@expo-google-fonts/poppins": "^0.4.1",
     "@expo-google-fonts/silkscreen": "^0.4.2",
     "@expo-google-fonts/vt323": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
@@ -64,6 +65,7 @@
     "fsevents@2.3.3": true,
     "unrs-resolver@1.12.2": true,
     "react-native-svg@15.15.5": true,
-    "@rn-primitives/slot@1.5.2": true
+    "@rn-primitives/slot@1.5.2": true,
+    "@expo-google-fonts/poppins@0.4.1": true
   }
 }

@@ -136,7 +136,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss} className="bg-background">
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 24 }}>
-          <LogoSplash mainColor={colors.primary} accentColor={colors.level2} symbolSquareColor={colors.level2} symbolCubeColor={colors.primary} />
+          <LogoSplash mainColor={colors.primary} accentColor={colors.level2} symbolSquareColor={colors.level2} symbolCubeColor={colors.primary} subtitleColor={colors.primary}/>
 
           {step === 'checkEmail' ? (
             <View className="items-center gap-4">
