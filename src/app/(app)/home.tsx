@@ -3,14 +3,13 @@ import { Button } from '@/components/primitives/button.component';
 import { Text } from '@/components/primitives/text.component';
 import { useSession } from '@/utils/session-provider';
 import { supabase } from '@/utils/supabase';
-import { THEME } from '@/utils/theme';
+import { useTheme } from '@/utils/theme-provider';
 import { useEffect, useState } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { View } from 'react-native';
 
 export default function HomeScreen() {
   const { session } = useSession();
-  const colorScheme = useColorScheme();
-  const colors = colorScheme === 'dark' ? THEME.dark : THEME.light;
+  const { colors } = useTheme()
 
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

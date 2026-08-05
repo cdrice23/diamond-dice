@@ -1,39 +1,38 @@
-import { THEME } from '@/utils/theme';
+import { useTheme } from '@/utils/theme-provider';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
 import Animated, {
-    Easing,
-    Extrapolation,
-    interpolate,
-    interpolateColor,
-    useAnimatedProps,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withTiming
+  Easing,
+  Extrapolation,
+  interpolate,
+  interpolateColor,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming
 } from 'react-native-reanimated';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import {
-    CYCLE_DURATION,
-    DRAW_STAGGER,
-    LOGO_CUBE_LINE_LENGTH,
-    LOGO_CUBE_LINES,
-    LOGO_CUBE_POLYGON_PERIMETER,
-    LOGO_CUBE_POLYGON_POINTS,
-    LOGO_ICON_VIEWBOX,
-    LOGO_SQUARE_PERIMETER,
-    LOGO_SQUARE_POLYGON_POINTS,
-    LOGO_STROKE_WIDTH_CUBE,
-    LOGO_STROKE_WIDTH_SQUARE,
-    RATE_MS_PER_UNIT,
-    ROTATE_DECAY_OSCILLATIONS,
-    ROTATE_DECAY_RATE,
-    ROTATE_DURATION,
-    ROTATE_OVERSHOOT_DEGREES,
-    ROTATE_PHASE_START,
-    ROTATE_SWING_OUT_FRACTION,
-    SETTLE_DURATION,
-    STROKE_CLOSE_OVERLAP,
+  CYCLE_DURATION,
+  DRAW_STAGGER,
+  LOGO_CUBE_LINE_LENGTH,
+  LOGO_CUBE_LINES,
+  LOGO_CUBE_POLYGON_PERIMETER,
+  LOGO_CUBE_POLYGON_POINTS,
+  LOGO_ICON_VIEWBOX,
+  LOGO_SQUARE_PERIMETER,
+  LOGO_SQUARE_POLYGON_POINTS,
+  LOGO_STROKE_WIDTH_CUBE,
+  LOGO_STROKE_WIDTH_SQUARE,
+  RATE_MS_PER_UNIT,
+  ROTATE_DECAY_OSCILLATIONS,
+  ROTATE_DECAY_RATE,
+  ROTATE_DURATION,
+  ROTATE_OVERSHOOT_DEGREES,
+  ROTATE_PHASE_START,
+  ROTATE_SWING_OUT_FRACTION,
+  SETTLE_DURATION,
+  STROKE_CLOSE_OVERLAP,
 } from '../branding.constants';
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
@@ -72,11 +71,10 @@ type LoadingSpinnerProps = {
 };
 
 export function LoadingSpinner({ size = 100, color, blendColors }: LoadingSpinnerProps) {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? THEME.dark : THEME.light;
+  const { colors } = useTheme()
 
-  const settledColor = color ?? theme.foreground;
-  const resolvedBlend: [string, string, string] = blendColors ?? [theme.level3, theme.level1, theme.level2];
+  const settledColor = color ?? colors.foreground;
+  const resolvedBlend: [string, string, string] = blendColors ?? [colors.level3, colors.level1, colors.level2];
 
   const cycleMs = useSharedValue(0);
 
