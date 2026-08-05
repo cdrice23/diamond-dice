@@ -1,11 +1,13 @@
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback.hook';
 import { supabase } from '@/utils/supabase';
-import { useState } from 'react';
-import { EMAIL_PATTERN, MIN_PASSWORD_LENGTH, USERNAME_PATTERN } from '../auth.constants';
+import { useEffect, useRef, useState } from 'react';
+import { getAuthErrorInfo } from '../auth-errors';
+import { EMAIL_PATTERN, MIN_PASSWORD_LENGTH, RESEND_COOLDOWN_SECONDS, USERNAME_PATTERN } from '../auth.constants';
 import type { FieldKey, FormStep } from '../steps.config';
 
 export function useAuthForm(formStep: FormStep) {
   const [email, setEmail] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -13,6 +15,34 @@ export function useAuthForm(formStep: FormStep) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [confirmationResendCooldown, setConfirmationResendCooldown] = useState(0);
+  const cooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const confirmationCooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function startCooldown(
+    setter: React.Dispatch<React.SetStateAction<number>>,
+    intervalRef: React.MutableRefObject<ReturnType<typeof setInterval> | null>
+  ) {
+    setter(RESEND_COOLDOWN_SECONDS);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setter((prev) => {
+        if (prev <= 1) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
+      if (confirmationCooldownIntervalRef.current) clearInterval(confirmationCooldownIntervalRef.current);
+    };
+  }, []);
 
   async function checkUsernameAvailability(value: string) {
     if (!USERNAME_PATTERN.test(value)) {
@@ -48,6 +78,11 @@ export function useAuthForm(formStep: FormStep) {
     if (EMAIL_PATTERN.test(value) || value.length === 0) {
       setFieldErrors((prev) => ({ ...prev, email: undefined }));
     }
+  }
+
+  function handleLoginIdentifierChange(value: string) {
+    setLoginIdentifier(value);
+    setFieldErrors((prev) => ({ ...prev, email: undefined }));
   }
 
   function handleUsernameChange(value: string) {
@@ -94,20 +129,44 @@ export function useAuthForm(formStep: FormStep) {
 
   async function sendResetCode(): Promise<boolean> {
     setFieldErrors((prev) => ({ ...prev, email: undefined }));
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) {
-      setFieldErrors((prev) => ({ ...prev, email: error.message }));
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        const { message } = getAuthErrorInfo(error);
+        setFieldErrors((prev) => ({ ...prev, email: message }));
+        return false;
+      }
+      startCooldown(setResendCooldown, cooldownIntervalRef);
+      return true;
+    } catch (err) {
+      const { message } = getAuthErrorInfo(err);
+      setFieldErrors((prev) => ({ ...prev, email: message }));
       return false;
     }
-    return true;
+  }
+
+  async function resendConfirmationEmail(targetEmail: string): Promise<boolean> {
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email: targetEmail });
+      if (error) return false;
+      startCooldown(setConfirmationResendCooldown, confirmationCooldownIntervalRef);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async function verifyResetCode(code: string, onSuccess: () => void) {
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
-    if (error) {
-      setFieldErrors((prev) => ({ ...prev, resetCode: 'Invalid or expired code.' }));
-    } else {
-      onSuccess();
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
+      if (error) {
+        setFieldErrors((prev) => ({ ...prev, resetCode: 'Invalid or expired code.' }));
+      } else {
+        onSuccess();
+      }
+    } catch (err) {
+      const { message } = getAuthErrorInfo(err);
+      setFieldErrors((prev) => ({ ...prev, resetCode: message }));
     }
   }
 
@@ -120,17 +179,24 @@ export function useAuthForm(formStep: FormStep) {
       setFieldErrors((prev) => ({ ...prev, confirmNewPassword: 'Passwords do not match.' }));
       return;
     }
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) {
-      setFieldErrors((prev) => ({ ...prev, newPassword: error.message }));
-    } else {
-      await supabase.auth.signOut();
-      onSuccess();
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        const { message } = getAuthErrorInfo(error);
+        setFieldErrors((prev) => ({ ...prev, newPassword: message }));
+      } else {
+        await supabase.auth.signOut();
+        onSuccess();
+      }
+    } catch (err) {
+      const { message } = getAuthErrorInfo(err);
+      setFieldErrors((prev) => ({ ...prev, newPassword: message }));
     }
   }
 
   function reset() {
     setEmail('');
+    setLoginIdentifier('');
     setUsername('');
     setPassword('');
     setConfirmPassword('');
@@ -138,9 +204,13 @@ export function useAuthForm(formStep: FormStep) {
     setNewPassword('');
     setConfirmNewPassword('');
     setFieldErrors({});
+    setResendCooldown(0);
+    setConfirmationResendCooldown(0);
+    if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
+    if (confirmationCooldownIntervalRef.current) clearInterval(confirmationCooldownIntervalRef.current);
   }
 
-  const isLoginValid = email.trim().length > 0 && password.length > 0;
+  const isLoginValid = loginIdentifier.trim().length > 0 && password.length > 0;
   const isSignUpValid =
     EMAIL_PATTERN.test(email) &&
     USERNAME_PATTERN.test(username) &&
@@ -151,12 +221,13 @@ export function useAuthForm(formStep: FormStep) {
     newPassword.length >= MIN_PASSWORD_LENGTH && newPassword === confirmNewPassword;
 
   return {
-    email, username, password, confirmPassword, resetCode, newPassword, confirmNewPassword,
+    email, loginIdentifier, username, password, confirmPassword, resetCode, newPassword, confirmNewPassword,
     fieldErrors, setFieldErrors,
-    handleEmailChange, handleUsernameChange, handlePasswordChange, handleConfirmPasswordChange,
+    resendCooldown, confirmationResendCooldown,
+    handleEmailChange, handleLoginIdentifierChange, handleUsernameChange, handlePasswordChange, handleConfirmPasswordChange,
     handleNewPasswordChange, handleConfirmNewPasswordChange, handleResetCodeChange,
     checkEmailFormat, checkUsernameAvailability, checkPasswordsMatch, checkNewPasswordsMatch,
-    sendResetCode, verifyResetCode, submitNewPassword,
+    sendResetCode, verifyResetCode, submitNewPassword, resendConfirmationEmail,
     isLoginValid, isSignUpValid, isResetPasswordValid, reset,
   };
 }

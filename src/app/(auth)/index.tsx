@@ -1,3 +1,4 @@
+import { getAuthErrorInfo } from '@/components/auth/auth-errors';
 import { RESET_CODE_LENGTH, SLOT_HEIGHT } from '@/components/auth/auth.constants';
 import { AnimatedSlotContainer } from '@/components/auth/components/animated-slot-container.component';
 import { AnimatedSlot } from '@/components/auth/components/animated-slot.component';
@@ -36,11 +37,12 @@ const SOLID_TOP_BUFFER = -20;
 export default function LoginScreen() {
   const [step, setStep] = useState<Step>('initial');
   const [error, setError] = useState<string | null>(null);
+  const [errorAction, setErrorAction] = useState<{ label: string; onPress: () => void } | null>(null);
   const [loading, setLoading] = useState(false);
   const [containerLayout, setContainerLayout] = useState({ y: 0, height: 0 });
   const [logoHeight, setLogoHeight] = useState(0);
 
-  const { colors } = useTheme()
+  const { colors } = useTheme();
   const { height: screenHeight } = useWindowDimensions();
 
   const formStep = useFormStep(step);
@@ -76,30 +78,70 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     setError(null);
+    setErrorAction(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
-    setLoading(false);
-    if (error) setError(error.message);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: form.loginIdentifier, password: form.password });
+      if (error) {
+        const info = getAuthErrorInfo(error);
+        setError(info.message);
+        if (info.code === 'email_not_confirmed') {
+          setErrorAction({
+            label: 'Resend confirmation',
+            onPress: async () => {
+              const ok = await form.resendConfirmationEmail(form.loginIdentifier);
+              if (ok) {
+                setError('Confirmation email sent.');
+                setErrorAction(null);
+              }
+            },
+          });
+        }
+      }
+    } catch (err) {
+      const info = getAuthErrorInfo(err);
+      setError(info.message);
+      if (info.isNetworkError) {
+        setErrorAction({ label: 'Retry', onPress: handleLogin });
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSignUp() {
     setError(null);
+    setErrorAction(null);
     form.setFieldErrors({});
     if (!form.isSignUpValid) return;
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { username: form.username } },
-    });
-    setLoading(false);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: { data: { username: form.username } },
+      });
 
-    if (error) {
-      setError(error.message);
-      return;
+      if (error) {
+        const info = getAuthErrorInfo(error);
+        if (info.code === 'weak_password') {
+          form.setFieldErrors((prev) => ({ ...prev, password: info.message }));
+        } else {
+          setError(info.message);
+        }
+        return;
+      }
+      setStep('checkEmail');
+    } catch (err) {
+      const info = getAuthErrorInfo(err);
+      setError(info.message);
+      if (info.isNetworkError) {
+        setErrorAction({ label: 'Retry', onPress: handleSignUp });
+      }
+    } finally {
+      setLoading(false);
     }
-    setStep('checkEmail');
   }
 
   function handlePrimaryActionPress() {
@@ -124,6 +166,7 @@ export default function LoginScreen() {
 
   async function handleResetActionPress() {
     setError(null);
+    setErrorAction(null);
     if (formStep === 'forgotPasswordForm') {
       setLoading(true);
       const ok = await form.sendResetCode();
@@ -151,6 +194,7 @@ export default function LoginScreen() {
 
   function handleBackPress() {
     setError(null);
+    setErrorAction(null);
     if (formStep === 'forgotPasswordForm') {
       setStep('loginForm');
     } else if (formStep === 'codeEntryForm') {
@@ -213,9 +257,9 @@ export default function LoginScreen() {
                       placeholder={formStep === 'signUpForm' ? 'Email' : 'Username or Email'}
                       className="border-primary text-primary"
                       error={!!form.fieldErrors.email}
-                      value={form.email}
-                      onChangeText={form.handleEmailChange}
-                      onBlur={() => form.checkEmailFormat(form.email)}
+                      value={formStep === 'loginForm' ? form.loginIdentifier : form.email}
+                      onChangeText={formStep === 'loginForm' ? form.handleLoginIdentifierChange : form.handleEmailChange}
+                      onBlur={formStep === 'loginForm' ? undefined : () => form.checkEmailFormat(form.email)}
                       autoCapitalize="none"
                     />
                   </AnimatedSlot>
@@ -318,19 +362,30 @@ export default function LoginScreen() {
                     <Button
                       className="bg-level2"
                       onPress={handleResetActionPress}
-                      disabled={loading || (formStep === 'resetPasswordForm' ? !form.isResetPasswordValid : form.email.trim().length === 0)}
+                      disabled={
+                        loading ||
+                        (formStep === 'resetPasswordForm'
+                          ? !form.isResetPasswordValid
+                          : form.email.trim().length === 0 || form.resendCooldown > 0)
+                      }
                     >
                       {loading ? (
                         <LoadingSpinner size={20} color={colors.primary} blendColors={[colors.primary, colors.primary, colors.primary]} />
                       ) : (
-                        <Text>{formStep === 'resetPasswordForm' ? 'Set New Password' : 'Get Confirmation Code'}</Text>
+                        <Text>
+                          {formStep === 'resetPasswordForm'
+                            ? 'Set New Password'
+                            : form.resendCooldown > 0
+                              ? `Wait ${form.resendCooldown}s`
+                              : 'Get Confirmation Code'}
+                        </Text>
                       )}
                     </Button>
                   </AnimatedSlot>
 
                   <AnimatedSlot {...slotProps('resendCode')}>
-                    <Button variant="link" onPress={handleResendCode} disabled={loading}>
-                      <Text>Resend Confirmation Email</Text>
+                    <Button variant="link" onPress={handleResendCode} disabled={loading || form.resendCooldown > 0}>
+                      <Text>{form.resendCooldown > 0 ? `Resend in ${form.resendCooldown}s` : 'Resend Confirmation Email'}</Text>
                     </Button>
                   </AnimatedSlot>
 
@@ -346,7 +401,14 @@ export default function LoginScreen() {
         </View>
 
         {error && (
-          <Text style={{ color: colors.destructive, position: 'absolute', bottom: 40, alignSelf: 'center' }}>{error}</Text>
+          <View style={{ position: 'absolute', bottom: 40, alignSelf: 'center', alignItems: 'center', gap: 4 }}>
+            <Text style={{ color: colors.destructive, textAlign: 'center' }}>{error}</Text>
+            {errorAction && (
+              <Button variant="link" onPress={errorAction.onPress}>
+                <Text>{errorAction.label}</Text>
+              </Button>
+            )}
+          </View>
         )}
       </Pressable>
     </KeyboardAvoidingView>
