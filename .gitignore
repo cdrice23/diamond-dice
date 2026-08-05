@@ -48,3 +48,4 @@ scratch
 # python cache
 etl/__pycache__/
 etl/*.pycCLAUDE.md
+supabase/functions/.env

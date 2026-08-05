@@ -1,4 +1,4 @@
-import { getAuthErrorInfo } from '@/components/auth/auth-errors';
+import { getAuthErrorInfo, getFunctionErrorInfo } from '@/components/auth/auth-errors';
 import { RESET_CODE_LENGTH, SLOT_HEIGHT } from '@/components/auth/auth.constants';
 import { AnimatedSlotContainer } from '@/components/auth/components/animated-slot-container.component';
 import { AnimatedSlot } from '@/components/auth/components/animated-slot.component';
@@ -81,22 +81,39 @@ export default function LoginScreen() {
     setErrorAction(null);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email: form.loginIdentifier, password: form.password });
+      const { data, error } = await supabase.functions.invoke('login-with-identifier', {
+        body: { identifier: form.loginIdentifier, password: form.password },
+      });
+
       if (error) {
-        const info = getAuthErrorInfo(error);
+        let info = getAuthErrorInfo(error);
+        const context = (error as { context?: Response }).context;
+        if (context) {
+          const body = await context.json();
+          info = getFunctionErrorInfo(body);
+        }
+
         setError(info.message);
-        if (info.code === 'email_not_confirmed') {
+        if (info.code === 'email_not_confirmed' || info.code === 'email_not_confirmed_for_username') {
           setErrorAction({
             label: 'Resend confirmation',
             onPress: async () => {
-              const ok = await form.resendConfirmationEmail(form.loginIdentifier);
-              if (ok) {
-                setError('Confirmation email sent.');
-                setErrorAction(null);
-              }
+              await supabase.functions.invoke('resend-confirmation', {
+                body: { identifier: form.loginIdentifier },
+              });
+              setError('If that account exists and needs confirmation, a new email has been sent.');
+              setErrorAction(null);
             },
           });
         }
+        return;
+      }
+
+      if (data?.session) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
       }
     } catch (err) {
       const info = getAuthErrorInfo(err);
@@ -108,6 +125,7 @@ export default function LoginScreen() {
       setLoading(false);
     }
   }
+
 
   async function handleSignUp() {
     setError(null);

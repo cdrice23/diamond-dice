@@ -5,6 +5,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   user_not_found: 'Incorrect email/username or password.',
 
   email_not_confirmed: 'Please confirm your email before logging in.',
+  email_not_confirmed_for_username: "The email for this account hasn't been confirmed yet.",
 
   weak_password: 'Password does not meet the minimum requirements.',
   same_password: 'New password must be different from your current password.',
@@ -48,5 +49,20 @@ export function getAuthErrorInfo(error: unknown): AuthErrorInfo {
     return { message: NETWORK_MESSAGE, isRateLimit: false, isNetworkError: true, code: null };
   }
 
+  return { message: GENERIC_MESSAGE, isRateLimit: false, isNetworkError: false, code: null };
+}
+
+export function getFunctionErrorInfo(body: unknown): AuthErrorInfo {
+  if (
+    typeof body === 'object' &&
+    body !== null &&
+    'error' in body &&
+    typeof (body as { error?: unknown }).error === 'object'
+  ) {
+    const err = (body as { error: { code?: string; message?: string } }).error;
+    const code = err.code ?? null;
+    const message = code && AUTH_ERROR_MESSAGES[code] ? AUTH_ERROR_MESSAGES[code] : (err.message ?? GENERIC_MESSAGE);
+    return { message, isRateLimit: code ? RATE_LIMIT_CODES.has(code) : false, isNetworkError: false, code };
+  }
   return { message: GENERIC_MESSAGE, isRateLimit: false, isNetworkError: false, code: null };
 }
