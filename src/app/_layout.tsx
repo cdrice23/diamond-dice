@@ -9,8 +9,8 @@ import { VT323_400Regular } from '@expo-google-fonts/vt323';
 import { ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { View } from 'react-native';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
 
 function LoadingScreen() {
   const { colors } = useTheme();
@@ -18,6 +18,23 @@ function LoadingScreen() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
       <LoadingSpinner size={80} />
+    </View>
+  );
+}
+
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  const { colors } = useTheme();
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 24, gap: 16 }}>
+      <Text style={{ color: colors.foreground, fontSize: 18, textAlign: 'center' }}>Something went wrong.</Text>
+      <Text style={{ color: colors.mutedForeground, fontSize: 14, textAlign: 'center' }}>{error.message}</Text>
+      <Pressable
+        onPress={retry}
+        style={{ backgroundColor: colors.level2, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8 }}
+      >
+        <Text style={{ color: colors.primary }}>Try again</Text>
+      </Pressable>
     </View>
   );
 }
