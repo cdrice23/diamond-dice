@@ -1,4 +1,5 @@
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback.hook';
+import { useSession } from '@/utils/session-provider';
 import { supabase } from '@/utils/supabase';
 import { useEffect, useRef, useState } from 'react';
 import { getAuthErrorInfo } from '../auth-errors';
@@ -6,6 +7,7 @@ import { EMAIL_PATTERN, MIN_PASSWORD_LENGTH, RESEND_COOLDOWN_SECONDS, USERNAME_P
 import type { FieldKey, FormStep } from '../steps.config';
 
 export function useAuthForm(formStep: FormStep) {
+  const { markPasswordRecovery } = useSession();
   const [email, setEmail] = useState('');
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [username, setUsername] = useState('');
@@ -68,6 +70,16 @@ export function useAuthForm(formStep: FormStep) {
     setFieldErrors((prev) => ({ ...prev, confirmPassword: password === confirmPassword ? undefined : 'Passwords do not match.' }));
   }
 
+  function checkPasswordLength() {
+    if (formStep !== 'signUpForm') return;
+    setFieldErrors((prev) => ({
+      ...prev,
+      password: password.length > 0 && password.length < MIN_PASSWORD_LENGTH
+        ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+        : undefined,
+    }));
+  }
+
   function checkNewPasswordsMatch() {
     if (confirmNewPassword.length === 0) return;
     setFieldErrors((prev) => ({ ...prev, confirmNewPassword: newPassword === confirmNewPassword ? undefined : 'Passwords do not match.' }));
@@ -98,6 +110,9 @@ export function useAuthForm(formStep: FormStep) {
     setPassword(value);
     if (confirmPassword.length > 0 && value === confirmPassword) {
       setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+    }
+    if (formStep === 'signUpForm' && value.length >= MIN_PASSWORD_LENGTH) {
+      setFieldErrors((prev) => ({ ...prev, password: undefined }));
     }
   }
 
@@ -130,7 +145,9 @@ export function useAuthForm(formStep: FormStep) {
   async function sendResetCode(): Promise<boolean> {
     setFieldErrors((prev) => ({ ...prev, email: undefined }));
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.functions.invoke('reset-password-with-identifier', {
+        body: { identifier: loginIdentifier },
+      });
       if (error) {
         const { message } = getAuthErrorInfo(error);
         setFieldErrors((prev) => ({ ...prev, email: message }));
@@ -158,12 +175,19 @@ export function useAuthForm(formStep: FormStep) {
 
   async function verifyResetCode(code: string, onSuccess: () => void) {
     try {
-      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
-      if (error) {
+      const { data, error } = await supabase.functions.invoke('verify-reset-code-with-identifier', {
+        body: { identifier: loginIdentifier, code },
+      });
+      if (error || !data?.session) {
         setFieldErrors((prev) => ({ ...prev, resetCode: 'Invalid or expired code.' }));
-      } else {
-        onSuccess();
+        return;
       }
+      markPasswordRecovery();
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+      onSuccess();
     } catch (err) {
       const { message } = getAuthErrorInfo(err);
       setFieldErrors((prev) => ({ ...prev, resetCode: message }));
@@ -226,7 +250,7 @@ export function useAuthForm(formStep: FormStep) {
     resendCooldown, confirmationResendCooldown,
     handleEmailChange, handleLoginIdentifierChange, handleUsernameChange, handlePasswordChange, handleConfirmPasswordChange,
     handleNewPasswordChange, handleConfirmNewPasswordChange, handleResetCodeChange,
-    checkEmailFormat, checkUsernameAvailability, checkPasswordsMatch, checkNewPasswordsMatch,
+    checkEmailFormat, checkUsernameAvailability, checkPasswordsMatch, checkPasswordLength, checkNewPasswordsMatch,
     sendResetCode, verifyResetCode, submitNewPassword, resendConfirmationEmail,
     isLoginValid, isSignUpValid, isResetPasswordValid, reset,
   };

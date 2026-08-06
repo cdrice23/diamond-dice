@@ -3,7 +3,8 @@ export type FormStep = 'initial' | 'loginForm' | 'signUpForm' | 'forgotPasswordF
 export type FieldKey =
   | 'email' | 'username' | 'password' | 'confirmPassword'
   | 'resetAction' | 'resendCode' | 'resetCode' | 'newPassword' | 'confirmNewPassword'
-  | 'primaryAction' | 'secondaryAction' | 'forgotPassword' | 'back';
+  | 'primaryAction' | 'secondaryAction' | 'forgotPassword' | 'back'
+  | 'resendConfirmation';
 
 type SlotState = { position: number; visible: boolean };
 export type StepDefinition = Record<FieldKey, SlotState>;
@@ -23,6 +24,7 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     newPassword: { position: 0, visible: false },
     confirmNewPassword: { position: 1, visible: false },
     back: { position: 4, visible: false },
+    resendConfirmation: { position: 2, visible: false },
   },
   loginForm: {
     email: { position: 0, visible: true },
@@ -38,6 +40,7 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     newPassword: { position: 0, visible: false },
     confirmNewPassword: { position: 1, visible: false },
     back: { position: 4, visible: true },
+    resendConfirmation: { position: 3, visible: false },
   },
   signUpForm: {
     email: { position: 0, visible: true },
@@ -53,6 +56,7 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     newPassword: { position: 0, visible: false },
     confirmNewPassword: { position: 1, visible: false },
     back: { position: 5, visible: true },
+    resendConfirmation: { position: 2, visible: false },
   },
   forgotPasswordForm: {
     email: { position: 0, visible: true },
@@ -68,6 +72,7 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     newPassword: { position: 0, visible: false },
     confirmNewPassword: { position: 1, visible: false },
     back: { position: 2, visible: true },
+    resendConfirmation: { position: 2, visible: false },
   },
   codeEntryForm: {
     email: { position: 0, visible: false },
@@ -83,6 +88,7 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     newPassword: { position: 0, visible: false },
     confirmNewPassword: { position: 1, visible: false },
     back: { position: 2, visible: true },
+    resendConfirmation: { position: 2, visible: false },
   },
   resetPasswordForm: {
     email: { position: 0, visible: false },
@@ -98,5 +104,6 @@ export const STEPS: Record<FormStep, StepDefinition> = {
     newPassword: { position: 0, visible: true },
     confirmNewPassword: { position: 1, visible: true },
     back: { position: 2, visible: false },
+    resendConfirmation: { position: 2, visible: false },
   },
 };

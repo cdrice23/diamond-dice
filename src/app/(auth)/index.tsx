@@ -38,6 +38,7 @@ export default function LoginScreen() {
   const [step, setStep] = useState<Step>('initial');
   const [error, setError] = useState<string | null>(null);
   const [errorAction, setErrorAction] = useState<{ label: string; onPress: () => void } | null>(null);
+  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [containerLayout, setContainerLayout] = useState({ y: 0, height: 0 });
   const [logoHeight, setLogoHeight] = useState(0);
@@ -79,6 +80,7 @@ export default function LoginScreen() {
   async function handleLogin() {
     setError(null);
     setErrorAction(null);
+    setShowResendConfirmation(false);
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('login-with-identifier', {
@@ -95,16 +97,7 @@ export default function LoginScreen() {
 
         setError(info.message);
         if (info.code === 'email_not_confirmed' || info.code === 'email_not_confirmed_for_username') {
-          setErrorAction({
-            label: 'Resend confirmation',
-            onPress: async () => {
-              await supabase.functions.invoke('resend-confirmation', {
-                body: { identifier: form.loginIdentifier },
-              });
-              setError('If that account exists and needs confirmation, a new email has been sent.');
-              setErrorAction(null);
-            },
-          });
+          setShowResendConfirmation(true);
         }
         return;
       }
@@ -126,10 +119,10 @@ export default function LoginScreen() {
     }
   }
 
-
   async function handleSignUp() {
     setError(null);
     setErrorAction(null);
+    setShowResendConfirmation(false);
     form.setFieldErrors({});
     if (!form.isSignUpValid) return;
 
@@ -203,6 +196,14 @@ export default function LoginScreen() {
     setLoading(false);
   }
 
+  async function handleResendConfirmation() {
+    const ok = await form.resendConfirmationEmail(form.loginIdentifier);
+    if (ok) {
+      setError('Confirmation email sent.');
+      setShowResendConfirmation(false);
+    }
+  }
+
   function handleResetCodeChange(value: string) {
     form.handleResetCodeChange(value);
     if (value.length === RESET_CODE_LENGTH) {
@@ -213,6 +214,7 @@ export default function LoginScreen() {
   function handleBackPress() {
     setError(null);
     setErrorAction(null);
+    setShowResendConfirmation(false);
     if (formStep === 'forgotPasswordForm') {
       setStep('loginForm');
     } else if (formStep === 'codeEntryForm') {
@@ -222,6 +224,8 @@ export default function LoginScreen() {
       form.reset();
     }
   }
+
+  const loginSlotOffset = formStep === 'loginForm' && showResendConfirmation ? 1 : 0;
 
   const isCheckEmail = step === 'checkEmail';
   const visiblePositions = Object.values(slots)
@@ -264,7 +268,7 @@ export default function LoginScreen() {
                   <Text className="font-body text-muted-foreground text-center text-sm">
                     Already have an account? Try resetting your password instead.
                   </Text>
-                  <Button variant="ghost" onPress={() => setStep('initial')}>
+                  <Button variant="ghost" onPress={() => { setStep('initial'); form.reset(); }}>
                     <Text>Back to Login</Text>
                   </Button>
                 </View>
@@ -275,10 +279,11 @@ export default function LoginScreen() {
                       placeholder={formStep === 'signUpForm' ? 'Email' : 'Username or Email'}
                       className="border-primary text-primary"
                       error={!!form.fieldErrors.email}
-                      value={formStep === 'loginForm' ? form.loginIdentifier : form.email}
-                      onChangeText={formStep === 'loginForm' ? form.handleLoginIdentifierChange : form.handleEmailChange}
-                      onBlur={formStep === 'loginForm' ? undefined : () => form.checkEmailFormat(form.email)}
+                      value={formStep === 'loginForm' || formStep === 'forgotPasswordForm' ? form.loginIdentifier : form.email}
+                      onChangeText={formStep === 'loginForm' || formStep === 'forgotPasswordForm' ? form.handleLoginIdentifierChange : form.handleEmailChange}
+                      onBlur={formStep === 'signUpForm' ? () => form.checkEmailFormat(form.email) : undefined}
                       autoCapitalize="none"
+                      keyboardType={formStep === 'signUpForm' ? 'email-address' : 'default'}
                     />
                   </AnimatedSlot>
 
@@ -297,18 +302,20 @@ export default function LoginScreen() {
                   <AnimatedSlot {...slotProps('password')} errorText={form.fieldErrors.password}>
                     <PasswordInput
                       placeholder="Password"
+                      textContentType="newPassword"
                       className="border-primary text-primary"
                       error={!!form.fieldErrors.password}
                       iconColor={colors.primary}
                       value={form.password}
                       onChangeText={form.handlePasswordChange}
-                      onBlur={form.checkPasswordsMatch}
+                      onBlur={() => { form.checkPasswordsMatch(); form.checkPasswordLength(); }}
                     />
                   </AnimatedSlot>
 
                   <AnimatedSlot {...slotProps('confirmPassword')} errorText={form.fieldErrors.confirmPassword}>
                     <PasswordInput
                       placeholder="Confirm Password"
+                      textContentType="password"
                       className="border-primary text-primary"
                       error={!!form.fieldErrors.confirmPassword}
                       iconColor={colors.primary}
@@ -333,6 +340,7 @@ export default function LoginScreen() {
                   <AnimatedSlot {...slotProps('newPassword')} errorText={form.fieldErrors.newPassword}>
                     <PasswordInput
                       placeholder="New Password"
+                      textContentType="newPassword"
                       className="border-primary text-primary"
                       error={!!form.fieldErrors.newPassword}
                       iconColor={colors.primary}
@@ -345,6 +353,7 @@ export default function LoginScreen() {
                   <AnimatedSlot {...slotProps('confirmNewPassword')} errorText={form.fieldErrors.confirmNewPassword}>
                     <PasswordInput
                       placeholder="Confirm New Password"
+                      textContentType="password"
                       className="border-primary text-primary"
                       error={!!form.fieldErrors.confirmNewPassword}
                       iconColor={colors.primary}
@@ -354,7 +363,7 @@ export default function LoginScreen() {
                     />
                   </AnimatedSlot>
 
-                  <AnimatedSlot {...slotProps('primaryAction')}>
+                  <AnimatedSlot {...slotProps('primaryAction')} errorText={error} errorAction={errorAction}>
                     <Button
                       className="bg-level2"
                       onPress={handlePrimaryActionPress}
@@ -370,7 +379,23 @@ export default function LoginScreen() {
                     </Button>
                   </AnimatedSlot>
 
-                  <AnimatedSlot {...slotProps('forgotPassword')}>
+                  <AnimatedSlot
+                    position={slots.resendConfirmation.position}
+                    visible={formStep === 'loginForm' && showResendConfirmation}
+                    moveDelay={slots.resendConfirmation.moveDelay}
+                    fadeDelay={slots.resendConfirmation.fadeDelay}
+                  >
+                    <Button variant="link" onPress={handleResendConfirmation} disabled={loading}>
+                      <Text>Resend confirmation email</Text>
+                    </Button>
+                  </AnimatedSlot>
+
+                  <AnimatedSlot
+                    position={slots.forgotPassword.position + loginSlotOffset}
+                    visible={slots.forgotPassword.visible}
+                    moveDelay={slots.forgotPassword.moveDelay}
+                    fadeDelay={slots.forgotPassword.fadeDelay}
+                  >
                     <Button variant="link" onPress={handleForgotPasswordPress}>
                       <Text>Forgot Password?</Text>
                     </Button>
@@ -384,7 +409,7 @@ export default function LoginScreen() {
                         loading ||
                         (formStep === 'resetPasswordForm'
                           ? !form.isResetPasswordValid
-                          : form.email.trim().length === 0 || form.resendCooldown > 0)
+                          : form.loginIdentifier.trim().length === 0 || form.resendCooldown > 0)
                       }
                     >
                       {loading ? (
@@ -401,13 +426,27 @@ export default function LoginScreen() {
                     </Button>
                   </AnimatedSlot>
 
-                  <AnimatedSlot {...slotProps('resendCode')}>
+                  <AnimatedSlot
+                    {...slotProps('resendCode')}
+                    errorText={
+                      formStep === 'codeEntryForm'
+                        ? form.resendCooldown > 0
+                          ? `Reset password confirmation code sent via email. You can request a new code in ${form.resendCooldown}s.`
+                          : 'Reset password confirmation code sent via email.'
+                        : null
+                    }
+                  >
                     <Button variant="link" onPress={handleResendCode} disabled={loading || form.resendCooldown > 0}>
-                      <Text>{form.resendCooldown > 0 ? `Resend in ${form.resendCooldown}s` : 'Resend Confirmation Email'}</Text>
+                      <Text>{form.resendCooldown > 0 ? `Send new code in ${form.resendCooldown}s` : 'Send new confirmation code'}</Text>
                     </Button>
                   </AnimatedSlot>
 
-                  <AnimatedSlot {...slotProps('back')}>
+                  <AnimatedSlot
+                    position={slots.back.position + loginSlotOffset}
+                    visible={slots.back.visible}
+                    moveDelay={slots.back.moveDelay}
+                    fadeDelay={slots.back.fadeDelay}
+                  >
                     <Button variant="ghost" onPress={handleBackPress}>
                       <Text>Back</Text>
                     </Button>
@@ -418,16 +457,6 @@ export default function LoginScreen() {
           </View>
         </View>
 
-        {error && (
-          <View style={{ position: 'absolute', bottom: 40, alignSelf: 'center', alignItems: 'center', gap: 4 }}>
-            <Text style={{ color: colors.destructive, textAlign: 'center' }}>{error}</Text>
-            {errorAction && (
-              <Button variant="link" onPress={errorAction.onPress}>
-                <Text>{errorAction.label}</Text>
-              </Button>
-            )}
-          </View>
-        )}
       </Pressable>
     </KeyboardAvoidingView>
   );

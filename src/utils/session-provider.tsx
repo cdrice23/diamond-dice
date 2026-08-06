@@ -6,9 +6,15 @@ type SessionContextValue = {
   session: Session | null;
   isLoading: boolean;
   isPasswordRecovery: boolean;
+  markPasswordRecovery: () => void;
 };
 
-const SessionContext = createContext<SessionContextValue>({ session: null, isLoading: true, isPasswordRecovery: false });
+const SessionContext = createContext<SessionContextValue>({
+  session: null,
+  isLoading: true,
+  isPasswordRecovery: false,
+  markPasswordRecovery: () => {},
+});
 
 export function useSession() {
   return useContext(SessionContext);
@@ -37,5 +43,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
     return () => subscription.unsubscribe();
   }, []);
 
-  return <SessionContext.Provider value={{ session, isLoading, isPasswordRecovery }}>{children}</SessionContext.Provider>;
+  function markPasswordRecovery() {
+    setIsPasswordRecovery(true);
+  }
+
+  return (
+    <SessionContext.Provider value={{ session, isLoading, isPasswordRecovery, markPasswordRecovery }}>
+      {children}
+    </SessionContext.Provider>
+  );
 }
