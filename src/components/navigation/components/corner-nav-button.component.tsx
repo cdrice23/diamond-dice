@@ -1,18 +1,21 @@
-import { View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { runOnJS } from 'react-native-reanimated';
-import { useCornerDrag } from '../hooks/use-corner-drag.hook';
+import { View, useWindowDimensions } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useDragToExpand } from '../hooks/use-drag-to-expand.hook';
 
 type CornerNavButtonProps = {
   corner: 'left' | 'right';
   size?: number;
   borderColor: string;
   fillColor: string;
+  activeFillColor: string;
   label: string;
-  onPress: () => void;
-  onPitch: () => void;
+  onOpen: () => void;
+  closeSignal: number;
   iconSize?: number;
-  children?: React.ReactNode;
+  iconHideScaleThreshold?: number;
+  borderHideScaleThreshold?: number;
+  children: (isActive: boolean) => React.ReactNode;
 };
 
 export function CornerNavButton({
@@ -20,10 +23,13 @@ export function CornerNavButton({
   size = 100,
   borderColor,
   fillColor,
+  activeFillColor,
   label,
-  onPress,
-  onPitch,
+  onOpen,
+  closeSignal,
   iconSize = 32,
+  iconHideScaleThreshold = 1.15,
+  borderHideScaleThreshold = 1.2,
   children,
 }: CornerNavButtonProps) {
   const isLeft = corner === 'left';
@@ -36,17 +42,28 @@ export function CornerNavButton({
   const iconLocalPosition = radius + diagonalOffset;
 
   const awayDirection = isLeft ? { x: 1, y: -1 } : { x: -1, y: -1 };
-  const { panGesture, animatedStyle } = useCornerDrag({ awayDirection, onPitch });
 
-  const tapGesture = Gesture.Tap().onEnd(() => {
-    runOnJS(onPress)();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const maxScale = Math.sqrt(screenWidth ** 2 + screenHeight ** 2) / radius;
+
+  const { gesture, animatedStyle, isActive, scale } = useDragToExpand({
+    awayDirection,
+    maxScale,
+    onOpen,
+    closeSignal,
   });
 
-  const composedGesture = Gesture.Race(tapGesture, panGesture);
+  const iconOpacityStyle = useAnimatedStyle(() => ({
+    opacity: scale.value > iconHideScaleThreshold ? 0 : 1,
+  }));
+
+  const borderStyle = useAnimatedStyle(() => ({
+    borderWidth: scale.value > borderHideScaleThreshold ? 0 : 2,
+  }));
 
   return (
     <View style={{ position: 'absolute', bottom: 0, [isLeft ? 'left' : 'right']: 0, width: 0, height: 0 }}>
-      <GestureDetector gesture={composedGesture}>
+      <GestureDetector gesture={gesture}>
         <Animated.View
           accessibilityRole="button"
           accessibilityLabel={label}
@@ -61,32 +78,37 @@ export function CornerNavButton({
             animatedStyle,
           ]}
         >
-          <View
-            style={{
-              position: 'absolute',
-              width: circleDiameter,
-              height: circleDiameter,
-              borderRadius: radius,
-              backgroundColor: fillColor,
-              borderWidth: 2,
-              borderColor,
-            }}
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                width: circleDiameter,
+                height: circleDiameter,
+                borderRadius: radius,
+                backgroundColor: isActive ? activeFillColor : fillColor,
+                borderColor,
+              },
+              borderStyle,
+            ]}
             pointerEvents="none"
           />
-          <View
-            style={{
-              position: 'absolute',
-              bottom: iconLocalPosition - iconSize / 2,
-              [isLeft ? 'left' : 'right']: iconLocalPosition - iconSize / 2,
-              width: iconSize,
-              height: iconSize,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                bottom: iconLocalPosition - iconSize / 2,
+                [isLeft ? 'left' : 'right']: iconLocalPosition - iconSize / 2,
+                width: iconSize,
+                height: iconSize,
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+              iconOpacityStyle,
+            ]}
             pointerEvents="none"
           >
-            {children}
-          </View>
+            {children(isActive)}
+          </Animated.View>
         </Animated.View>
       </GestureDetector>
     </View>
