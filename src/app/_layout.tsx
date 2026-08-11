@@ -11,6 +11,7 @@ import { PortalHost } from '@rn-primitives/portal';
 import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function LoadingScreen() {
   const { colors } = useTheme();
@@ -22,18 +23,24 @@ function LoadingScreen() {
   );
 }
 
-export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
-  const { colors } = useTheme();
+const FALLBACK_COLORS = {
+  background: '#F7F7F7',
+  foreground: '#05162A',
+  mutedForeground: '#6B7280',
+  accent: '#6BA4E7',
+  accentText: '#05162A',
+};
 
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, padding: 24, gap: 16 }}>
-      <Text style={{ color: colors.foreground, fontSize: 18, textAlign: 'center' }}>Something went wrong.</Text>
-      <Text style={{ color: colors.mutedForeground, fontSize: 14, textAlign: 'center' }}>{error.message}</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: FALLBACK_COLORS.background, padding: 24, gap: 16 }}>
+      <Text style={{ color: FALLBACK_COLORS.foreground, fontSize: 18, textAlign: 'center' }}>Something went wrong.</Text>
+      <Text style={{ color: FALLBACK_COLORS.mutedForeground, fontSize: 14, textAlign: 'center' }}>{error.message}</Text>
       <Pressable
         onPress={retry}
-        style={{ backgroundColor: colors.level2, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8 }}
+        style={{ backgroundColor: FALLBACK_COLORS.accent, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8 }}
       >
-        <Text style={{ color: colors.primary }}>Try again</Text>
+        <Text style={{ color: FALLBACK_COLORS.accentText }}>Try again</Text>
       </Pressable>
     </View>
   );
@@ -43,15 +50,17 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({ VT323_400Regular, Silkscreen_400Regular, Poppins_200ExtraLight });
 
   return (
-    <AppThemeProvider>
-      {!fontsLoaded ? (
-        <LoadingScreen />
-      ) : (
-        <SessionProvider>
-          <RootLayoutNav />
-        </SessionProvider>
-      )}
-    </AppThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppThemeProvider>
+        {!fontsLoaded ? (
+          <LoadingScreen />
+        ) : (
+          <SessionProvider>
+            <RootLayoutNav />
+          </SessionProvider>
+        )}
+      </AppThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 

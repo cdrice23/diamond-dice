@@ -19,6 +19,7 @@ export function PersistentNav() {
         label="Play"
         iconSize={36}
         onPress={() => router.push('/(app)/game-setup')}
+        onPitch={() => router.push('/(app)/game-setup')}
       >
         <Ionicons name="add" size={36} color={colors.level1} />
       </CornerNavButton>
@@ -30,6 +31,7 @@ export function PersistentNav() {
         label="Menu"
         iconSize={36}
         onPress={() => router.push('/(app)/menu')}
+        onPitch={() => router.push('/(app)/menu')}
       >
         <Ionicons name="menu" size={36} color={colors.level2} />
       </CornerNavButton>

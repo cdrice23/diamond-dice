@@ -1,4 +1,4 @@
-import { PersistentNav } from '@/components/navigation/persistent-nav.component';
+import { PersistentNav } from '@/components/navigation/components/persistent-nav.component';
 import { Stack } from 'expo-router';
 import { View } from 'react-native';
 
