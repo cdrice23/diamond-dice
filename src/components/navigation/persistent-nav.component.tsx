@@ -41,7 +41,7 @@ export function PersistentNav() {
         hitSlop={12}
         style={{
           position: 'absolute',
-          bottom: 28,
+          bottom: 32,
           left: '50%',
           transform: [{ translateX: -20 }],
           width: 40,
@@ -55,7 +55,6 @@ export function PersistentNav() {
             size={60}
             flat={pressed}
             showProminentBorder={colorScheme === 'light'}
-            borderColor={colors.foreground}
           />
         )}
       </Pressable>
