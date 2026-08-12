@@ -15,13 +15,13 @@ type MenuOverlayProps = {
 };
 
 const MENU_ITEMS = [
-  { label: 'Play', route: '/(app)/game-setup' },
-  { label: 'Profile', route: '/(app)/profile' },
-  { label: 'Teams', route: '/(app)/teams' },
-  { label: 'Stats', route: '/(app)/stats' },
-  { label: 'Friends', route: '/(app)/friends' },
-  { label: 'Player Database', route: '/(app)/player-database' },
-  { label: 'Sign Out', route: null }, 
+  { label: 'Play', route: '/(app)/game-setup', iconName: 'baseball' },
+  { label: 'Profile', route: '/(app)/profile', iconName: 'player' },
+  { label: 'Teams', route: '/(app)/teams', iconName: 'jersey' },
+  { label: 'Stats', route: '/(app)/stats', iconName: 'stats' },
+  { label: 'Friends', route: '/(app)/friends', iconName: 'friends' },
+  { label: 'Player Database', route: '/(app)/player-database', iconName: 'search' },
+  { label: 'Sign Out', route: null, iconName: 'signOut' },
 ] as const;
 
 export function MenuOverlay({ visible, onClose, accentColor }: MenuOverlayProps) {
@@ -67,6 +67,7 @@ export function MenuOverlay({ visible, onClose, accentColor }: MenuOverlayProps)
             <MenuItemButton
               key={item.label}
               label={item.label}
+              iconName={item.iconName}
               index={index}
               activeIndex={activeIndex}
               primaryColor={colors.primary}
@@ -76,7 +77,7 @@ export function MenuOverlay({ visible, onClose, accentColor }: MenuOverlayProps)
           ))}
 
           <Button variant="ghost" className="h-auto w-auto py-3" onPress={onClose} accessibilityLabel="Close menu">
-            <Ionicons name="close" size={48} color={colors.foreground} />
+            <Ionicons name="close" size={32} color={colors.foreground} />
           </Button>
         </View>
       </GestureDetector>

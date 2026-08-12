@@ -12,6 +12,8 @@ type UseDragToExpandOptions = {
   closeSignal: number;
   openDuration?: number;
   closeDuration?: number;
+  minOpenDuration?: number;
+  maxRelevantVelocity?: number;
 };
 
 export function useDragToExpand({
@@ -24,6 +26,8 @@ export function useDragToExpand({
   closeSignal,
   openDuration = 350,
   closeDuration = 250,
+  minOpenDuration = 150,
+  maxRelevantVelocity = 3000,
 }: UseDragToExpandOptions) {
   const scale = useSharedValue(1);
   const [isActive, setIsActive] = useState(false);
@@ -37,11 +41,16 @@ export function useDragToExpand({
       scale.value = withTiming(1, { duration: closeDuration });
       setIsActive(false);
     }
-  }, [closeSignal]);
+  }, [closeSignal, scale, closeDuration]);
 
-  function triggerOpen() {
+  function triggerOpen(velocity?: number) {
     'worklet';
-    scale.value = withTiming(maxScale, { duration: openDuration }, (finished) => {
+    let duration = openDuration;
+    if (velocity !== undefined && velocity > velocityThreshold) {
+      const t = Math.min(1, (velocity - velocityThreshold) / (maxRelevantVelocity - velocityThreshold));
+      duration = openDuration - t * (openDuration - minOpenDuration);
+    }
+    scale.value = withTiming(maxScale, { duration }, (finished) => {
       if (finished) runOnJS(onOpen)();
     });
   }
@@ -64,9 +73,9 @@ export function useDragToExpand({
       const velocityProjected = (e.velocityX * awayDirection.x + e.velocityY * awayDirection.y) / awayMag;
 
       if (progress >= completionThreshold || velocityProjected >= velocityThreshold) {
-        triggerOpen();
+        triggerOpen(velocityProjected);
       } else {
-        scale.value = withSpring(1, { damping: 32, stiffness: 150 });
+        scale.value = withSpring(1, { dampingRatio: 0.9, duration: 600 });
         runOnJS(setIsActive)(false);
       }
     });

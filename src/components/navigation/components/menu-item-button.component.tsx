@@ -1,3 +1,5 @@
+import { PixelIcon } from '@/components/branding/components/pixel-icon.component';
+import type { PixelIconName } from '@/components/branding/pixel-icon-data';
 import { Text } from '@/components/primitives/text.component';
 import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, View } from 'react-native';
@@ -6,13 +8,16 @@ import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
+  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 
 type MenuItemButtonProps = {
   label: string;
+  iconName: PixelIconName;
   index: number;
   activeIndex: SharedValue<number>;
   primaryColor: string;
@@ -20,20 +25,26 @@ type MenuItemButtonProps = {
   onLayout: (index: number, y: number, height: number) => void;
 };
 
-// Placeholder for the future pixel-sprite icon (Phase 2) -- a plain
-// colored square for now, blinking while this item is active. Swap the
-// visual here once real pixel-art assets exist; the blink/positioning
-// logic around it shouldn't need to change.
-function PlaceholderSpriteIcon({ isActive, color }: { isActive: boolean; color: string }) {
+const BLINK_HOLD_MS = 550;
+
+function BlinkingIcon({ isActive, children }: { isActive: boolean; children: React.ReactNode }) {
   const blink = useSharedValue(0);
 
   useEffect(() => {
     if (isActive) {
-      blink.value = withRepeat(withTiming(1, { duration: 400 }), -1, true);
+      blink.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 0 }),
+          withDelay(BLINK_HOLD_MS, withTiming(0, { duration: 0 })),
+          withDelay(BLINK_HOLD_MS, withTiming(1, { duration: 0 }))
+        ),
+        -1,
+        false
+      );
     } else {
       blink.value = 0;
     }
-  }, [isActive]);
+  }, [isActive, blink]);
 
   const style = useAnimatedStyle(() => ({
     opacity: blink.value,
@@ -41,15 +52,13 @@ function PlaceholderSpriteIcon({ isActive, color }: { isActive: boolean; color: 
 
   if (!isActive) return null;
 
-  return <Animated.View style={[{ width: 16, height: 16, backgroundColor: color, marginRight: 12 }, style]} />;
+  return <Animated.View style={[{ marginRight: 12 }, style]}>{children}</Animated.View>;
 }
 
-// Fixed size, not content-dependent -- same highlight bounds regardless of
-// label length ("Stats" vs "Player Database").
 const HIGHLIGHT_WIDTH = 300;
 const HIGHLIGHT_HEIGHT = 56;
 
-export function MenuItemButton({ label, index, activeIndex, primaryColor, backgroundColor, onLayout }: MenuItemButtonProps) {
+export function MenuItemButton({ label, iconName, index, activeIndex, primaryColor, backgroundColor, onLayout }: MenuItemButtonProps) {
   const scaleStyle = useAnimatedStyle(() => {
     const active = activeIndex.value === index;
     return {
@@ -57,13 +66,6 @@ export function MenuItemButton({ label, index, activeIndex, primaryColor, backgr
     };
   });
 
-  // Opacity, not backgroundColor, is what's actually animated -- avoids
-  // Reanimated's color interpolation entirely, which is the likely cause
-  // background wasn't appearing (this project's theme colors are
-  // space-separated HSL strings, the same format that broke
-  // react-native-svg's gradient parsing elsewhere in this feature).
-  // The background itself is a separate, statically-colored layer whose
-  // opacity toggles, rather than an animated color value.
   const highlightOpacityStyle = useAnimatedStyle(() => {
     const active = activeIndex.value === index;
     return {
@@ -71,10 +73,6 @@ export function MenuItemButton({ label, index, activeIndex, primaryColor, backgr
     };
   });
 
-  // Bridges the shared activeIndex value back to plain React state, ONLY
-  // for the blink icon's mount/unmount -- useAnimatedReaction watches the
-  // shared value on the UI thread and calls back to JS only when the
-  // derived boolean actually changes, not on every frame.
   const [isActiveState, setIsActiveState] = useState(false);
   useAnimatedReaction(
     () => activeIndex.value === index,
@@ -108,7 +106,9 @@ export function MenuItemButton({ label, index, activeIndex, primaryColor, backgr
         pointerEvents="none"
       />
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 24 }}>
-        <PlaceholderSpriteIcon isActive={isActiveState} color={primaryColor} />
+        <BlinkingIcon isActive={isActiveState}>
+          <PixelIcon name={iconName} size={24} color={primaryColor} />
+        </BlinkingIcon>
         <Text style={{ fontSize: 32, lineHeight: 38, textTransform: 'uppercase' }}>{label}</Text>
       </View>
     </Animated.View>
