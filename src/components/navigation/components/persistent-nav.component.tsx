@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useDragToExpand } from '../hooks/use-drag-to-expand.hook';
-import { useDragToPitch } from '../hooks/use-drag-to-pitch.hook';
+import type { UseDragToPitchReturn } from '../hooks/use-drag-to-pitch.hook';
 import { CornerNavButton } from './corner-nav-button.component';
 import { HomePlateIcon } from './home-plate-icon.component';
 import { MenuOverlay } from './menu-overlay.component';
@@ -13,7 +13,13 @@ import { StrikeZone } from './strike-zone.component';
 
 const WHITE = '#F7F7F7';
 
-export function PersistentNav() {
+type PersistentNavProps = {
+  playDrag: UseDragToPitchReturn;
+  onStrikeZoneLayout: (x: number, y: number, width: number, height: number) => void;
+  onPlayButtonLayout: (x: number, y: number, width: number, height: number) => void;
+};
+
+export function PersistentNav({ playDrag, onStrikeZoneLayout, onPlayButtonLayout }: PersistentNavProps) {
   const { colors, colorScheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [closeSignal, setCloseSignal] = useState(0);
@@ -26,13 +32,6 @@ export function PersistentNav() {
 
   const buttonRadius = (100 + 100 * 0.05 * 0.85) / 2;
   const maxScale = Math.sqrt(screenWidth ** 2 + screenHeight ** 2) / buttonRadius;
-
-  const playDrag = useDragToPitch({
-    awayDirection: { x: 1, y: -1 },
-    maxScale,
-    onOpen: () => router.push('/(app)/game-setup'),
-    closeSignal: 0,
-  });
 
   const menuDrag = useDragToExpand({
     awayDirection: { x: -1, y: -1 },
@@ -53,6 +52,7 @@ export function PersistentNav() {
         fillColor={WHITE}
         activeFillColor={colors.level1}
         borderColor={colors.level1}
+        onButtonLayout={onPlayButtonLayout}
         label="Play"
         iconSize={36}
         gesture={playDrag.gesture}
@@ -118,7 +118,11 @@ export function PersistentNav() {
       </Animated.View>
     </View>
 
-    <StrikeZone visibility={playDrag.pastThreshold} borderColor={colors.level3} />
+    <StrikeZone
+      visibility={playDrag.strikeZoneVisibility}
+      borderColor={colors.level3}
+      onLayout={onStrikeZoneLayout}
+    />
 
     <MenuOverlay visible={isMenuOpen} onClose={handleCloseMenu} accentColor={colors.level2} />
     </>

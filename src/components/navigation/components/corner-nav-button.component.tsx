@@ -1,9 +1,13 @@
+import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import type { UseDragToExpandReturn } from '../hooks/use-drag-to-expand.hook';
 import type { UseDragToPitchReturn } from '../hooks/use-drag-to-pitch.hook';
 
+// Both hooks currently share an identical return shape -- this union type
+// lets either be passed in without re-deriving the animatedStyle/scale
+// types independently (which was the actual cause of the type error).
 type DragHookReturn = UseDragToExpandReturn | UseDragToPitchReturn;
 
 type CornerNavButtonProps = {
@@ -18,6 +22,7 @@ type CornerNavButtonProps = {
   scale: DragHookReturn['scale'];
   isActive: DragHookReturn['isActive'];
   activeFillColor: string;
+  onButtonLayout?: (x: number, y: number, width: number, height: number) => void;
   iconHideScaleThreshold?: number;
   borderHideScaleThreshold?: number;
   children: (isActive: boolean) => React.ReactNode;
@@ -29,6 +34,7 @@ export function CornerNavButton({
   borderColor,
   fillColor,
   activeFillColor,
+  onButtonLayout,
   label,
   iconSize = 32,
   gesture,
@@ -56,8 +62,30 @@ export function CornerNavButton({
     borderWidth: scale.value > borderHideScaleThreshold ? 0 : 2,
   }));
 
+  const circleRef = useRef<any>(null);
+  useEffect(() => {
+    if (!onButtonLayout) return;
+
+    const timeout = setTimeout(() => {
+      circleRef.current?.measureInWindow((x: number, y: number, width: number, height: number) => {
+        onButtonLayout(x, y, width, height);
+      });
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [onButtonLayout]);
+
   return (
     <View style={{ position: 'absolute', bottom: 0, [isLeft ? 'left' : 'right']: 0, width: 0, height: 0 }}>
+      <View
+        ref={circleRef}
+        style={{
+          position: 'absolute',
+          bottom: -cornerOffset,
+          [isLeft ? 'left' : 'right']: -cornerOffset,
+          width: circleDiameter,
+          height: circleDiameter,
+        }}
+      >
       <GestureDetector gesture={gesture}>
         <Animated.View
           accessibilityRole="button"
@@ -65,14 +93,15 @@ export function CornerNavButton({
           style={[
             {
               position: 'absolute',
-              bottom: -cornerOffset,
-              [isLeft ? 'left' : 'right']: -cornerOffset,
               width: circleDiameter,
               height: circleDiameter,
             },
             animatedStyle,
           ]}
         >
+          {/* isActive is plain React state (not a shared value), so this
+              switches via normal re-render -- same mechanism the icon color
+              already correctly used via the children(isActive) render prop. */}
           <Animated.View
             style={[
               {
@@ -106,6 +135,7 @@ export function CornerNavButton({
           </Animated.View>
         </Animated.View>
       </GestureDetector>
+      </View>
     </View>
   );
 }
