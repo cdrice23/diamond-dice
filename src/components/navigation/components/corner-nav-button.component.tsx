@@ -17,6 +17,7 @@ type CornerNavButtonProps = {
   animatedStyle: DragHookReturn['animatedStyle'];
   scale: DragHookReturn['scale'];
   isActive: DragHookReturn['isActive'];
+  activeFillColor: string;
   iconHideScaleThreshold?: number;
   borderHideScaleThreshold?: number;
   children: (isActive: boolean) => React.ReactNode;
@@ -27,6 +28,7 @@ export function CornerNavButton({
   size = 100,
   borderColor,
   fillColor,
+  activeFillColor,
   label,
   iconSize = 32,
   gesture,
@@ -78,7 +80,7 @@ export function CornerNavButton({
                 width: circleDiameter,
                 height: circleDiameter,
                 borderRadius: radius,
-                backgroundColor: fillColor,
+                backgroundColor: isActive ? activeFillColor : fillColor,
                 borderColor,
               },
               borderStyle,

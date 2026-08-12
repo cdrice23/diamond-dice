@@ -1,10 +1,7 @@
-import { Text } from '@/components/primitives/text.component';
-import { View } from 'react-native';
+import { PlaceholderScreen } from '@/components/primitives/placeholder-screen.component';
+import { useTheme } from '@/utils/theme-provider';
 
 export default function ProfileScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} className="bg-background">
-      <Text>Profile (placeholder)</Text>
-    </View>
-  );
+  const { colors } = useTheme();
+  return <PlaceholderScreen title="Profile" accentColor={colors.level1} />;
 }

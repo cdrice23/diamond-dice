@@ -31,6 +31,7 @@ export function useDragToPitch({
 }: UseDragToPitchOptions) {
   const scale = useSharedValue(1);
   const [isActive, setIsActive] = useState(false);
+  const pastThreshold = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -40,8 +41,9 @@ export function useDragToPitch({
     if (closeSignal > 0) {
       scale.value = withTiming(1, { duration: closeDuration });
       setIsActive(false);
+      pastThreshold.value = 0;
     }
-  }, [closeSignal, scale, closeDuration]);
+  }, [closeSignal, closeDuration, scale, setIsActive, pastThreshold]);
 
   function triggerOpen(velocity?: number) {
     'worklet';
@@ -66,6 +68,8 @@ export function useDragToPitch({
       const projected = (e.translationX * awayDirection.x + e.translationY * awayDirection.y) / awayMag;
       const progress = Math.min(1, Math.max(0, projected / maxDragDistance));
       scale.value = 1 + progress * (maxScale - 1);
+
+      pastThreshold.value = withTiming(progress >= completionThreshold ? 1 : 0, { duration: 200 });
     })
     .onEnd((e) => {
       const projected = (e.translationX * awayDirection.x + e.translationY * awayDirection.y) / awayMag;
@@ -76,6 +80,7 @@ export function useDragToPitch({
         triggerOpen(velocityProjected);
       } else {
         scale.value = withSpring(1, { dampingRatio: 0.9, duration: 600 });
+        pastThreshold.value = withTiming(0, { duration: 200 });
         runOnJS(setIsActive)(false);
       }
     });
@@ -90,7 +95,7 @@ export function useDragToPitch({
 
   const gesture = Gesture.Race(tapGesture, panGesture);
 
-  return { gesture, animatedStyle, isActive, scale };
+  return { gesture, animatedStyle, isActive, scale, pastThreshold };
 }
 
 export type UseDragToPitchReturn = ReturnType<typeof useDragToPitch>;
