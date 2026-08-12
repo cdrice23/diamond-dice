@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
-type UseDragToExpandOptions = {
+type UseDragToPitchOptions = {
   awayDirection: { x: number; y: number };
   maxScale: number;
   maxDragDistance?: number;
@@ -16,7 +16,7 @@ type UseDragToExpandOptions = {
   maxRelevantVelocity?: number;
 };
 
-export function useDragToExpand({
+export function useDragToPitch({
   awayDirection,
   maxScale,
   maxDragDistance = 300,
@@ -28,7 +28,7 @@ export function useDragToExpand({
   closeDuration = 250,
   minOpenDuration = 150,
   maxRelevantVelocity = 3000,
-}: UseDragToExpandOptions) {
+}: UseDragToPitchOptions) {
   const scale = useSharedValue(1);
   const [isActive, setIsActive] = useState(false);
 
@@ -93,8 +93,4 @@ export function useDragToExpand({
   return { gesture, animatedStyle, isActive, scale };
 }
 
-// Exported explicitly so consumers (CornerNavButton) can type props by
-// inferring FROM this hook directly, rather than re-deriving the
-// animatedStyle shape independently via ReturnType<typeof useAnimatedStyle>
-// -- that approach was producing an overly-generic/mismatched type.
-export type UseDragToExpandReturn = ReturnType<typeof useDragToExpand>;
+export type UseDragToPitchReturn = ReturnType<typeof useDragToPitch>;

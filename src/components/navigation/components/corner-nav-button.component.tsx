@@ -1,18 +1,22 @@
-import { View, useWindowDimensions } from 'react-native';
+import { View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { useDragToExpand } from '../hooks/use-drag-to-expand.hook';
+import type { UseDragToExpandReturn } from '../hooks/use-drag-to-expand.hook';
+import type { UseDragToPitchReturn } from '../hooks/use-drag-to-pitch.hook';
+
+type DragHookReturn = UseDragToExpandReturn | UseDragToPitchReturn;
 
 type CornerNavButtonProps = {
   corner: 'left' | 'right';
   size?: number;
   borderColor: string;
   fillColor: string;
-  activeFillColor: string;
   label: string;
-  onOpen: () => void;
-  closeSignal: number;
   iconSize?: number;
+  gesture: DragHookReturn['gesture'];
+  animatedStyle: DragHookReturn['animatedStyle'];
+  scale: DragHookReturn['scale'];
+  isActive: DragHookReturn['isActive'];
   iconHideScaleThreshold?: number;
   borderHideScaleThreshold?: number;
   children: (isActive: boolean) => React.ReactNode;
@@ -23,11 +27,12 @@ export function CornerNavButton({
   size = 100,
   borderColor,
   fillColor,
-  activeFillColor,
   label,
-  onOpen,
-  closeSignal,
   iconSize = 32,
+  gesture,
+  animatedStyle,
+  scale,
+  isActive,
   iconHideScaleThreshold = 1.15,
   borderHideScaleThreshold = 1.2,
   children,
@@ -40,18 +45,6 @@ export function CornerNavButton({
   const inwardOffset = radius * 0.05;
   const diagonalOffset = inwardOffset / Math.SQRT2;
   const iconLocalPosition = radius + diagonalOffset;
-
-  const awayDirection = isLeft ? { x: 1, y: -1 } : { x: -1, y: -1 };
-
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const maxScale = Math.sqrt(screenWidth ** 2 + screenHeight ** 2) / radius;
-
-  const { gesture, animatedStyle, isActive, scale } = useDragToExpand({
-    awayDirection,
-    maxScale,
-    onOpen,
-    closeSignal,
-  });
 
   const iconOpacityStyle = useAnimatedStyle(() => ({
     opacity: scale.value > iconHideScaleThreshold ? 0 : 1,
@@ -85,7 +78,7 @@ export function CornerNavButton({
                 width: circleDiameter,
                 height: circleDiameter,
                 borderRadius: radius,
-                backgroundColor: isActive ? activeFillColor : fillColor,
+                backgroundColor: fillColor,
                 borderColor,
               },
               borderStyle,

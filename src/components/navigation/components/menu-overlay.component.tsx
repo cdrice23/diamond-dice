@@ -77,7 +77,7 @@ export function MenuOverlay({ visible, onClose, accentColor }: MenuOverlayProps)
           ))}
 
           <Button variant="ghost" className="h-auto w-auto py-3" onPress={onClose} accessibilityLabel="Close menu">
-            <Ionicons name="close" size={32} color={colors.foreground} />
+            <Ionicons name="close" size={48} color={colors.foreground} />
           </Button>
         </View>
       </GestureDetector>
