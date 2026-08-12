@@ -1,10 +1,12 @@
 import { Button } from '@/components/primitives/button.component';
-import { Text } from '@/components/primitives/text.component';
 import { supabase } from '@/utils/supabase';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
+import { useSlideSelectMenu } from '../hooks/use-slide-select-menu.hook';
+import { MenuItemButton } from './menu-item-button.component';
 
 type MenuOverlayProps = {
   visible: boolean;
@@ -13,27 +15,31 @@ type MenuOverlayProps = {
 };
 
 const MENU_ITEMS = [
+  { label: 'Play', route: '/(app)/game-setup' },
   { label: 'Profile', route: '/(app)/profile' },
   { label: 'Teams', route: '/(app)/teams' },
   { label: 'Stats', route: '/(app)/stats' },
   { label: 'Friends', route: '/(app)/friends' },
   { label: 'Player Database', route: '/(app)/player-database' },
+  { label: 'Sign Out', route: null }, 
 ] as const;
 
 export function MenuOverlay({ visible, onClose, accentColor }: MenuOverlayProps) {
   const { colors } = useTheme();
 
+  async function handleSelect(index: number) {
+    const item = MENU_ITEMS[index];
+    onClose();
+    if (item.route === null) {
+      await supabase.auth.signOut();
+    } else {
+      router.push(item.route as never);
+    }
+  }
+
+  const { gesture, activeIndex, reportBounds } = useSlideSelectMenu(MENU_ITEMS.length, handleSelect);
+
   if (!visible) return null;
-
-  function handleNavigate(route: string) {
-    onClose();
-    router.push(route as never);
-  }
-
-  async function handleSignOut() {
-    onClose();
-    await supabase.auth.signOut();
-  }
 
   return (
     <View
@@ -47,29 +53,33 @@ export function MenuOverlay({ visible, onClose, accentColor }: MenuOverlayProps)
         zIndex: 100,
       }}
     >
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 16,
-          paddingVertical: 40,
-        }}
-      >
-        {MENU_ITEMS.map((item) => (
-          <Button key={item.route} variant="ghost" className="h-auto py-3" onPress={() => handleNavigate(item.route)}>
-            <Text style={{ fontSize: 32, lineHeight: 38, textTransform: 'uppercase' }}>{item.label}</Text>
+      <GestureDetector gesture={gesture}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 16,
+            paddingVertical: 40,
+          }}
+        >
+          {MENU_ITEMS.map((item, index) => (
+            <MenuItemButton
+              key={item.label}
+              label={item.label}
+              index={index}
+              activeIndex={activeIndex}
+              primaryColor={colors.primary}
+              backgroundColor={colors.background}
+              onLayout={reportBounds}
+            />
+          ))}
+
+          <Button variant="ghost" className="h-auto w-auto py-3" onPress={onClose} accessibilityLabel="Close menu">
+            <Ionicons name="close" size={48} color={colors.foreground} />
           </Button>
-        ))}
-
-        <Button variant="ghost" className="h-auto py-3" onPress={handleSignOut}>
-          <Text style={{ fontSize: 32, lineHeight: 38, textTransform: 'uppercase' }}>Sign Out</Text>
-        </Button>
-
-        <Button variant="ghost" className="h-auto w-auto py-3" onPress={onClose} accessibilityLabel="Close menu">
-          <Ionicons name="close" size={48} color={colors.foreground} />
-        </Button>
-      </ScrollView>
+        </View>
+      </GestureDetector>
     </View>
   );
 }
