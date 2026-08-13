@@ -2,9 +2,8 @@ import { PersistentNav } from '@/components/navigation/components/persistent-nav
 import { useDragToPitch } from '@/components/navigation/hooks/use-drag-to-pitch.hook';
 import { PitchStateProvider } from '@/components/navigation/pitch-state.context';
 import { useTheme } from '@/utils/theme-provider';
-import { Asset } from 'expo-asset';
 import { Stack, router, usePathname } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 
 const NO_PERSISTENT_NAV_ROUTES = ['/game-setup'];
@@ -14,9 +13,6 @@ type Bounds = { x: number; y: number; width: number; height: number };
 export default function AppLayout() {
   const { colors } = useTheme();
 
-  useEffect(() => {
-    Asset.loadAsync([require('../../../assets/images/home-light.png'), require('../../../assets/images/home-dark.png')]);
-  }, []);
   const pathname = usePathname();
   const showPersistentNav = !NO_PERSISTENT_NAV_ROUTES.some((route) => pathname.startsWith(route));
 

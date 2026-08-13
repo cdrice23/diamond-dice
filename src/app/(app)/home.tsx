@@ -1,4 +1,4 @@
-import { HomeBackdrop } from '@/components/navigation/components/home-backdrop.component';
+import { ScreenBackdrop } from '@/components/navigation/components/screen-backdrop.component';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
 import { PlaceholderScreen } from '@/components/primitives/placeholder-screen.component';
 import { useTheme } from '@/utils/theme-provider';
@@ -6,7 +6,7 @@ import { View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 export default function HomeScreen() {
-  const { colors, colorScheme } = useTheme();
+  const { colors } = useTheme();
   const { pastThreshold } = usePitchState();
 
   const contentFadeStyle = useAnimatedStyle(() => ({
@@ -15,14 +15,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <HomeBackdrop
-        imageSource={
-          colorScheme === 'light'
-            ? require('../../../assets/images/home-light.png')
-            : require('../../../assets/images/home-dark.png')
-        }
-        backgroundColor={colors.background}
-      />
+      <ScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} />
       <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
         <PlaceholderScreen title="Home" accentColor={colors.level3} floating cardBackgroundColor={colors.background} />
       </Animated.View>

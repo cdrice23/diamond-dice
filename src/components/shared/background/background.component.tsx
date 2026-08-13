@@ -1,14 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { AUTH_BACKGROUND_SVG } from './auth-background-svg';
+import { BACKGROUND_SVG } from './background-svg';
 
-type AuthBackgroundProps = {
+type BackgroundProps = {
   color: string;
   opacity?: number;
 };
 
-export function AuthBackground({ color, opacity = 0.4 }: AuthBackgroundProps) {
-  const xml = AUTH_BACKGROUND_SVG.replace(/__COLOR__/g, color);
+export function Background({ color, opacity = 0.4 }: BackgroundProps) {
+  const xml = BACKGROUND_SVG.replace(/__COLOR__/g, color);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">

@@ -2,7 +2,6 @@ import { getAuthErrorInfo, getFunctionErrorInfo } from '@/components/auth/auth-e
 import { RESET_CODE_LENGTH, SLOT_HEIGHT } from '@/components/auth/auth.constants';
 import { AnimatedSlotContainer } from '@/components/auth/components/animated-slot-container.component';
 import { AnimatedSlot } from '@/components/auth/components/animated-slot.component';
-import { AuthBackground } from '@/components/auth/components/auth-background.component';
 import { AuthBlend } from '@/components/auth/components/auth-blend.component';
 import { PasswordInput } from '@/components/auth/components/password-input.component';
 import { useAuthForm } from '@/components/auth/hooks/use-auth-form.hook';
@@ -14,6 +13,7 @@ import { LogoSplash } from '@/components/branding/components/logo-splash.compone
 import { Button } from '@/components/primitives/button.component';
 import { Input } from '@/components/primitives/input.component';
 import { Text } from '@/components/primitives/text.component';
+import { Background } from '@/components/shared/background/background.component';
 import { supabase } from '@/utils/supabase';
 import { useTheme } from '@/utils/theme-provider';
 import { useEffect, useRef, useState } from 'react';
@@ -243,7 +243,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss} className="bg-background">
         <View style={{ flex: 1 }}>
-          <AuthBackground color={colors.primary} />
+          <Background color={colors.primary} />
 
           <AuthBlend
             anchorY={Math.max(0, containerLayout.y - SOLID_TOP_BUFFER)}
