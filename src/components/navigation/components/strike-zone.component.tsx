@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type StrikeZoneProps = {
   visibility: SharedValue<number>;
@@ -12,6 +13,9 @@ const WIDTH = 80;
 const HEIGHT = 110;
 
 export function StrikeZone({ visibility, borderColor, onLayout }: StrikeZoneProps) {
+  const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
   const style = useAnimatedStyle(() => ({
     opacity: visibility.value,
   }));
@@ -27,13 +31,15 @@ export function StrikeZone({ visibility, borderColor, onLayout }: StrikeZoneProp
     return () => clearTimeout(timeout);
   }, [onLayout]);
 
+  const topPosition = insets.top + (screenHeight - insets.top) * 0.25;
+
   return (
     <View
       ref={zoneRef}
       pointerEvents="none"
       style={{
         position: 'absolute',
-        top: '25%',
+        top: topPosition,
         left: '50%',
         width: WIDTH,
         height: HEIGHT,

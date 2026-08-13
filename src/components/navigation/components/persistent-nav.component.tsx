@@ -9,6 +9,7 @@ import type { UseDragToPitchReturn } from '../hooks/use-drag-to-pitch.hook';
 import { CornerNavButton } from './corner-nav-button.component';
 import { HomePlateIcon } from './home-plate-icon.component';
 import { MenuOverlay } from './menu-overlay.component';
+import { PitchCurveBackdrop } from './pitch-curve-backdrop.component';
 import { StrikeZone } from './strike-zone.component';
 
 const WHITE = '#F7F7F7';
@@ -19,6 +20,7 @@ type PersistentNavProps = {
   onPlayButtonLayout: (x: number, y: number, width: number, height: number) => void;
   ballFillColorOverride?: string;
   strikeZoneColor: string;
+  strikeZoneBounds: { x: number; y: number; width: number; height: number } | null;
 };
 
 export function PersistentNav({
@@ -27,6 +29,7 @@ export function PersistentNav({
   onPlayButtonLayout,
   ballFillColorOverride,
   strikeZoneColor,
+  strikeZoneBounds,
 }: PersistentNavProps) {
   const { colors, colorScheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,6 +57,8 @@ export function PersistentNav({
 
   return (
     <>
+    {/* zIndex higher than StrikeZone's -- the ball needs to render above
+        the strike zone once settled there, per feedback. */}
     <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 100, zIndex: 20 }} pointerEvents="box-none">
       <CornerNavButton
         corner="left"
@@ -127,6 +132,13 @@ export function PersistentNav({
         </Pressable>
       </Animated.View>
     </View>
+
+    <PitchCurveBackdrop
+      strikeZoneBounds={strikeZoneBounds}
+      visibility={playDrag.strikeZoneVisibility}
+      pastThreshold={playDrag.pastThreshold}
+      fillColor="#505C6A"
+    />
 
     <StrikeZone
       visibility={playDrag.strikeZoneVisibility}

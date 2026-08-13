@@ -65,6 +65,7 @@ export default function AppLayout() {
           playDrag={playDrag}
           ballFillColorOverride={ballFillColorOverride}
           strikeZoneColor={strikeZoneColor}
+          strikeZoneBounds={strikeZoneBounds}
           onStrikeZoneLayout={(x, y, width, height) => setStrikeZoneBounds({ x, y, width, height })}
           onPlayButtonLayout={handlePlayButtonLayout}
         />

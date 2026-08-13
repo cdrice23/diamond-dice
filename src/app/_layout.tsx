@@ -12,6 +12,7 @@ import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function LoadingScreen() {
   const { colors } = useTheme();
@@ -51,15 +52,17 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppThemeProvider>
-        {!fontsLoaded ? (
-          <LoadingScreen />
-        ) : (
-          <SessionProvider>
-            <RootLayoutNav />
-          </SessionProvider>
-        )}
-      </AppThemeProvider>
+      <SafeAreaProvider>
+        <AppThemeProvider>
+          {!fontsLoaded ? (
+            <LoadingScreen />
+          ) : (
+            <SessionProvider>
+              <RootLayoutNav />
+            </SessionProvider>
+          )}
+        </AppThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
@@ -76,7 +79,7 @@ function RootLayoutNav() {
 
   return (
     <NavThemeProvider value={colorScheme === 'dark' ? NAV_THEME.dark : NAV_THEME.light}>
-      <Stack>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(app)" />
         </Stack.Protected>
