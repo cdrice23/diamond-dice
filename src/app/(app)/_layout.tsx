@@ -1,10 +1,11 @@
 import { PersistentNav } from '@/components/navigation/components/persistent-nav.component';
 import { useDragToPitch } from '@/components/navigation/hooks/use-drag-to-pitch.hook';
+import { PitchStateProvider } from '@/components/navigation/pitch-state.context';
 import { useTheme } from '@/utils/theme-provider';
+import { Asset } from 'expo-asset';
 import { Stack, router, usePathname } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 const NO_PERSISTENT_NAV_ROUTES = ['/game-setup'];
 
@@ -12,6 +13,10 @@ type Bounds = { x: number; y: number; width: number; height: number };
 
 export default function AppLayout() {
   const { colors } = useTheme();
+
+  useEffect(() => {
+    Asset.loadAsync([require('../../../assets/images/home-light.png'), require('../../../assets/images/home-dark.png')]);
+  }, []);
   const pathname = usePathname();
   const showPersistentNav = !NO_PERSISTENT_NAV_ROUTES.some((route) => pathname.startsWith(route));
 
@@ -33,7 +38,7 @@ export default function AppLayout() {
     buttonAnchor,
     strikeZoneBounds,
     stoppingLineY,
-    outerPadding: 15,
+    outerPadding: 40,
     onOpen: () => router.push('/(app)/game-setup'),
     closeSignal: 0,
   });
@@ -52,17 +57,13 @@ export default function AppLayout() {
     // Intentionally unused for now -- see comment above.
   }
 
-  const screenFadeStyle = useAnimatedStyle(() => ({
-    opacity: 1 - playDrag.pastThreshold.value,
-  }));
-
   return (
     <View style={{ flex: 1 }}>
-      <Animated.View style={[{ flex: 1 }, screenFadeStyle]}>
+      <PitchStateProvider pastThreshold={playDrag.pastThreshold}>
         <Stack screenOptions={{ headerShown: false, animation: 'none' }} initialRouteName="home">
           <Stack.Screen name="game-setup" options={{ animation: 'none' }} />
         </Stack>
-      </Animated.View>
+      </PitchStateProvider>
       {showPersistentNav && (
         <PersistentNav
           playDrag={playDrag}

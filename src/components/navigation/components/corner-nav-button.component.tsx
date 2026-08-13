@@ -20,6 +20,7 @@ type CornerNavButtonProps = {
   isActive: DragHookReturn['isActive'];
   activeFillColor: string;
   fillColorOverride?: string;
+  isPitching?: boolean;
   onButtonLayout?: (x: number, y: number, width: number, height: number) => void;
   iconHideScaleThreshold?: number;
   borderHideScaleThreshold?: number;
@@ -33,6 +34,7 @@ export function CornerNavButton({
   fillColor,
   activeFillColor,
   fillColorOverride,
+  isPitching = false,
   onButtonLayout,
   label,
   iconSize = 32,
@@ -54,17 +56,16 @@ export function CornerNavButton({
   const iconLocalPosition = radius + diagonalOffset;
 
   const iconOpacityStyle = useAnimatedStyle(() => ({
-    opacity: scale.value > iconHideScaleThreshold ? 0 : 1,
+    opacity: isPitching || scale.value > iconHideScaleThreshold ? 0 : 1,
   }));
 
   const borderStyle = useAnimatedStyle(() => ({
-    borderWidth: scale.value > borderHideScaleThreshold ? 0 : 2,
+    borderWidth: isPitching || scale.value > borderHideScaleThreshold ? 0 : 2,
   }));
 
   const circleRef = useRef<any>(null);
   useEffect(() => {
     if (!onButtonLayout) return;
-
     const timeout = setTimeout(() => {
       circleRef.current?.measureInWindow((x: number, y: number, width: number, height: number) => {
         onButtonLayout(x, y, width, height);

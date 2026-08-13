@@ -17,8 +17,6 @@ type PersistentNavProps = {
   playDrag: UseDragToPitchReturn;
   onStrikeZoneLayout: (x: number, y: number, width: number, height: number) => void;
   onPlayButtonLayout: (x: number, y: number, width: number, height: number) => void;
-  // Computed in (app)/_layout.tsx from playDrag.pitchPhase -- forwarded
-  // down to the actual Play CornerNavButton and StrikeZone respectively.
   ballFillColorOverride?: string;
   strikeZoneColor: string;
 };
@@ -56,8 +54,6 @@ export function PersistentNav({
 
   return (
     <>
-    {/* zIndex higher than StrikeZone's -- the ball needs to render above
-        the strike zone once settled there, per feedback. */}
     <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 100, zIndex: 20 }} pointerEvents="box-none">
       <CornerNavButton
         corner="left"
@@ -65,6 +61,7 @@ export function PersistentNav({
         activeFillColor={colors.level1}
         fillColorOverride={ballFillColorOverride}
         borderColor={colors.level1}
+        isPitching={playDrag.pitchPhase !== 'rest'}
         onButtonLayout={onPlayButtonLayout}
         label="Play"
         iconSize={36}
