@@ -17,9 +17,19 @@ type PersistentNavProps = {
   playDrag: UseDragToPitchReturn;
   onStrikeZoneLayout: (x: number, y: number, width: number, height: number) => void;
   onPlayButtonLayout: (x: number, y: number, width: number, height: number) => void;
+  // Computed in (app)/_layout.tsx from playDrag.pitchPhase -- forwarded
+  // down to the actual Play CornerNavButton and StrikeZone respectively.
+  ballFillColorOverride?: string;
+  strikeZoneColor: string;
 };
 
-export function PersistentNav({ playDrag, onStrikeZoneLayout, onPlayButtonLayout }: PersistentNavProps) {
+export function PersistentNav({
+  playDrag,
+  onStrikeZoneLayout,
+  onPlayButtonLayout,
+  ballFillColorOverride,
+  strikeZoneColor,
+}: PersistentNavProps) {
   const { colors, colorScheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [closeSignal, setCloseSignal] = useState(0);
@@ -46,11 +56,14 @@ export function PersistentNav({ playDrag, onStrikeZoneLayout, onPlayButtonLayout
 
   return (
     <>
-    <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 100 }} pointerEvents="box-none">
+    {/* zIndex higher than StrikeZone's -- the ball needs to render above
+        the strike zone once settled there, per feedback. */}
+    <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 100, zIndex: 20 }} pointerEvents="box-none">
       <CornerNavButton
         corner="left"
         fillColor={WHITE}
         activeFillColor={colors.level1}
+        fillColorOverride={ballFillColorOverride}
         borderColor={colors.level1}
         onButtonLayout={onPlayButtonLayout}
         label="Play"
@@ -120,7 +133,7 @@ export function PersistentNav({ playDrag, onStrikeZoneLayout, onPlayButtonLayout
 
     <StrikeZone
       visibility={playDrag.strikeZoneVisibility}
-      borderColor={colors.level3}
+      borderColor={strikeZoneColor}
       onLayout={onStrikeZoneLayout}
     />
 

@@ -5,9 +5,6 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import type { UseDragToExpandReturn } from '../hooks/use-drag-to-expand.hook';
 import type { UseDragToPitchReturn } from '../hooks/use-drag-to-pitch.hook';
 
-// Both hooks currently share an identical return shape -- this union type
-// lets either be passed in without re-deriving the animatedStyle/scale
-// types independently (which was the actual cause of the type error).
 type DragHookReturn = UseDragToExpandReturn | UseDragToPitchReturn;
 
 type CornerNavButtonProps = {
@@ -22,6 +19,7 @@ type CornerNavButtonProps = {
   scale: DragHookReturn['scale'];
   isActive: DragHookReturn['isActive'];
   activeFillColor: string;
+  fillColorOverride?: string;
   onButtonLayout?: (x: number, y: number, width: number, height: number) => void;
   iconHideScaleThreshold?: number;
   borderHideScaleThreshold?: number;
@@ -34,6 +32,7 @@ export function CornerNavButton({
   borderColor,
   fillColor,
   activeFillColor,
+  fillColorOverride,
   onButtonLayout,
   label,
   iconSize = 32,
@@ -99,9 +98,6 @@ export function CornerNavButton({
             animatedStyle,
           ]}
         >
-          {/* isActive is plain React state (not a shared value), so this
-              switches via normal re-render -- same mechanism the icon color
-              already correctly used via the children(isActive) render prop. */}
           <Animated.View
             style={[
               {
@@ -109,7 +105,7 @@ export function CornerNavButton({
                 width: circleDiameter,
                 height: circleDiameter,
                 borderRadius: radius,
-                backgroundColor: isActive ? activeFillColor : fillColor,
+                backgroundColor: fillColorOverride ?? (isActive ? activeFillColor : fillColor),
                 borderColor,
               },
               borderStyle,

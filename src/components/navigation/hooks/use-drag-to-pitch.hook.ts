@@ -8,10 +8,6 @@ type UseDragToPitchOptions = {
   maxScale: number;
   buttonAnchor: { x: number; y: number };
   strikeZoneBounds: Bounds | null;
-  // Y position (relative to buttonAnchor, screen coords -- negative is up)
-  // the drag cannot cross -- the "invisible horizontal stopping point"
-  // across the bottom of where the strike zone will be. X is unclamped,
-  // allowing the wide range of pitch-from positions/angles.
   stoppingLineY: number;
   outerPadding?: number;
   velocityThreshold?: number;
@@ -19,7 +15,6 @@ type UseDragToPitchOptions = {
   closeSignal: number;
   openDuration?: number;
   closeDuration?: number;
-  minOpenDuration?: number;
   maxRelevantVelocity?: number;
   minArcDuration?: number;
   maxArcDuration?: number;
@@ -28,10 +23,27 @@ type UseDragToPitchOptions = {
   siblingFadeDuration?: number;
 };
 
+const PITCH_TYPES = [
+  { name: 'fastball', arcStrengthRange: [0.2, 0.35] as const, perpendicularRange: [-15, 15] as const },
+  { name: 'curveball', arcStrengthRange: [0.5, 0.75] as const, perpendicularRange: [70, 140] as const },
+  { name: 'splitter', arcStrengthRange: [1.8, 2.4] as const, perpendicularRange: [-25, 25] as const },
+] as const;
+
+function randomInRange([min, max]: readonly [number, number]) {
+  'worklet';
+  return min + Math.random() * (max - min);
+}
+
+function pickPitchType() {
+  'worklet';
+  const index = Math.floor(Math.random() * PITCH_TYPES.length);
+  return PITCH_TYPES[index];
+}
+
 function randomSettleOffset(bounds: Bounds, buttonAnchor: { x: number; y: number }, outerPadding: number) {
   'worklet';
-  const landInside = Math.random() < 0.7;
-  const pad = landInside ? 0 : outerPadding;
+  const sampleFromTightRange = Math.random() < 0.7;
+  const pad = sampleFromTightRange ? 0 : outerPadding;
 
   const minX = bounds.x - pad;
   const maxX = bounds.x + bounds.width + pad;
@@ -41,7 +53,13 @@ function randomSettleOffset(bounds: Bounds, buttonAnchor: { x: number; y: number
   const targetX = minX + Math.random() * (maxX - minX);
   const targetY = minY + Math.random() * (maxY - minY);
 
-  return { x: targetX - buttonAnchor.x, y: targetY - buttonAnchor.y };
+  const isStrike =
+    targetX >= bounds.x &&
+    targetX <= bounds.x + bounds.width &&
+    targetY >= bounds.y &&
+    targetY <= bounds.y + bounds.height;
+
+  return { x: targetX - buttonAnchor.x, y: targetY - buttonAnchor.y, isStrike };
 }
 
 export function useDragToPitch({
@@ -49,26 +67,28 @@ export function useDragToPitch({
   buttonAnchor,
   strikeZoneBounds,
   stoppingLineY,
-  outerPadding = 40,
+  outerPadding = 15,
   velocityThreshold = 900,
   onOpen,
   closeSignal,
-  openDuration = 350,
+  openDuration = 550,
   closeDuration = 250,
-  minOpenDuration = 150,
   maxRelevantVelocity = 3000,
   minArcDuration = 500,
   maxArcDuration = 900,
-  flightScale = 0.135,
+  flightScale = 0.135, // 0.45 reduced by ~70%, per feedback
   settlePauseDuration = 400,
   siblingFadeDuration = 200,
 }: UseDragToPitchOptions) {
   const scale = useSharedValue(1);
   const [isActive, setIsActive] = useState(false);
+  const [pitchPhase, setPitchPhase] = useState<'rest' | 'pitching' | 'strike' | 'ball'>('rest');
   const pastThreshold = useSharedValue(0);
   const strikeZoneVisibility = useSharedValue(0);
+
   const dragX = useSharedValue(0);
   const dragY = useSharedValue(0);
+
   const arcProgress = useSharedValue(0);
   const startOffsetX = useSharedValue(0);
   const startOffsetY = useSharedValue(0);
@@ -105,21 +125,17 @@ export function useDragToPitch({
       dragX.value = withTiming(0, { duration: closeDuration });
       dragY.value = withTiming(0, { duration: closeDuration });
       setIsActive(false);
+      setPitchPhase('rest');
       pastThreshold.value = 0;
       strikeZoneVisibility.value = 0;
     }
   }, [closeSignal, closeDuration, scale, arcProgress, dragX, dragY, setIsActive, pastThreshold, strikeZoneVisibility]);
 
-  function runExpand(velocity?: number) {
+  function runExpand() {
     'worklet';
     pastThreshold.value = withTiming(1, { duration: siblingFadeDuration });
 
-    let duration = openDuration;
-    if (velocity !== undefined && velocity > velocityThreshold) {
-      const t = Math.min(1, (velocity - velocityThreshold) / (maxRelevantVelocity - velocityThreshold));
-      duration = openDuration - t * (openDuration - minOpenDuration);
-    }
-    scale.value = withTiming(maxScale, { duration }, (finished) => {
+    scale.value = withTiming(maxScale, { duration: openDuration }, (finished) => {
       if (finished) {
         runOnJS(onOpen)();
         pastThreshold.value = withDelay(100, withTiming(0, { duration: 0 }));
@@ -129,21 +145,22 @@ export function useDragToPitch({
         dragX.value = withDelay(100, withTiming(0, { duration: 0 }));
         dragY.value = withDelay(100, withTiming(0, { duration: 0 }));
         runOnJS(setIsActive)(false);
+        runOnJS(setPitchPhase)('rest');
       }
     });
   }
 
-  function triggerExpand(velocity?: number, delayMs: number = 0) {
+  function triggerExpand(delayMs: number = 0) {
     'worklet';
     if (delayMs > 0) {
       settlePauseTimer.value = withTiming(1, { duration: delayMs }, (finished) => {
         if (finished) {
           settlePauseTimer.value = 0;
-          runExpand(velocity);
+          runExpand();
         }
       });
     } else {
-      runExpand(velocity);
+      runExpand();
     }
   }
 
@@ -153,20 +170,32 @@ export function useDragToPitch({
     strikeZoneVisibility.value = withDelay(siblingFadeDuration, withTiming(1, { duration: siblingFadeDuration }));
     startOffsetX.value = releaseX;
     startOffsetY.value = releaseY;
+    runOnJS(setPitchPhase)('pitching');
 
     const bounds = strikeZoneBounds ?? { x: buttonAnchor.x + 100, y: buttonAnchor.y - 300, width: 80, height: 110 };
     const settle = randomSettleOffset(bounds, buttonAnchor, outerPadding);
     settleOffsetX.value = settle.x;
     settleOffsetY.value = settle.y;
+    const isStrike = settle.isStrike;
 
     const dirMag = Math.sqrt(velocityX ** 2 + velocityY ** 2) || 1;
     const dx = velocityX / dirMag;
     const dy = velocityY / dirMag;
-    const arcStrength = 0.5;
+    const perpDx = -dy;
+    const perpDy = dx;
+
+    const pitchType = pickPitchType();
+    const arcStrength = randomInRange(pitchType.arcStrengthRange);
+    const perpendicularOffset = randomInRange(pitchType.perpendicularRange);
+
     const dxSettle = settle.x - releaseX;
     const dySettle = settle.y - releaseY;
-    controlOffsetX.value = releaseX + dx * Math.abs(dxSettle) * arcStrength + dx * Math.abs(dySettle) * arcStrength;
-    controlOffsetY.value = releaseY + dy * Math.abs(dySettle) * arcStrength + dy * Math.abs(dxSettle) * arcStrength;
+    const straightLineDistance = Math.sqrt(dxSettle ** 2 + dySettle ** 2);
+
+    controlOffsetX.value =
+      releaseX + dx * straightLineDistance * arcStrength + perpDx * perpendicularOffset;
+    controlOffsetY.value =
+      releaseY + dy * straightLineDistance * arcStrength + perpDy * perpendicularOffset;
 
     const clampedVelocity = Math.min(maxRelevantVelocity, Math.max(velocityThreshold, velocityMagnitude));
     const vt = (clampedVelocity - velocityThreshold) / (maxRelevantVelocity - velocityThreshold);
@@ -176,7 +205,8 @@ export function useDragToPitch({
 
     arcProgress.value = withTiming(1, { duration, easing: Easing.in(Easing.quad) }, (finished) => {
       if (finished) {
-        triggerExpand(velocityMagnitude, settlePauseDuration);
+        runOnJS(setPitchPhase)(isStrike ? 'strike' : 'ball');
+        triggerExpand(settlePauseDuration);
       }
     });
   }
@@ -219,7 +249,7 @@ export function useDragToPitch({
 
   const gesture = Gesture.Race(tapGesture, panGesture);
 
-  return { gesture, animatedStyle, isActive, scale, pastThreshold, strikeZoneVisibility };
+  return { gesture, animatedStyle, isActive, scale, pastThreshold, strikeZoneVisibility, pitchPhase };
 }
 
 export type UseDragToPitchReturn = ReturnType<typeof useDragToPitch>;

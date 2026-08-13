@@ -33,12 +33,13 @@ export function StrikeZone({ visibility, borderColor, onLayout }: StrikeZoneProp
       pointerEvents="none"
       style={{
         position: 'absolute',
-        top: '50%',
+        top: '25%',
         left: '50%',
         width: WIDTH,
         height: HEIGHT,
         marginLeft: -WIDTH / 2,
         marginTop: -HEIGHT / 2,
+        zIndex: 10,
       }}
     >
       <Animated.View

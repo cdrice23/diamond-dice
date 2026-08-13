@@ -1,5 +1,6 @@
 import { PersistentNav } from '@/components/navigation/components/persistent-nav.component';
 import { useDragToPitch } from '@/components/navigation/hooks/use-drag-to-pitch.hook';
+import { useTheme } from '@/utils/theme-provider';
 import { Stack, router, usePathname } from 'expo-router';
 import { useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
@@ -10,6 +11,7 @@ const NO_PERSISTENT_NAV_ROUTES = ['/game-setup'];
 type Bounds = { x: number; y: number; width: number; height: number };
 
 export default function AppLayout() {
+  const { colors } = useTheme();
   const pathname = usePathname();
   const showPersistentNav = !NO_PERSISTENT_NAV_ROUTES.some((route) => pathname.startsWith(route));
 
@@ -31,13 +33,23 @@ export default function AppLayout() {
     buttonAnchor,
     strikeZoneBounds,
     stoppingLineY,
-    outerPadding: 40,
+    outerPadding: 15,
     onOpen: () => router.push('/(app)/game-setup'),
     closeSignal: 0,
   });
 
+  const PITCH_PHASE_COLORS: Record<string, string | undefined> = {
+    rest: undefined,
+    pitching: colors.primary,
+    strike: colors.level1,
+    ball: colors.level3,
+  };
+  const ballFillColorOverride = PITCH_PHASE_COLORS[playDrag.pitchPhase];
+  const strikeZoneColor =
+    playDrag.pitchPhase === 'strike' ? colors.level1 : playDrag.pitchPhase === 'ball' ? colors.level3 : colors.primary;
+
   function handlePlayButtonLayout(x: number, y: number, width: number, height: number) {
-    // placeholder
+    // Intentionally unused for now -- see comment above.
   }
 
   const screenFadeStyle = useAnimatedStyle(() => ({
@@ -54,6 +66,8 @@ export default function AppLayout() {
       {showPersistentNav && (
         <PersistentNav
           playDrag={playDrag}
+          ballFillColorOverride={ballFillColorOverride}
+          strikeZoneColor={strikeZoneColor}
           onStrikeZoneLayout={(x, y, width, height) => setStrikeZoneBounds({ x, y, width, height })}
           onPlayButtonLayout={handlePlayButtonLayout}
         />
