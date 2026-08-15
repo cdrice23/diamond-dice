@@ -7,6 +7,8 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useDragToExpand } from '../hooks/use-drag-to-expand.hook';
 import type { UseDragToPitchReturn } from '../hooks/use-drag-to-pitch.hook';
 import { CornerNavButton } from './corner-nav-button.component';
+import { HitConstraintDebugOverlay } from './hit-constraint-debug-overlay.component';
+import { HitWipeTransition } from './hit-wipe-transition.component';
 import { HomePlateIcon } from './home-plate-icon.component';
 import { MenuOverlay } from './menu-overlay.component';
 import { PitchCurveBackdrop } from './pitch-curve-backdrop.component';
@@ -139,6 +141,24 @@ export function PersistentNav({
       pastThreshold={playDrag.pastThreshold}
       fillColor="#505C6A"
     />
+
+    <HitWipeTransition
+      isHit={playDrag.isHit}
+      lineDrawProgress={playDrag.lineDrawProgress}
+      hitWipeProgress={playDrag.hitWipeProgress}
+      settleOffsetX={playDrag.settleOffsetX}
+      settleOffsetY={playDrag.settleOffsetY}
+      buttonAnchor={playDrag.buttonAnchor}
+      fillColor={colors.level2}
+      angles={playDrag.hitAngles}
+      margin={playDrag.hitMargin}
+      hitLineDistances={playDrag.hitLineDistances}
+      isRightHanded={playDrag.hitIsRightHanded}
+    />
+
+    {/* TEMPORARY -- remove once the threshold/targetHandsY math is
+        visually confirmed correct. */}
+    <HitConstraintDebugOverlay debugConstraintInfo={playDrag.debugConstraintInfo} />
 
     <StrikeZone
       visibility={playDrag.strikeZoneVisibility}

@@ -34,6 +34,7 @@ export default function AppLayout() {
     buttonAnchor,
     strikeZoneBounds,
     stoppingLineY,
+    screenWidth,
     outerPadding: 40,
     onOpen: () => router.push('/(app)/game-setup'),
     closeSignal: 0,
@@ -45,9 +46,17 @@ export default function AppLayout() {
     strike: colors.level1,
     ball: colors.level3,
   };
-  const ballFillColorOverride = PITCH_PHASE_COLORS[playDrag.pitchPhase];
-  const strikeZoneColor =
-    playDrag.pitchPhase === 'strike' ? colors.level1 : playDrag.pitchPhase === 'ball' ? colors.level3 : colors.primary;
+  // isHit checked FIRST, overriding to level2 regardless of the
+  // underlying strike/ball outcome -- per feedback, a hit should always
+  // read as level2, independent of which zone the pitch itself landed in.
+  const ballFillColorOverride = playDrag.isHit ? colors.level2 : PITCH_PHASE_COLORS[playDrag.pitchPhase];
+  const strikeZoneColor = playDrag.isHit
+    ? colors.level2
+    : playDrag.pitchPhase === 'strike'
+      ? colors.level1
+      : playDrag.pitchPhase === 'ball'
+        ? colors.level3
+        : colors.primary;
 
   function handlePlayButtonLayout(x: number, y: number, width: number, height: number) {
     // Intentionally unused for now -- see comment above.
