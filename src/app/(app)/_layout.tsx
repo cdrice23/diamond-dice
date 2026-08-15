@@ -46,9 +46,7 @@ export default function AppLayout() {
     strike: colors.level1,
     ball: colors.level3,
   };
-  // isHit checked FIRST, overriding to level2 regardless of the
-  // underlying strike/ball outcome -- per feedback, a hit should always
-  // read as level2, independent of which zone the pitch itself landed in.
+
   const ballFillColorOverride = playDrag.isHit ? colors.level2 : PITCH_PHASE_COLORS[playDrag.pitchPhase];
   const strikeZoneColor = playDrag.isHit
     ? colors.level2

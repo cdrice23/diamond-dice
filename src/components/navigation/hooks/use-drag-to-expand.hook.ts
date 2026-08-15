@@ -93,8 +93,4 @@ export function useDragToExpand({
   return { gesture, animatedStyle, isActive, scale };
 }
 
-// Exported explicitly so consumers (CornerNavButton) can type props by
-// inferring FROM this hook directly, rather than re-deriving the
-// animatedStyle shape independently via ReturnType<typeof useAnimatedStyle>
-// -- that approach was producing an overly-generic/mismatched type.
 export type UseDragToExpandReturn = ReturnType<typeof useDragToExpand>;
