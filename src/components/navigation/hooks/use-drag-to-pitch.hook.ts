@@ -28,6 +28,7 @@ type UseDragToPitchOptions = {
   hitAngleTopThresholdPercent?: number;
   hitAngleBottomThresholdPercent?: number;
   hitRightHandedChance?: number;
+  trailDissipateDurationRatio?: number;
 };
 
 const PITCH_TYPES = [
@@ -36,8 +37,8 @@ const PITCH_TYPES = [
   { name: 'splitter', arcStrengthRange: [1.8, 2.4] as const, perpendicularRange: [-25, 25] as const },
 ] as const;
 
-const HIT_CHANCE_ON_STRIKE = 0.5;
-const HIT_CHANCE_ON_BALL = 0.35;
+const HIT_CHANCE_ON_STRIKE = 0.22;
+const HIT_CHANCE_ON_BALL = 0.15;
 
 function randomInRange([min, max]: readonly [number, number]) {
   'worklet';
@@ -91,11 +92,12 @@ export function useDragToPitch({
   settlePauseDuration = 400,
   siblingFadeDuration = 200,
   hitStrikeZoneFadeDuration = 150,
-  hitFillDuration = 450,
+  hitFillDuration = 580,
   hitLineDrawRatio = 0.55,
   hitAngleTopThresholdPercent = 0.5,
   hitAngleBottomThresholdPercent = 0.25,
   hitRightHandedChance = 0.6,
+  trailDissipateDurationRatio = 0.4,
 }: UseDragToPitchOptions) {
   const scale = useSharedValue(1);
   const [isActive, setIsActive] = useState(false);
@@ -105,7 +107,7 @@ export function useDragToPitch({
   const strikeZoneVisibility = useSharedValue(0);
   const lineDrawProgress = useSharedValue(0);
   const hitWipeProgress = useSharedValue(0);
-
+  const trailDissipateProgress = useSharedValue(0);
   const [hitAngles, setHitAngles] = useState<{ top: number; bottom: number } | null>(null);
   const [hitMargin, setHitMargin] = useState(16);
   const [hitIsRightHanded, setHitIsRightHanded] = useState(true);
@@ -156,6 +158,7 @@ export function useDragToPitch({
       dragY.value = withTiming(0, { duration: closeDuration });
       lineDrawProgress.value = 0;
       hitWipeProgress.value = 0;
+      trailDissipateProgress.value = 0;
       setIsActive(false);
       setPitchPhase('rest');
       setIsHit(false);
@@ -164,7 +167,7 @@ export function useDragToPitch({
       pastThreshold.value = 0;
       strikeZoneVisibility.value = 0;
     }
-  }, [closeSignal, closeDuration, scale, arcProgress, dragX, dragY, setIsActive, pastThreshold, strikeZoneVisibility, lineDrawProgress, hitWipeProgress]);
+  }, [closeSignal, closeDuration, scale, arcProgress, dragX, dragY, setIsActive, pastThreshold, strikeZoneVisibility, lineDrawProgress, hitWipeProgress, trailDissipateProgress]);
 
   function resetAfterTransition() {
     'worklet';
@@ -176,6 +179,7 @@ export function useDragToPitch({
     dragY.value = withDelay(100, withTiming(0, { duration: 0 }));
     lineDrawProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
     hitWipeProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+    trailDissipateProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
     runOnJS(setIsActive)(false);
     runOnJS(setPitchPhase)('rest');
     runOnJS(setIsHit)(false);
@@ -284,7 +288,7 @@ export function useDragToPitch({
     if (initialDidHit) {
       const MIN_ANGLE_DEG = -10;
       const MAX_ANGLE_DEG = 70;
-      const TOP_ANGLE_OFFSET_DEG = 2;
+      const TOP_ANGLE_OFFSET_DEG = 2; // fixed, not a random range
 
       const ballX = buttonAnchor.x + settle.x;
       const ballY = buttonAnchor.y + settle.y;
@@ -369,6 +373,7 @@ export function useDragToPitch({
       if (finished) {
         runOnJS(setPitchPhase)(isStrike ? 'strike' : 'ball');
         runOnJS(setIsHit)(finalDidHit);
+        trailDissipateProgress.value = withTiming(1, { duration: duration * trailDissipateDurationRatio });
         if (finalDidHit) {
           runHitWipe(chosenTopAngle, chosenBottomAngle, chosenMargin, chosenIsRightHanded);
         } else {
@@ -434,6 +439,12 @@ export function useDragToPitch({
     hitMargin,
     hitLineDistances,
     hitIsRightHanded,
+    startOffsetX,
+    startOffsetY,
+    controlOffsetX,
+    controlOffsetY,
+    arcProgress,
+    trailDissipateProgress,
   };
 }
 

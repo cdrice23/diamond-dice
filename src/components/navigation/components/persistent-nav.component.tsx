@@ -11,6 +11,7 @@ import { HitWipeTransition } from './hit-wipe-transition.component';
 import { HomePlateIcon } from './home-plate-icon.component';
 import { MenuOverlay } from './menu-overlay.component';
 import { PitchCurveBackdrop } from './pitch-curve-backdrop.component';
+import { PitchTrailEffect } from './pitch-trail-effect.component';
 import { StrikeZone } from './strike-zone.component';
 
 const WHITE = '#F7F7F7';
@@ -139,6 +140,20 @@ export function PersistentNav({
         visibility={playDrag.strikeZoneVisibility}
         pastThreshold={playDrag.pastThreshold}
         fillColor={colorScheme === 'light' ? "#C6C6C6" : "#1E2D3F"}
+      />
+
+      <PitchTrailEffect
+        pitchPhase={playDrag.pitchPhase}
+        arcProgress={playDrag.arcProgress}
+        trailDissipateProgress={playDrag.trailDissipateProgress}
+        startOffsetX={playDrag.startOffsetX}
+        startOffsetY={playDrag.startOffsetY}
+        controlOffsetX={playDrag.controlOffsetX}
+        controlOffsetY={playDrag.controlOffsetY}
+        settleOffsetX={playDrag.settleOffsetX}
+        settleOffsetY={playDrag.settleOffsetY}
+        buttonAnchor={playDrag.buttonAnchor}
+        color={colorScheme === 'light' ? "#E2CFEA" : "#A06CD5"}
       />
 
       <HitWipeTransition
