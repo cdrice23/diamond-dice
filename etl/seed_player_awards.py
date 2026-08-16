@@ -90,3 +90,6 @@ def seed_player_awards() -> None:
         award_index = 0
 
     print("Player awards seeding complete -- reached floor season.")
+
+if __name__ == "__main__":
+    seed_player_awards()
