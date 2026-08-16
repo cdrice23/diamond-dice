@@ -20,7 +20,7 @@ export function StrikeZone({ visibility, borderColor, onLayout }: StrikeZoneProp
     opacity: visibility.value,
   }));
 
-  const zoneRef = useRef<any>(null);
+  const zoneRef = useRef<View>(null);
   useEffect(() => {
     if (!onLayout) return;
     const timeout = setTimeout(() => {

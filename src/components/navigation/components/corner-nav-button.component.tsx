@@ -63,7 +63,7 @@ export function CornerNavButton({
     borderWidth: isPitching || scale.value > borderHideScaleThreshold ? 0 : 2,
   }));
 
-  const circleRef = useRef<any>(null);
+  const circleRef = useRef<View>(null);
   useEffect(() => {
     if (!onButtonLayout) return;
     const timeout = setTimeout(() => {

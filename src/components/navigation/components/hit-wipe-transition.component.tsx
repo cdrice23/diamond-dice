@@ -45,7 +45,7 @@ function HitWipeTransitionInner({
   hitLineDistances,
   isRightHanded,
 }: HitWipeTransitionProps) {
-  const containerRef = useRef<any>(null);
+  const containerRef = useRef<View>(null);
   const [measured, setMeasured] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [ballPosition, setBallPosition] = useState<{ x: number; y: number } | null>(null);
   const [drawProgress, setDrawProgress] = useState(0);

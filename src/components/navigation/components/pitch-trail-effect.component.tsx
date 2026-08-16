@@ -52,7 +52,7 @@ function PitchTrailEffectInner({
   buttonAnchor,
   color,
 }: PitchTrailEffectProps) {
-  const containerRef = useRef<any>(null);
+  const containerRef = useRef<View>(null);
   const [measured, setMeasured] = useState<{ width: number; height: number } | null>(null);
   const [bridgedArcProgress, setBridgedArcProgress] = useState(0);
   const [bridgedDissipateProgress, setBridgedDissipateProgress] = useState(0);

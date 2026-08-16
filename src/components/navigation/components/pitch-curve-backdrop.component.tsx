@@ -19,7 +19,7 @@ const FINAL_OVAL_WIDTH_MULTIPLIER = 4;
 const TOP_HEIGHT_FRACTION = 0.15;
 
 export function PitchCurveBackdrop({ strikeZoneBounds, visibility, pastThreshold, fillColor }: PitchCurveBackdropProps) {
-  const containerRef = useRef<any>(null);
+  const containerRef = useRef<View>(null);
   const [measured, setMeasured] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [stopOpacity, setStopOpacity] = useState(MIN_STOP_OPACITY);
   const [gradientFadeOffset, setGradientFadeOffset] = useState(90);
