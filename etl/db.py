@@ -155,3 +155,13 @@ def get_player_ids_missing_team_history() -> list[str]:
     )
     ids_with_history = {row["player_id"] for row in history_rows}
     return [p["external_id"] for p in all_players if p["id"] not in ids_with_history]
+
+def get_award_types() -> list[dict]:
+    result = (
+        get_client()
+        .table("award_types")
+        .select("id, external_id, active")
+        .order("external_id")
+        .execute()
+    )
+    return result.data
