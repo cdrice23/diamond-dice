@@ -50,7 +50,7 @@ def seed_player_awards() -> None:
             external_id = award_type["external_id"]
 
             try:
-                data = mlb_get(f"/awards/{external_id}/recipients", {"season": season})
+                data = mlb_get(f"/awards/{external_id}/recipients", {"year": season})
             except MlbApiError as error:
                 print(f"  SKIPPED award {external_id} season {season}: {error}")
                 set_config(AWARD_EVALUATION_AWARD_ID_CONFIG_KEY, external_id)
