@@ -19,9 +19,8 @@ type PitchTrailEffectProps = {
 
 const TRAIL_LENGTH_FRACTION = 0.6;
 const END_MARGIN_T = 0.03;
-const PATH_SAMPLE_POINTS = 40;
+const PATH_SAMPLE_POINTS = 16;
 const MAX_OPACITY = 0.85;
-const OPACITY_FALLOFF_POWER = 2.5;
 const THROTTLE_MS = 30;
 const STROKE_WIDTH = 4;
 

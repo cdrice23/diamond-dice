@@ -169,6 +169,14 @@ export function useDragToPitch({
     }
   }, [closeSignal, closeDuration, scale, arcProgress, dragX, dragY, setIsActive, pastThreshold, strikeZoneVisibility, lineDrawProgress, hitWipeProgress, trailDissipateProgress]);
 
+  function applyResetState() {
+    setIsActive(false);
+    setPitchPhase('rest');
+    setIsHit(false);
+    setHitAngles(null);
+    setHitLineDistances({ topMinus: 0, topPlus: 0, bottomMinus: 0, bottomPlus: 0 });
+  }
+
   function resetAfterTransition() {
     'worklet';
     pastThreshold.value = withDelay(100, withTiming(0, { duration: 0 }));
@@ -180,11 +188,7 @@ export function useDragToPitch({
     lineDrawProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
     hitWipeProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
     trailDissipateProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
-    runOnJS(setIsActive)(false);
-    runOnJS(setPitchPhase)('rest');
-    runOnJS(setIsHit)(false);
-    runOnJS(setHitAngles)(null);
-    runOnJS(setHitLineDistances)({ topMinus: 0, topPlus: 0, bottomMinus: 0, bottomPlus: 0 });
+    runOnJS(applyResetState)();
   }
 
   function runExpand() {
@@ -199,12 +203,15 @@ export function useDragToPitch({
     });
   }
 
+  function applyHitGeometryState(topAngle: number, bottomAngle: number, margin: number, distances: { topMinus: number; topPlus: number; bottomMinus: number; bottomPlus: number }) {
+    setHitAngles({ top: topAngle, bottom: bottomAngle });
+    setHitMargin(margin);
+    setHitLineDistances(distances);
+  }
+
   function runHitWipe(topAngle: number, bottomAngle: number, margin: number, isRightHanded: boolean) {
     'worklet';
     strikeZoneVisibility.value = withTiming(0, { duration: hitStrikeZoneFadeDuration });
-
-    runOnJS(setHitAngles)({ top: topAngle, bottom: bottomAngle });
-    runOnJS(setHitMargin)(margin);
 
     const ballX = buttonAnchor.x + settleOffsetX.value;
     const topRad = (topAngle * Math.PI) / 180;
@@ -224,14 +231,14 @@ export function useDragToPitch({
 
     const distToEdge = Math.max(topMinusDist, topPlusDist, bottomMinusDist, bottomPlusDist);
 
-    runOnJS(setHitLineDistances)({
+    runOnJS(applyHitGeometryState)(topAngle, bottomAngle, margin, {
       topMinus: topMinusDist,
       topPlus: topPlusDist,
       bottomMinus: bottomMinusDist,
       bottomPlus: bottomPlusDist,
     });
 
-    const fullLineLength = screenWidth * 1.5; 
+    const fullLineLength = screenWidth * 1.5;
     const referenceDuration = hitFillDuration * hitLineDrawRatio;
     const speedPxPerMs = fullLineLength / referenceDuration;
     const hitLineDrawDuration = distToEdge / speedPxPerMs;
@@ -288,7 +295,7 @@ export function useDragToPitch({
     if (initialDidHit) {
       const MIN_ANGLE_DEG = -10;
       const MAX_ANGLE_DEG = 70;
-      const TOP_ANGLE_OFFSET_DEG = 2; // fixed, not a random range
+      const TOP_ANGLE_OFFSET_DEG = 2;
 
       const ballX = buttonAnchor.x + settle.x;
       const ballY = buttonAnchor.y + settle.y;
