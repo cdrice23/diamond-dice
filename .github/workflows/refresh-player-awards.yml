@@ -1,8 +1,8 @@
-name: Seed Player Awards
+name: Refresh Player Awards
 
 on:
   schedule:
-    - cron: "30 15 * * *"
+    - cron: "0 15 1 12 *"
   workflow_dispatch: {}
 
 defaults:
@@ -10,11 +10,11 @@ defaults:
     working-directory: etl
 
 jobs:
-  seed-awards:
+  refresh-awards:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     concurrency:
-      group: seed-player-awards
+      group: refresh-player-awards
       cancel-in-progress: false
 
     steps:
@@ -26,7 +26,7 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - run: python seed_player_awards.py
+      - run: python refresh_player_awards.py
         env:
           PYTHONUNBUFFERED: "1"
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
