@@ -11,9 +11,7 @@
     }
   },
   "deno.enable": false,
-  "deno.enablePaths": [
-    "supabase/functions"
-  ],
+  "deno.enablePaths": ["supabase/functions"],
   "deno.importMap": "./supabase/functions/login-with-identifier/deno.json",
   "deno.lint": true,
   "deno.unstable": [
@@ -33,5 +31,18 @@
   ],
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
-  }
+  },
+  "filetree-pro.maxDepth": 15,
+  "filetree-pro.exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.git/**",
+    "**/.venv/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/*.log",
+    "**/*.tmp"
+  ],
+  "filetree-pro.showIcons": true,
+  "filetree-pro.respectGitignore": true
 }

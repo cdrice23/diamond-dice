@@ -39,6 +39,8 @@ const PITCH_TYPES = [
 
 const HIT_CHANCE_ON_STRIKE = 0.22;
 const HIT_CHANCE_ON_BALL = 0.15;
+const EDGE_SWIPE_HORIZONTAL_TOLERANCE = 15;
+const PITCH_VERTICAL_ACTIVATION_THRESHOLD = 10;
 
 function randomInRange([min, max]: readonly [number, number]) {
   'worklet';
@@ -392,6 +394,8 @@ export function useDragToPitch({
 
   const panGesture = Gesture.Pan()
     .minDistance(8)
+    .activeOffsetY([-PITCH_VERTICAL_ACTIVATION_THRESHOLD, PITCH_VERTICAL_ACTIVATION_THRESHOLD])
+    .failOffsetX([-EDGE_SWIPE_HORIZONTAL_TOLERANCE, EDGE_SWIPE_HORIZONTAL_TOLERANCE])
     .onBegin(() => {
       runOnJS(setIsActive)(true);
     })

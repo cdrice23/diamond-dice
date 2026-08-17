@@ -3,7 +3,7 @@ import { useDragToPitch } from '@/components/navigation/hooks/use-drag-to-pitch.
 import { PitchStateProvider } from '@/components/navigation/pitch-state.context';
 import { useTheme } from '@/utils/theme-provider';
 import { Stack, router, usePathname } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 
 const NO_PERSISTENT_NAV_ROUTES = ['/game-setup'];
@@ -56,12 +56,21 @@ export default function AppLayout() {
         ? colors.level3
         : colors.primary;
 
-  function handlePlayButtonLayout(x: number, y: number, width: number, height: number) {
+  const handleStrikeZoneLayout = useCallback((x: number, y: number, width: number, height: number) => {
+    setStrikeZoneBounds((previous) => {
+      if (previous && previous.x === x && previous.y === y && previous.width === width && previous.height === height) {
+        return previous;
+      }
+      return { x, y, width, height };
+    });
+  }, []);
+
+  const handlePlayButtonLayout = useCallback((x: number, y: number, width: number, height: number) => {
     // Intentionally unused for now -- see comment above.
-  }
+  }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <PitchStateProvider pastThreshold={playDrag.pastThreshold}>
         <Stack screenOptions={{ headerShown: false, animation: 'none' }} initialRouteName="home">
           <Stack.Screen name="game-setup" options={{ animation: 'none' }} />
@@ -73,7 +82,7 @@ export default function AppLayout() {
           ballFillColorOverride={ballFillColorOverride}
           strikeZoneColor={strikeZoneColor}
           strikeZoneBounds={strikeZoneBounds}
-          onStrikeZoneLayout={(x, y, width, height) => setStrikeZoneBounds({ x, y, width, height })}
+          onStrikeZoneLayout={handleStrikeZoneLayout}
           onPlayButtonLayout={handlePlayButtonLayout}
         />
       )}

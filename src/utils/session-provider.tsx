@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import { AppState } from 'react-native';
 import { supabase } from './supabase';
 
 type SessionContextValue = {
@@ -41,6 +42,18 @@ export function SessionProvider({ children }: PropsWithChildren) {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+
+    return () => subscription.remove();
   }, []);
 
   function markPasswordRecovery() {
