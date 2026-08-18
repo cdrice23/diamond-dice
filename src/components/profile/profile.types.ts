@@ -27,6 +27,7 @@ export type MvpBatterStats = {
   totalHomeRuns: number;
   totalWalks: number;
   totalStrikeouts: number;
+  totalFieldedOuts: number;
 };
 
 export type MvpPitcherStats = {

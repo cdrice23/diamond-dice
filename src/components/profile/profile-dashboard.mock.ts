@@ -27,6 +27,7 @@ export const MOCK_MVP_BATTER_STATS: MvpBatterStats = {
   totalHomeRuns: 9,
   totalWalks: 6,
   totalStrikeouts: 11,
+  totalFieldedOuts: 6,
 };
 
 export const MOCK_MVP_PITCHER_STATS: MvpPitcherStats = {

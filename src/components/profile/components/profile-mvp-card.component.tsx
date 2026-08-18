@@ -1,14 +1,15 @@
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
+import { PlayerAvatar } from '@/components/profile/components/player-avatar.component';
 import { ProfileStatBar } from '@/components/profile/components/profile-stat-bar.component';
 import { ProfileStatLegend } from '@/components/profile/components/profile-stat-legend.component';
 import { usePlayerSummary } from '@/components/profile/hooks/use-player-summary.hook';
 import type { MvpBatterStats, MvpPitcherStats } from '@/components/profile/profile.types';
-import { adjustHslLightness } from '@/utils/color';
+import { getShadeSequence } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { View } from 'react-native';
+import { ProfileSkeleton } from './profile-skeleton';
 
 type ProfileMvpCardProps =
   | { type: 'batter'; stats: MvpBatterStats }
@@ -17,8 +18,8 @@ type ProfileMvpCardProps =
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <View className="items-center">
-      <Text className="text-foreground text-xl font-bold">{value}</Text>
-      <Text variant="muted" className="text-xs">
+      <Text className="text-foreground text-2xl font-bold">{value}</Text>
+      <Text variant="muted" className="text-md">
         {label}
       </Text>
     </View>
@@ -26,46 +27,62 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 function BatterStatsRow({ stats }: { stats: MvpBatterStats }) {
-  const { colors } = useTheme();
   const battingAvg = stats.totalAtBats > 0 ? stats.totalHits / stats.totalAtBats : 0;
-  const atBats = stats.totalAtBats || 1;
-
-  const segments = [
-    { key: '1B', percent: stats.totalSingles / atBats, color: adjustHslLightness(colors.level1, 24) },
-    { key: '2B', percent: stats.totalDoubles / atBats, color: adjustHslLightness(colors.level1, 14) },
-    { key: '3B', percent: stats.totalTriples / atBats, color: adjustHslLightness(colors.level1, 6) },
-    { key: 'HR', percent: stats.totalHomeRuns / atBats, color: colors.level1 },
-    { key: 'BB', percent: stats.totalWalks / atBats, color: colors.level2 },
-    { key: 'K', percent: stats.totalStrikeouts / atBats, color: colors.level3 },
-  ];
 
   return (
-    <>
-      <View className="mt-3 flex-row justify-between">
-        <Stat label="AB" value={String(stats.totalAtBats)} />
-        <Stat label="AVG" value={battingAvg.toFixed(3).replace(/^0/, '')} />
-        <Stat label="R" value={String(stats.totalRuns)} />
-        <Stat label="RBI" value={String(stats.totalRbi)} />
-        <Stat label="HR" value={String(stats.totalHomeRuns)} />
-      </View>
-      <View className="mt-4">
-        <ProfileStatBar
-          fillerColor={colors.muted}
-          segments={segments.map(({ percent, color }) => ({ percent, color }))}
-        />
-        <ProfileStatLegend
-          items={segments.map(({ key, percent, color }) => ({
-            label: key,
-            value: `${(percent * 100).toFixed(0)}%`,
-            color,
-          }))}
-        />
-      </View>
-    </>
+    <View className="flex-row flex-wrap justify-between gap-y-3 mx-2">
+      <Stat label="AB" value={String(stats.totalAtBats)} />
+      <Stat label="AVG" value={battingAvg.toFixed(3).replace(/^0/, '')} />
+      <Stat label="R" value={String(stats.totalRuns)} />
+      <Stat label="RBI" value={String(stats.totalRbi)} />
+      <Stat label="HR" value={String(stats.totalHomeRuns)} />
+    </View>
   );
 }
 
 function PitcherStatsRow({ stats }: { stats: MvpPitcherStats }) {
+  return (
+    <View className="flex-row flex-wrap justify-between gap-y-3 mx-4">
+      <Stat label="IP" value={stats.totalInningsPitched?.toFixed(1) ?? '--'} />
+      <Stat label="BF" value={String(stats.totalBattersFaced)} />
+      <Stat label="ERA" value={stats.era?.toFixed(2) ?? '--'} />
+      <Stat label="WHIP" value={stats.whip?.toFixed(2) ?? '--'} />
+    </View>
+  );
+}
+
+function BatterStatLine({ stats }: { stats: MvpBatterStats }) {
+  const { colors, colorScheme } = useTheme();
+  const atBats = stats.totalAtBats || 1;
+
+  const hitShades = getShadeSequence(colors.level1, 4, colorScheme);
+  const outShades = getShadeSequence(colors.level3, 2, colorScheme);
+
+  const segments = [
+    { key: '1B', percent: stats.totalSingles / atBats, color: hitShades[0] },
+    { key: '2B', percent: stats.totalDoubles / atBats, color: hitShades[1] },
+    { key: '3B', percent: stats.totalTriples / atBats, color: hitShades[2] },
+    { key: 'HR', percent: stats.totalHomeRuns / atBats, color: hitShades[3] },
+    { key: 'BB', percent: stats.totalWalks / atBats, color: colors.level2 },
+    { key: 'K', percent: stats.totalStrikeouts / atBats, color: outShades[1] },
+    { key: 'FO', percent: stats.totalFieldedOuts / atBats, color: outShades[0] },
+  ];
+
+  return (
+    <View className="mt-5">
+      <ProfileStatBar segments={segments.map(({ percent, color }) => ({ percent, color }))} />
+      <ProfileStatLegend
+        items={segments.map(({ key, percent, color }) => ({
+          label: key,
+          value: `${(percent * 100).toFixed(0)}%`,
+          color,
+        }))}
+      />
+    </View>
+  );
+}
+
+function PitcherStatLine({ stats }: { stats: MvpPitcherStats }) {
   const { colors } = useTheme();
   const battersFaced = stats.totalBattersFaced || 1;
 
@@ -76,46 +93,41 @@ function PitcherStatsRow({ stats }: { stats: MvpPitcherStats }) {
   ];
 
   return (
-    <>
-      <View className="mt-3 flex-row justify-between">
-        <Stat label="IP" value={stats.totalInningsPitched?.toFixed(1) ?? '--'} />
-        <Stat label="BF" value={String(stats.totalBattersFaced)} />
-        <Stat label="ERA" value={stats.era?.toFixed(2) ?? '--'} />
-        <Stat label="WHIP" value={stats.whip?.toFixed(2) ?? '--'} />
-      </View>
-      <View className="mt-4">
-        <ProfileStatBar segments={segments.map(({ percent, color }) => ({ percent, color }))} />
-        <ProfileStatLegend
-          items={segments.map(({ key, percent, color }) => ({
-            label: key,
-            value: `${(percent * 100).toFixed(0)}%`,
-            color,
-          }))}
-        />
-      </View>
-    </>
+    <View className="mt-5">
+      <ProfileStatBar segments={segments.map(({ percent, color }) => ({ percent, color }))} />
+      <ProfileStatLegend
+        items={segments.map(({ key, percent, color }) => ({
+          label: key,
+          value: `${(percent * 100).toFixed(0)}%`,
+          color,
+        }))}
+      />
+    </View>
   );
 }
 
 export function ProfileMvpCard(props: ProfileMvpCardProps) {
-  const { player } = usePlayerSummary(props.stats.playerId);
+  const { player, loading } = usePlayerSummary(props.stats.playerId);
+
+  if (loading) {
+    return <ProfileSkeleton variant="mvp" />;
+  }
 
   return (
     <Card className="mx-4" onPress={() => router.push(`/(app)/player-database/${props.stats.playerId}`)}>
-      <Text className="text-foreground mb-2 text-base font-semibold">
+      <Text className="text-foreground mb-2 text-xl font-semibold">
         {props.type === 'batter' ? 'MVP Batter' : 'MVP Pitcher'}
       </Text>
-      <View className="flex-row items-center gap-3">
-        {player?.imageUrl ? (
-          <Image source={{ uri: player.imageUrl }} className="h-14 w-14 rounded-full" />
-        ) : (
-          <View className="bg-muted h-14 w-14 rounded-full" />
-        )}
-        <Text className="text-foreground flex-1 text-base font-semibold" numberOfLines={1}>
-          {player?.name ?? 'Loading...'}
-        </Text>
+      <View className="flex-row gap-4">
+        <PlayerAvatar imageUrl={player?.imageUrl} width={64} />
+        <View className="flex-1 justify-between">
+          <Text className="text-foreground text-2xl font-semibold" numberOfLines={1}>
+            {player?.name ?? 'Unknown Player'}
+          </Text>
+          {props.type === 'batter' ? <BatterStatsRow stats={props.stats} /> : <PitcherStatsRow stats={props.stats} />}
+        </View>
       </View>
-      {props.type === 'batter' ? <BatterStatsRow stats={props.stats} /> : <PitcherStatsRow stats={props.stats} />}
+      {props.type === 'batter' ? <BatterStatLine stats={props.stats} /> : <PitcherStatLine stats={props.stats} />}
     </Card>
   );
 }

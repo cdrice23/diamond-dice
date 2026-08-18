@@ -15,7 +15,7 @@ export function ProfileStatBar({ segments, fillerColor }: ProfileStatBarProps) {
   const fillerPercent = fillerColor ? Math.max(0, 1 - namedTotal) : 0;
 
   return (
-    <View className="h-1.5 flex-row overflow-hidden rounded-[3px]">
+    <View className="h-1 flex-row overflow-hidden rounded-none">
       {segments.map((segment, index) => (
         <View key={index} style={{ width: `${segment.percent * 100}%`, backgroundColor: segment.color }} />
       ))}

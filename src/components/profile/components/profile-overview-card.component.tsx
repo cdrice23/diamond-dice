@@ -22,10 +22,10 @@ function OverviewItem({
 }) {
   return (
     <Pressable onPress={onPress} className="flex-1 items-center py-2 active:opacity-70" accessibilityRole="button">
-      <Text style={{ color: valueColor }} className="text-2xl font-bold">
+      <Text style={{ color: valueColor }} className="text-3xl font-bold">
         {value}
       </Text>
-      <Text variant="muted">{label}</Text>
+      <Text variant="muted" className="text-lg">{label}</Text>
     </Pressable>
   );
 }

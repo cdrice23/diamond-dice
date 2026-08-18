@@ -1,9 +1,9 @@
-// src/app/(app)/profile.tsx
 import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
 import { ProfileHeader } from '@/components/profile/components/profile-header.component';
 import { ProfileMvpCard } from '@/components/profile/components/profile-mvp-card.component';
 import { ProfileOverviewCard } from '@/components/profile/components/profile-overview-card.component';
 import { ProfileRecentGamesCard } from '@/components/profile/components/profile-recent-games-card.component';
+import { ProfileSkeleton } from '@/components/profile/components/profile-skeleton';
 import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import {
   MOCK_MVP_BATTER_STATS,
@@ -12,12 +12,14 @@ import {
   MOCK_RECENT_GAMES,
 } from '@/components/profile/profile-dashboard.mock';
 import { useCurrentProfile } from '@/hooks/use-current-profile.hook';
-import { readHeartbeatLog } from '@/utils/heartbeat-logger';
 import { useTheme } from '@/utils/theme-provider';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+
+const OVERVIEW_LOADING = false;
+const RECENT_GAMES_LOADING = false;
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
@@ -29,14 +31,6 @@ export default function ProfileScreen() {
     }, [refetch])
   );
 
-  useEffect(() => {
-    if (__DEV__) {
-      readHeartbeatLog().then((log) => {
-        console.log('--- HEARTBEAT LOG ---\n' + log);
-      });
-    }
-  }, []);
-
   const overviewFadeStyle = useCascadingFadeIn(0);
   const recentGamesFadeStyle = useCascadingFadeIn(1);
   const mvpBatterFadeStyle = useCascadingFadeIn(2);
@@ -47,15 +41,19 @@ export default function ProfileScreen() {
   return (
     <View style={{ flex: 1 }}>
       <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} />
-      <ScrollView className="flex-1" contentContainerClassName="gap-4 pb-32 pt-16">
+      <ScrollView className="flex-1" contentContainerClassName="gap-4 pb-32 pt-28">
         <ProfileHeader username={profile?.username ?? ''} displayName={profile?.displayName ?? ''} />
 
         <Animated.View style={overviewFadeStyle}>
-          <ProfileOverviewCard stats={MOCK_OVERVIEW_STATS} />
+          {OVERVIEW_LOADING ? <ProfileSkeleton variant="overview" /> : <ProfileOverviewCard stats={MOCK_OVERVIEW_STATS} />}
         </Animated.View>
 
         <Animated.View style={recentGamesFadeStyle}>
-          <ProfileRecentGamesCard games={MOCK_RECENT_GAMES} />
+          {RECENT_GAMES_LOADING ? (
+            <ProfileSkeleton variant="recent-games" />
+          ) : (
+            <ProfileRecentGamesCard games={MOCK_RECENT_GAMES} />
+          )}
         </Animated.View>
 
         {hasTeamsAndGames && (

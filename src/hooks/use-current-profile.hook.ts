@@ -7,17 +7,23 @@ export type CurrentProfile = {
   displayName: string;
 };
 
+let cachedProfile: CurrentProfile | null = null;
+
 export function useCurrentProfile() {
-  const [profile, setProfile] = useState<CurrentProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<CurrentProfile | null>(cachedProfile);
+  const [loading, setLoading] = useState(!cachedProfile);
 
   const fetchProfile = useCallback(async () => {
-    setLoading(true);
+    if (!cachedProfile) {
+      setLoading(true);
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      cachedProfile = null;
       setProfile(null);
       setLoading(false);
       return;
@@ -30,9 +36,12 @@ export function useCurrentProfile() {
       .single();
 
     if (error || !data) {
+      cachedProfile = null;
       setProfile(null);
     } else {
-      setProfile({ id: data.id, username: data.username, displayName: data.display_name });
+      const next: CurrentProfile = { id: data.id, username: data.username, displayName: data.display_name };
+      cachedProfile = next;
+      setProfile(next);
     }
     setLoading(false);
   }, []);

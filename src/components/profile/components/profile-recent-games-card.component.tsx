@@ -29,19 +29,19 @@ function GameRow({ game, winColor, lossColor }: { game: RecentGameSummary; winCo
       className="flex-row items-center justify-between py-2 active:opacity-70"
       accessibilityRole="button"
     >
-      <Text variant="muted" className="w-20">
+      <Text variant="muted" className="w-20 text-lg">
         {formatShortDate(game.playedAt)}
       </Text>
       <Chip
         label={game.isWin ? 'Win' : 'Loss'}
         backgroundColor={game.isWin ? winColor : lossColor}
-        className="w-12 mr-2"
+        className="w-10 mr-2"
       />
-      <Text className="text-foreground w-4 text-center">{game.isHome ? 'v' : '@'}</Text>
-      <Text className="text-foreground flex-1" numberOfLines={1}>
+      <Text className="text-foreground w-4 text-center text-lg">{game.isHome ? 'v' : '@'}</Text>
+      <Text className="text-foreground flex-1 text-lg" numberOfLines={1}>
         {game.opponentName}
       </Text>
-      <Text className="text-foreground font-semibold">
+      <Text className="text-foreground font-semibold text-lg">
         {game.profileScore}-{game.opponentScore}
       </Text>
     </Pressable>
@@ -53,7 +53,7 @@ export function ProfileRecentGamesCard({ games }: ProfileRecentGamesCardProps) {
 
   return (
     <Card className="mx-4">
-      <Text className="text-foreground mb-2 text-base font-semibold">Recent Games</Text>
+      <Text className="text-foreground mb-2 text-xl font-semibold">Recent Games</Text>
       {games.slice(0, 5).map((game, index) => (
         <View key={game.gameId} className={index > 0 ? 'border-border border-t' : undefined}>
           <GameRow game={game} winColor={colors.level1} lossColor={colors.level3} />
