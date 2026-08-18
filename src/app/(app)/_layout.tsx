@@ -29,6 +29,10 @@ export default function AppLayout() {
     ? strikeZoneBounds.y + strikeZoneBounds.height - buttonAnchor.y
     : -300;
 
+  const handleGameSetupOpen = useCallback(() => {
+    router.replace('/(app)/game-setup');
+  }, []);
+
   const playDrag = useDragToPitch({
     maxScale,
     buttonAnchor,
@@ -36,7 +40,7 @@ export default function AppLayout() {
     stoppingLineY,
     screenWidth,
     outerPadding: 40,
-    onOpen: () => router.push('/(app)/game-setup'),
+    onOpen: handleGameSetupOpen,
     closeSignal: 0,
   });
 

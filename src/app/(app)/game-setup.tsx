@@ -26,7 +26,7 @@ export default function GameSetupScreen() {
           cardBackgroundColor={colors.background}
         />
         <Pressable
-          onPress={() => router.push('/(app)/home')}
+          onPress={() => router.replace('/(app)/home')}
           style={{
             position: 'absolute',
             bottom: 40,

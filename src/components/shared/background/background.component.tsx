@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { BACKGROUND_SVG } from './background-svg';
@@ -8,7 +9,7 @@ type AuthBackgroundProps = {
 };
 
 export function Background({ color, opacity = 0.4 }: AuthBackgroundProps) {
-  const xml = BACKGROUND_SVG.replace(/__COLOR__/g, color);
+  const xml = useMemo(() => BACKGROUND_SVG.replace(/__COLOR__/g, color), [color]);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">

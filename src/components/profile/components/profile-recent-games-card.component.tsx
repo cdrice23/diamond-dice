@@ -32,7 +32,11 @@ function GameRow({ game, winColor, lossColor }: { game: RecentGameSummary; winCo
       <Text variant="muted" className="w-20">
         {formatShortDate(game.playedAt)}
       </Text>
-      <Chip label={game.isWin ? 'Win' : 'Loss'} backgroundColor={game.isWin ? winColor : lossColor} />
+      <Chip
+        label={game.isWin ? 'Win' : 'Loss'}
+        backgroundColor={game.isWin ? winColor : lossColor}
+        className="w-12 mr-2"
+      />
       <Text className="text-foreground w-4 text-center">{game.isHome ? 'v' : '@'}</Text>
       <Text className="text-foreground flex-1" numberOfLines={1}>
         {game.opponentName}

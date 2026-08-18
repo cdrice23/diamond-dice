@@ -1,7 +1,7 @@
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useDragToExpand } from '../hooks/use-drag-to-expand.hook';
@@ -43,15 +43,19 @@ export function PersistentNav({
     setCloseSignal((n) => n + 1);
   }
 
-  const { buttonRadius, maxScale } = useMemo(() => {
+  const { maxScale } = useMemo(() => {
     const radius = (100 + 100 * 0.05 * 0.85) / 2;
     return { buttonRadius: radius, maxScale: Math.sqrt(screenWidth ** 2 + screenHeight ** 2) / radius };
   }, [screenWidth, screenHeight]);
 
+  const handleMenuOpen = useCallback(() => {
+    setIsMenuOpen(true);
+  }, []);
+
   const menuDrag = useDragToExpand({
     awayDirection: { x: -1, y: -1 },
     maxScale,
-    onOpen: () => setIsMenuOpen(true),
+    onOpen: handleMenuOpen,
     closeSignal,
   });
 
@@ -118,7 +122,7 @@ export function PersistentNav({
           ]}
         >
           <Pressable
-            onPress={() => router.push('/(app)/home')}
+            onPress={() => router.replace('/(app)/home')}
             accessibilityRole="button"
             accessibilityLabel="Home"
             hitSlop={12}

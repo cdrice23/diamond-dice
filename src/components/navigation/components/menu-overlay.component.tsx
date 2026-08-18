@@ -3,6 +3,7 @@ import { supabase } from '@/utils/supabase';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useCallback } from 'react';
 import { View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSlideSelectMenu } from '../hooks/use-slide-select-menu.hook';
@@ -27,15 +28,18 @@ const MENU_ITEMS = [
 export function MenuOverlay({ visible, onClose, accentColor }: MenuOverlayProps) {
   const { colors } = useTheme();
 
-  async function handleSelect(index: number) {
-    const item = MENU_ITEMS[index];
-    onClose();
-    if (item.route === null) {
-      await supabase.auth.signOut();
-    } else {
-      router.push(item.route as never);
-    }
-  }
+  const handleSelect = useCallback(
+    async (index: number) => {
+      const item = MENU_ITEMS[index];
+      onClose();
+      if (item.route === null) {
+        await supabase.auth.signOut();
+      } else {
+        router.replace(item.route as never);
+      }
+    },
+    [onClose]
+  );
 
   const { gesture, activeIndex, reportBounds } = useSlideSelectMenu(MENU_ITEMS.length, handleSelect);
 

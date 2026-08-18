@@ -1,12 +1,14 @@
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
 import { ProfileStatBar } from '@/components/profile/components/profile-stat-bar.component';
+import { ProfileStatLegend } from '@/components/profile/components/profile-stat-legend.component';
 import { usePlayerSummary } from '@/components/profile/hooks/use-player-summary.hook';
 import type { MvpBatterStats, MvpPitcherStats } from '@/components/profile/profile.types';
 import { adjustHslLightness } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 
 type ProfileMvpCardProps =
   | { type: 'batter'; stats: MvpBatterStats }
@@ -28,6 +30,15 @@ function BatterStatsRow({ stats }: { stats: MvpBatterStats }) {
   const battingAvg = stats.totalAtBats > 0 ? stats.totalHits / stats.totalAtBats : 0;
   const atBats = stats.totalAtBats || 1;
 
+  const segments = [
+    { key: '1B', percent: stats.totalSingles / atBats, color: adjustHslLightness(colors.level1, 24) },
+    { key: '2B', percent: stats.totalDoubles / atBats, color: adjustHslLightness(colors.level1, 14) },
+    { key: '3B', percent: stats.totalTriples / atBats, color: adjustHslLightness(colors.level1, 6) },
+    { key: 'HR', percent: stats.totalHomeRuns / atBats, color: colors.level1 },
+    { key: 'BB', percent: stats.totalWalks / atBats, color: colors.level2 },
+    { key: 'K', percent: stats.totalStrikeouts / atBats, color: colors.level3 },
+  ];
+
   return (
     <>
       <View className="mt-3 flex-row justify-between">
@@ -40,14 +51,14 @@ function BatterStatsRow({ stats }: { stats: MvpBatterStats }) {
       <View className="mt-4">
         <ProfileStatBar
           fillerColor={colors.muted}
-          segments={[
-            { label: '1B', percent: stats.totalSingles / atBats, color: adjustHslLightness(colors.level1, 24) },
-            { label: '2B', percent: stats.totalDoubles / atBats, color: adjustHslLightness(colors.level1, 14) },
-            { label: '3B', percent: stats.totalTriples / atBats, color: adjustHslLightness(colors.level1, 6) },
-            { label: 'HR', percent: stats.totalHomeRuns / atBats, color: colors.level1 },
-            { label: 'BB', percent: stats.totalWalks / atBats, color: colors.level2 },
-            { label: 'K', percent: stats.totalStrikeouts / atBats, color: colors.level3 },
-          ]}
+          segments={segments.map(({ percent, color }) => ({ percent, color }))}
+        />
+        <ProfileStatLegend
+          items={segments.map(({ key, percent, color }) => ({
+            label: key,
+            value: `${(percent * 100).toFixed(0)}%`,
+            color,
+          }))}
         />
       </View>
     </>
@@ -58,6 +69,12 @@ function PitcherStatsRow({ stats }: { stats: MvpPitcherStats }) {
   const { colors } = useTheme();
   const battersFaced = stats.totalBattersFaced || 1;
 
+  const segments = [
+    { key: 'K', percent: stats.totalOutsRecorded / battersFaced, color: colors.level1 },
+    { key: 'H', percent: stats.totalHitsAllowed / battersFaced, color: colors.level3 },
+    { key: 'BB', percent: stats.totalWalksAllowed / battersFaced, color: colors.level2 },
+  ];
+
   return (
     <>
       <View className="mt-3 flex-row justify-between">
@@ -67,12 +84,13 @@ function PitcherStatsRow({ stats }: { stats: MvpPitcherStats }) {
         <Stat label="WHIP" value={stats.whip?.toFixed(2) ?? '--'} />
       </View>
       <View className="mt-4">
-        <ProfileStatBar
-          segments={[
-            { label: 'K', percent: stats.totalOutsRecorded / battersFaced, color: colors.level1 },
-            { label: 'H', percent: stats.totalHitsAllowed / battersFaced, color: colors.level3 },
-            { label: 'BB', percent: stats.totalWalksAllowed / battersFaced, color: colors.level2 },
-          ]}
+        <ProfileStatBar segments={segments.map(({ percent, color }) => ({ percent, color }))} />
+        <ProfileStatLegend
+          items={segments.map(({ key, percent, color }) => ({
+            label: key,
+            value: `${(percent * 100).toFixed(0)}%`,
+            color,
+          }))}
         />
       </View>
     </>

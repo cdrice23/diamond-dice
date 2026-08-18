@@ -1,5 +1,5 @@
 import { Background } from '@/components/shared/background/background.component';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePitchState } from '../pitch-state.context';
@@ -22,6 +22,7 @@ export function BandedScreenBackdrop({
   bottomBandHeight = NAV_CLEARANCE_HEIGHT,
 }: BandedScreenBackdropProps) {
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
   const { pastThreshold } = usePitchState();
   const backdropTransition = useSharedValue(0);
 
@@ -38,23 +39,29 @@ export function BandedScreenBackdrop({
     }
   );
 
-  const bandFadeStyle = useAnimatedStyle(() => ({
+  const svgFadeStyle = useAnimatedStyle(() => ({
     opacity: 1 - backdropTransition.value,
   }));
 
+  const topVisibleHeight = insets.top + topBandHeight;
+  const bottomVisibleHeight = insets.bottom + bottomBandHeight;
+  const maskHeight = Math.max(0, screenHeight - topVisibleHeight - bottomVisibleHeight);
+
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor }]} pointerEvents="none">
-      <Animated.View style={[{ height: insets.top + topBandHeight, overflow: 'hidden' }, bandFadeStyle]}>
+      <Animated.View style={[StyleSheet.absoluteFill, svgFadeStyle]}>
         <Background color={svgColor} opacity={0.4} />
       </Animated.View>
-      <Animated.View
-        style={[
-          { position: 'absolute', bottom: 0, left: 0, right: 0, height: insets.bottom + bottomBandHeight, overflow: 'hidden' },
-          bandFadeStyle,
-        ]}
-      >
-        <Background color={svgColor} opacity={0.4} />
-      </Animated.View>
+      <View
+        style={{
+          position: 'absolute',
+          top: topVisibleHeight,
+          left: 0,
+          right: 0,
+          height: maskHeight,
+          backgroundColor,
+        }}
+      />
     </View>
   );
 }

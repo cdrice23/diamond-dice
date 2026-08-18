@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
 import { Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 
@@ -179,258 +179,285 @@ export function useDragToPitch({
     setHitLineDistances({ topMinus: 0, topPlus: 0, bottomMinus: 0, bottomPlus: 0 });
   }
 
-  function resetAfterTransition() {
-    'worklet';
-    pastThreshold.value = withDelay(100, withTiming(0, { duration: 0 }));
-    strikeZoneVisibility.value = withDelay(100, withTiming(0, { duration: 0 }));
-    arcProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
-    scale.value = withDelay(100, withTiming(1, { duration: 0 }));
-    dragX.value = withDelay(100, withTiming(0, { duration: 0 }));
-    dragY.value = withDelay(100, withTiming(0, { duration: 0 }));
-    lineDrawProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
-    hitWipeProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
-    trailDissipateProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
-    runOnJS(applyResetState)();
-  }
-
-  function runExpand() {
-    'worklet';
-    pastThreshold.value = withTiming(1, { duration: siblingFadeDuration });
-
-    scale.value = withTiming(maxScale, { duration: openDuration }, (finished) => {
-      if (finished) {
-        runOnJS(onOpen)();
-        resetAfterTransition();
-      }
-    });
-  }
-
   function applyHitGeometryState(topAngle: number, bottomAngle: number, margin: number, distances: { topMinus: number; topPlus: number; bottomMinus: number; bottomPlus: number }) {
     setHitAngles({ top: topAngle, bottom: bottomAngle });
     setHitMargin(margin);
     setHitLineDistances(distances);
   }
 
-  function runHitWipe(topAngle: number, bottomAngle: number, margin: number, isRightHanded: boolean) {
-    'worklet';
-    strikeZoneVisibility.value = withTiming(0, { duration: hitStrikeZoneFadeDuration });
-
-    const ballX = buttonAnchor.x + settleOffsetX.value;
-    const topRad = (topAngle * Math.PI) / 180;
-    const bottomRad = (bottomAngle * Math.PI) / 180;
-
-    function distanceToGenuineEdge(startX: number, directionCos: number) {
+  const gesture = useMemo(() => {
+    function resetAfterTransition() {
       'worklet';
-      if (directionCos > 0) return (screenWidth - startX) / directionCos;
-      if (directionCos < 0) return -startX / directionCos;
-      return Infinity;
+      pastThreshold.value = withDelay(100, withTiming(0, { duration: 0 }));
+      strikeZoneVisibility.value = withDelay(100, withTiming(0, { duration: 0 }));
+      arcProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+      scale.value = withDelay(100, withTiming(1, { duration: 0 }));
+      dragX.value = withDelay(100, withTiming(0, { duration: 0 }));
+      dragY.value = withDelay(100, withTiming(0, { duration: 0 }));
+      lineDrawProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+      hitWipeProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+      trailDissipateProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+      runOnJS(applyResetState)();
     }
 
-    const topMinusDist = distanceToGenuineEdge(ballX, -Math.cos(topRad));
-    const topPlusDist = distanceToGenuineEdge(ballX, Math.cos(topRad));
-    const bottomMinusDist = distanceToGenuineEdge(ballX, -Math.cos(bottomRad));
-    const bottomPlusDist = distanceToGenuineEdge(ballX, Math.cos(bottomRad));
+    function runExpand() {
+      'worklet';
+      pastThreshold.value = withTiming(1, { duration: siblingFadeDuration });
 
-    const distToEdge = Math.max(topMinusDist, topPlusDist, bottomMinusDist, bottomPlusDist);
-
-    runOnJS(applyHitGeometryState)(topAngle, bottomAngle, margin, {
-      topMinus: topMinusDist,
-      topPlus: topPlusDist,
-      bottomMinus: bottomMinusDist,
-      bottomPlus: bottomPlusDist,
-    });
-
-    const fullLineLength = screenWidth * 1.5;
-    const referenceDuration = hitFillDuration * hitLineDrawRatio;
-    const speedPxPerMs = fullLineLength / referenceDuration;
-    const hitLineDrawDuration = distToEdge / speedPxPerMs;
-
-    lineDrawProgress.value = withTiming(1, { duration: hitLineDrawDuration }, (drawFinished) => {
-      if (drawFinished) {
-        hitWipeProgress.value = withTiming(1, { duration: hitFillDuration }, (fillFinished) => {
-          if (fillFinished) {
-            runOnJS(onOpen)();
-            resetAfterTransition();
-          }
-        });
-      }
-    });
-  }
-
-  function triggerExpand(delayMs: number = 0) {
-    'worklet';
-    if (delayMs > 0) {
-      settlePauseTimer.value = withTiming(1, { duration: delayMs }, (finished) => {
+      scale.value = withTiming(maxScale, { duration: openDuration }, (finished) => {
         if (finished) {
-          settlePauseTimer.value = 0;
-          runExpand();
+          runOnJS(onOpen)();
+          resetAfterTransition();
         }
       });
-    } else {
-      runExpand();
     }
-  }
 
-  function triggerPitch(releaseX: number, releaseY: number, velocityX: number, velocityY: number, velocityMagnitude: number) {
-    'worklet';
-    pastThreshold.value = withTiming(1, { duration: siblingFadeDuration });
-    strikeZoneVisibility.value = withDelay(siblingFadeDuration, withTiming(1, { duration: siblingFadeDuration }));
-    startOffsetX.value = releaseX;
-    startOffsetY.value = releaseY;
-    runOnJS(setPitchPhase)('pitching');
+    function runHitWipe(topAngle: number, bottomAngle: number, margin: number, isRightHanded: boolean) {
+      'worklet';
+      strikeZoneVisibility.value = withTiming(0, { duration: hitStrikeZoneFadeDuration });
 
-    const bounds = strikeZoneBounds ?? { x: buttonAnchor.x + 100, y: buttonAnchor.y - 300, width: 80, height: 110 };
-    const settle = randomSettleOffset(bounds, buttonAnchor, outerPadding);
-    settleOffsetX.value = settle.x;
-    settleOffsetY.value = settle.y;
-    const isStrike = settle.isStrike;
+      const ballX = buttonAnchor.x + settleOffsetX.value;
+      const topRad = (topAngle * Math.PI) / 180;
+      const bottomRad = (bottomAngle * Math.PI) / 180;
 
-    const hitChance = isStrike ? HIT_CHANCE_ON_STRIKE : HIT_CHANCE_ON_BALL;
-    const initialDidHit = Math.random() < hitChance;
+      function distanceToGenuineEdge(startX: number, directionCos: number) {
+        'worklet';
+        if (directionCos > 0) return (screenWidth - startX) / directionCos;
+        if (directionCos < 0) return -startX / directionCos;
+        return Infinity;
+      }
 
-    let finalDidHit = false;
-    let chosenTopAngle = 0;
-    let chosenBottomAngle = 0;
-    let chosenMargin = 16;
-    let chosenIsRightHanded = true;
+      const topMinusDist = distanceToGenuineEdge(ballX, -Math.cos(topRad));
+      const topPlusDist = distanceToGenuineEdge(ballX, Math.cos(topRad));
+      const bottomMinusDist = distanceToGenuineEdge(ballX, -Math.cos(bottomRad));
+      const bottomPlusDist = distanceToGenuineEdge(ballX, Math.cos(bottomRad));
 
-    if (initialDidHit) {
-      const MIN_ANGLE_DEG = -10;
-      const MAX_ANGLE_DEG = 70;
-      const TOP_ANGLE_OFFSET_DEG = 2;
+      const distToEdge = Math.max(topMinusDist, topPlusDist, bottomMinusDist, bottomPlusDist);
 
-      const ballX = buttonAnchor.x + settle.x;
-      const ballY = buttonAnchor.y + settle.y;
+      runOnJS(applyHitGeometryState)(topAngle, bottomAngle, margin, {
+        topMinus: topMinusDist,
+        topPlus: topPlusDist,
+        bottomMinus: bottomMinusDist,
+        bottomPlus: bottomPlusDist,
+      });
 
-      const isRightHanded = Math.random() < hitRightHandedChance;
-      const handednessCenter = isRightHanded ? 0 : 180;
-      const margin = 16 + Math.random() * (32 - 16);
-      const bottomLineY = ballY + margin;
+      const fullLineLength = screenWidth * 1.5;
+      const referenceDuration = hitFillDuration * hitLineDrawRatio;
+      const speedPxPerMs = fullLineLength / referenceDuration;
+      const hitLineDrawDuration = distToEdge / speedPxPerMs;
 
-      let finalTopAngle = 0;
-      let finalBottomAngle = 0;
-      let constraintPassed = false;
-
-      if (strikeZoneBounds) {
-        const topThresholdY = strikeZoneBounds.y - hitAngleTopThresholdPercent * strikeZoneBounds.height;
-        const bottomThresholdY = strikeZoneBounds.y + hitAngleBottomThresholdPercent * strikeZoneBounds.height;
-
-        const clampedY = Math.max(topThresholdY, Math.min(bottomThresholdY, ballY));
-        const normalized = (clampedY - topThresholdY) / (bottomThresholdY - topThresholdY);
-        const targetHandsY = topThresholdY + normalized * (bottomThresholdY - topThresholdY);
-
-        function angularDiff(a: number, b: number) {
-          'worklet';
-          const step1 = ((a - b + 180) % 360 + 360) % 360;
-          return step1 - 180;
+      lineDrawProgress.value = withTiming(1, { duration: hitLineDrawDuration }, (drawFinished) => {
+        if (drawFinished) {
+          hitWipeProgress.value = withTiming(1, { duration: hitFillDuration }, (fillFinished) => {
+            if (fillFinished) {
+              runOnJS(onOpen)();
+              resetAfterTransition();
+            }
+          });
         }
-        const handsEdgeX = isRightHanded ? screenWidth : 0;
-        const rawDirectionDeg = (Math.atan2(targetHandsY - bottomLineY, handsEdgeX - ballX) * 180) / Math.PI;
-        const diff1 = angularDiff(rawDirectionDeg, handednessCenter);
-        const diff2 = angularDiff(rawDirectionDeg + 180, handednessCenter);
-        const rawSolvedAngle = Math.abs(diff1) <= Math.abs(diff2) ? diff1 : diff2;
+      });
+    }
 
-        const effectiveMin = isRightHanded ? -MAX_ANGLE_DEG : MIN_ANGLE_DEG;
-        const effectiveMax = isRightHanded ? -MIN_ANGLE_DEG : MAX_ANGLE_DEG;
+    function triggerExpand(delayMs: number = 0) {
+      'worklet';
+      if (delayMs > 0) {
+        settlePauseTimer.value = withTiming(1, { duration: delayMs }, (finished) => {
+          if (finished) {
+            settlePauseTimer.value = 0;
+            runExpand();
+          }
+        });
+      } else {
+        runExpand();
+      }
+    }
 
-        constraintPassed = rawSolvedAngle >= effectiveMin && rawSolvedAngle <= effectiveMax;
+    function triggerPitch(releaseX: number, releaseY: number, velocityX: number, velocityY: number, velocityMagnitude: number) {
+      'worklet';
+      pastThreshold.value = withTiming(1, { duration: siblingFadeDuration });
+      strikeZoneVisibility.value = withDelay(siblingFadeDuration, withTiming(1, { duration: siblingFadeDuration }));
+      startOffsetX.value = releaseX;
+      startOffsetY.value = releaseY;
+      runOnJS(setPitchPhase)('pitching');
+
+      const bounds = strikeZoneBounds ?? { x: buttonAnchor.x + 100, y: buttonAnchor.y - 300, width: 80, height: 110 };
+      const settle = randomSettleOffset(bounds, buttonAnchor, outerPadding);
+      settleOffsetX.value = settle.x;
+      settleOffsetY.value = settle.y;
+      const isStrike = settle.isStrike;
+
+      const hitChance = isStrike ? HIT_CHANCE_ON_STRIKE : HIT_CHANCE_ON_BALL;
+      const initialDidHit = Math.random() < hitChance;
+
+      let finalDidHit = false;
+      let chosenTopAngle = 0;
+      let chosenBottomAngle = 0;
+      let chosenMargin = 16;
+      let chosenIsRightHanded = true;
+
+      if (initialDidHit) {
+        const MIN_ANGLE_DEG = -10;
+        const MAX_ANGLE_DEG = 70;
+        const TOP_ANGLE_OFFSET_DEG = 2;
+
+        const ballX = buttonAnchor.x + settle.x;
+        const ballY = buttonAnchor.y + settle.y;
+
+        const isRightHanded = Math.random() < hitRightHandedChance;
+        const handednessCenter = isRightHanded ? 0 : 180;
+        const margin = 16 + Math.random() * (32 - 16);
+        const bottomLineY = ballY + margin;
+
+        let finalTopAngle = 0;
+        let finalBottomAngle = 0;
+        let constraintPassed = false;
+
+        if (strikeZoneBounds) {
+          const topThresholdY = strikeZoneBounds.y - hitAngleTopThresholdPercent * strikeZoneBounds.height;
+          const bottomThresholdY = strikeZoneBounds.y + hitAngleBottomThresholdPercent * strikeZoneBounds.height;
+
+          const clampedY = Math.max(topThresholdY, Math.min(bottomThresholdY, ballY));
+          const normalized = (clampedY - topThresholdY) / (bottomThresholdY - topThresholdY);
+          const targetHandsY = topThresholdY + normalized * (bottomThresholdY - topThresholdY);
+
+          function angularDiff(a: number, b: number) {
+            'worklet';
+            const step1 = ((a - b + 180) % 360 + 360) % 360;
+            return step1 - 180;
+          }
+          const handsEdgeX = isRightHanded ? screenWidth : 0;
+          const rawDirectionDeg = (Math.atan2(targetHandsY - bottomLineY, handsEdgeX - ballX) * 180) / Math.PI;
+          const diff1 = angularDiff(rawDirectionDeg, handednessCenter);
+          const diff2 = angularDiff(rawDirectionDeg + 180, handednessCenter);
+          const rawSolvedAngle = Math.abs(diff1) <= Math.abs(diff2) ? diff1 : diff2;
+
+          const effectiveMin = isRightHanded ? -MAX_ANGLE_DEG : MIN_ANGLE_DEG;
+          const effectiveMax = isRightHanded ? -MIN_ANGLE_DEG : MAX_ANGLE_DEG;
+
+          constraintPassed = rawSolvedAngle >= effectiveMin && rawSolvedAngle <= effectiveMax;
+
+          if (constraintPassed) {
+            const delta = isRightHanded ? TOP_ANGLE_OFFSET_DEG : -TOP_ANGLE_OFFSET_DEG;
+            const pairedAngle = Math.max(effectiveMin, Math.min(effectiveMax, rawSolvedAngle + delta));
+            finalBottomAngle = handednessCenter + rawSolvedAngle;
+            finalTopAngle = handednessCenter + pairedAngle;
+          }
+        }
 
         if (constraintPassed) {
-          const delta = isRightHanded ? TOP_ANGLE_OFFSET_DEG : -TOP_ANGLE_OFFSET_DEG;
-          const pairedAngle = Math.max(effectiveMin, Math.min(effectiveMax, rawSolvedAngle + delta));
-          finalBottomAngle = handednessCenter + rawSolvedAngle;
-          finalTopAngle = handednessCenter + pairedAngle;
+          finalDidHit = true;
+          chosenTopAngle = finalTopAngle;
+          chosenBottomAngle = finalBottomAngle;
+          chosenMargin = margin;
+          chosenIsRightHanded = isRightHanded;
+          runOnJS(setHitIsRightHanded)(isRightHanded);
         }
       }
 
-      if (constraintPassed) {
-        finalDidHit = true;
-        chosenTopAngle = finalTopAngle;
-        chosenBottomAngle = finalBottomAngle;
-        chosenMargin = margin;
-        chosenIsRightHanded = isRightHanded;
-        runOnJS(setHitIsRightHanded)(isRightHanded);
-      }
+      const dirMag = Math.sqrt(velocityX ** 2 + velocityY ** 2) || 1;
+      const dx = velocityX / dirMag;
+      const dy = velocityY / dirMag;
+      const perpDx = -dy;
+      const perpDy = dx;
+
+      const pitchType = pickPitchType();
+      const arcStrength = randomInRange(pitchType.arcStrengthRange);
+      const perpendicularOffset = randomInRange(pitchType.perpendicularRange);
+
+      const dxSettle = settle.x - releaseX;
+      const dySettle = settle.y - releaseY;
+      const straightLineDistance = Math.sqrt(dxSettle ** 2 + dySettle ** 2);
+
+      controlOffsetX.value =
+        releaseX + dx * straightLineDistance * arcStrength + perpDx * perpendicularOffset;
+      controlOffsetY.value =
+        releaseY + dy * straightLineDistance * arcStrength + perpDy * perpendicularOffset;
+
+      const clampedVelocity = Math.min(maxRelevantVelocity, Math.max(velocityThreshold, velocityMagnitude));
+      const vt = (clampedVelocity - velocityThreshold) / (maxRelevantVelocity - velocityThreshold);
+      const duration = maxArcDuration - vt * (maxArcDuration - minArcDuration);
+
+      scale.value = withTiming(flightScale, { duration });
+
+      arcProgress.value = withTiming(1, { duration, easing: Easing.in(Easing.quad) }, (finished) => {
+        if (finished) {
+          runOnJS(setPitchPhase)(isStrike ? 'strike' : 'ball');
+          runOnJS(setIsHit)(finalDidHit);
+          trailDissipateProgress.value = withTiming(1, { duration: duration * trailDissipateDurationRatio });
+          if (finalDidHit) {
+            runHitWipe(chosenTopAngle, chosenBottomAngle, chosenMargin, chosenIsRightHanded);
+          } else {
+            triggerExpand(settlePauseDuration);
+          }
+        }
+      });
     }
 
-    const dirMag = Math.sqrt(velocityX ** 2 + velocityY ** 2) || 1;
-    const dx = velocityX / dirMag;
-    const dy = velocityY / dirMag;
-    const perpDx = -dy;
-    const perpDy = dx;
+    const panGesture = Gesture.Pan()
+      .minDistance(8)
+      .activeOffsetY([-PITCH_VERTICAL_ACTIVATION_THRESHOLD, PITCH_VERTICAL_ACTIVATION_THRESHOLD])
+      .failOffsetX([-EDGE_SWIPE_HORIZONTAL_TOLERANCE, EDGE_SWIPE_HORIZONTAL_TOLERANCE])
+      .onBegin(() => {
+        runOnJS(setIsActive)(true);
+      })
+      .onUpdate((e) => {
+        dragX.value = e.translationX;
+        dragY.value = Math.max(e.translationY, stoppingLineY);
+      })
+      .onEnd((e) => {
+        const fingerPastLine = e.translationY <= stoppingLineY;
+        const velocityMagnitude = Math.sqrt(e.velocityX ** 2 + e.velocityY ** 2);
+        const meetsVelocityThreshold = velocityMagnitude >= velocityThreshold;
+        const isThrownAwayFromUser = e.velocityY < 0;
 
-    const pitchType = pickPitchType();
-    const arcStrength = randomInRange(pitchType.arcStrengthRange);
-    const perpendicularOffset = randomInRange(pitchType.perpendicularRange);
-
-    const dxSettle = settle.x - releaseX;
-    const dySettle = settle.y - releaseY;
-    const straightLineDistance = Math.sqrt(dxSettle ** 2 + dySettle ** 2);
-
-    controlOffsetX.value =
-      releaseX + dx * straightLineDistance * arcStrength + perpDx * perpendicularOffset;
-    controlOffsetY.value =
-      releaseY + dy * straightLineDistance * arcStrength + perpDy * perpendicularOffset;
-
-    const clampedVelocity = Math.min(maxRelevantVelocity, Math.max(velocityThreshold, velocityMagnitude));
-    const vt = (clampedVelocity - velocityThreshold) / (maxRelevantVelocity - velocityThreshold);
-    const duration = maxArcDuration - vt * (maxArcDuration - minArcDuration);
-
-    scale.value = withTiming(flightScale, { duration });
-
-    arcProgress.value = withTiming(1, { duration, easing: Easing.in(Easing.quad) }, (finished) => {
-      if (finished) {
-        runOnJS(setPitchPhase)(isStrike ? 'strike' : 'ball');
-        runOnJS(setIsHit)(finalDidHit);
-        trailDissipateProgress.value = withTiming(1, { duration: duration * trailDissipateDurationRatio });
-        if (finalDidHit) {
-          runHitWipe(chosenTopAngle, chosenBottomAngle, chosenMargin, chosenIsRightHanded);
+        if (!fingerPastLine && meetsVelocityThreshold && isThrownAwayFromUser) {
+          const releaseX = dragX.value;
+          const releaseY = dragY.value;
+          scale.value = 1;
+          triggerPitch(releaseX, releaseY, e.velocityX, e.velocityY, velocityMagnitude);
         } else {
-          triggerExpand(settlePauseDuration);
+          dragX.value = withSpring(0, { dampingRatio: 0.9, duration: 600 });
+          dragY.value = withSpring(0, { dampingRatio: 0.9, duration: 600 });
+          scale.value = withSpring(1, { dampingRatio: 0.9, duration: 600 });
+          runOnJS(setIsActive)(false);
         }
-      }
-    });
-  }
+      });
 
-  const panGesture = Gesture.Pan()
-    .minDistance(8)
-    .activeOffsetY([-PITCH_VERTICAL_ACTIVATION_THRESHOLD, PITCH_VERTICAL_ACTIVATION_THRESHOLD])
-    .failOffsetX([-EDGE_SWIPE_HORIZONTAL_TOLERANCE, EDGE_SWIPE_HORIZONTAL_TOLERANCE])
-    .onBegin(() => {
-      runOnJS(setIsActive)(true);
-    })
-    .onUpdate((e) => {
-      dragX.value = e.translationX;
-      dragY.value = Math.max(e.translationY, stoppingLineY);
-    })
-    .onEnd((e) => {
-      const fingerPastLine = e.translationY <= stoppingLineY;
-      const velocityMagnitude = Math.sqrt(e.velocityX ** 2 + e.velocityY ** 2);
-      const meetsVelocityThreshold = velocityMagnitude >= velocityThreshold;
-      const isThrownAwayFromUser = e.velocityY < 0;
+    const tapGesture = Gesture.Tap()
+      .maxDuration(10000)
+      .maxDistance(6)
+      .onEnd(() => {
+        runOnJS(setIsActive)(true);
+        triggerExpand();
+      });
 
-      if (!fingerPastLine && meetsVelocityThreshold && isThrownAwayFromUser) {
-        const releaseX = dragX.value;
-        const releaseY = dragY.value;
-        scale.value = 1;
-        triggerPitch(releaseX, releaseY, e.velocityX, e.velocityY, velocityMagnitude);
-      } else {
-        dragX.value = withSpring(0, { dampingRatio: 0.9, duration: 600 });
-        dragY.value = withSpring(0, { dampingRatio: 0.9, duration: 600 });
-        scale.value = withSpring(1, { dampingRatio: 0.9, duration: 600 });
-        runOnJS(setIsActive)(false);
-      }
-    });
-
-  const tapGesture = Gesture.Tap()
-    .maxDuration(10000)
-    .maxDistance(6)
-    .onEnd(() => {
-      runOnJS(setIsActive)(true);
-      triggerExpand();
-    });
-
-  const gesture = Gesture.Race(tapGesture, panGesture);
+    return Gesture.Race(tapGesture, panGesture);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    maxScale,
+    buttonAnchor.x,
+    buttonAnchor.y,
+    strikeZoneBounds,
+    stoppingLineY,
+    screenWidth,
+    outerPadding,
+    velocityThreshold,
+    onOpen,
+    openDuration,
+    maxRelevantVelocity,
+    minArcDuration,
+    maxArcDuration,
+    flightScale,
+    settlePauseDuration,
+    siblingFadeDuration,
+    hitStrikeZoneFadeDuration,
+    hitFillDuration,
+    hitLineDrawRatio,
+    hitAngleTopThresholdPercent,
+    hitAngleBottomThresholdPercent,
+    hitRightHandedChance,
+    trailDissipateDurationRatio,
+  ]);
 
   return {
     gesture,
