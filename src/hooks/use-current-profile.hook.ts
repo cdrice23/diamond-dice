@@ -54,6 +54,11 @@ export function updateCachedProfile(next: CurrentProfile) {
   cachedProfile = next;
 }
 
+export function clearCachedProfile(): void {
+  cachedProfile = null;
+  inFlightFetch = null;
+}
+
 export function useCurrentProfile() {
   const [profile, setProfile] = useState<CurrentProfile | null>(cachedProfile);
   const [loading, setLoading] = useState(!cachedProfile);

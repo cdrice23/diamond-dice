@@ -1,4 +1,4 @@
-import { prefetchCurrentProfile } from '@/hooks/use-current-profile.hook';
+import { clearCachedProfile, prefetchCurrentProfile } from '@/hooks/use-current-profile.hook';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
@@ -47,6 +47,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setIsPasswordRecovery(true);
       } else if (event === 'SIGNED_OUT') {
         setIsPasswordRecovery(false);
+        clearCachedProfile();
       }
       setSession(session);
       if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
