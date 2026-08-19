@@ -1,3 +1,4 @@
+import { prefetchCurrentProfile } from '@/hooks/use-current-profile.hook';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
@@ -29,9 +30,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
-        console.log('[diag] getSession resolved, session:', !!session);
         setSession(session);
         setIsLoading(false);
+        if (session) {
+          prefetchCurrentProfile();
+        }
       })
       .catch((error) => {
         console.error('getSession failed:', error);
@@ -46,6 +49,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setIsPasswordRecovery(false);
       }
       setSession(session);
+      if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        prefetchCurrentProfile();
+      }
     });
 
     return () => subscription.unsubscribe();

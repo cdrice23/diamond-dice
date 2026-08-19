@@ -78,6 +78,7 @@ export default function AppLayout() {
       <PitchStateProvider pastThreshold={playDrag.pastThreshold}>
         <Stack screenOptions={{ headerShown: false, animation: 'none' }} initialRouteName="home">
           <Stack.Screen name="game-setup" options={{ animation: 'none' }} />
+          <Stack.Screen name="edit-profile" options={{ animation: 'default' }} />
         </Stack>
       </PitchStateProvider>
       {showPersistentNav && (
