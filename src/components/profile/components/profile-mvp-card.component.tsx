@@ -15,6 +15,17 @@ type ProfileMvpCardProps =
   | { type: 'batter'; stats: MvpBatterStats }
   | { type: 'pitcher'; stats: MvpPitcherStats };
 
+function deriveBatterOutcomeCounts(stats: {
+  totalAtBats: number;
+  totalWalks: number;
+  totalConnections: number;
+  totalHits: number;
+}): { strikeouts: number; fieldedOuts: number } {
+  const strikeouts = Math.max(0, stats.totalAtBats - stats.totalWalks - stats.totalConnections);
+  const fieldedOuts = Math.max(0, stats.totalConnections - stats.totalHits);
+  return { strikeouts, fieldedOuts };
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <View className="items-center">
@@ -54,6 +65,7 @@ function PitcherStatsRow({ stats }: { stats: MvpPitcherStats }) {
 function BatterStatLine({ stats }: { stats: MvpBatterStats }) {
   const { colors, colorScheme } = useTheme();
   const atBats = stats.totalAtBats || 1;
+  const { strikeouts, fieldedOuts } = deriveBatterOutcomeCounts(stats);
 
   const hitShades = getShadeSequence(colors.level1, 4, colorScheme);
   const outShades = getShadeSequence(colors.level3, 2, colorScheme);
@@ -64,8 +76,8 @@ function BatterStatLine({ stats }: { stats: MvpBatterStats }) {
     { key: '3B', percent: stats.totalTriples / atBats, color: hitShades[2] },
     { key: 'HR', percent: stats.totalHomeRuns / atBats, color: hitShades[3] },
     { key: 'BB', percent: stats.totalWalks / atBats, color: colors.level2 },
-    { key: 'K', percent: stats.totalStrikeouts / atBats, color: outShades[1] },
-    { key: 'FO', percent: stats.totalFieldedOuts / atBats, color: outShades[0] },
+    { key: 'K', percent: strikeouts / atBats, color: outShades[1] },
+    { key: 'FO', percent: fieldedOuts / atBats, color: outShades[0] },
   ];
 
   return (
