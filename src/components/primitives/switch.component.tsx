@@ -22,6 +22,10 @@ export function Switch({ value, onValueChange, disabled }: SwitchProps) {
     progress.value = withTiming(value ? 1 : 0, { duration: 150 });
   }, [value, progress]);
 
+  const trackStyle = useAnimatedStyle(() => ({
+    backgroundColor: progress.value > 0.5 ? colors.level2 : colors.mutedForeground,
+  }));
+
   const thumbStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: progress.value * THUMB_TRAVEL }],
   }));
@@ -35,13 +39,15 @@ export function Switch({ value, onValueChange, disabled }: SwitchProps) {
       style={{ opacity: disabled ? 0.5 : 1 }}
     >
       <Animated.View
-        style={{
-          width: TRACK_WIDTH,
-          height: TRACK_HEIGHT,
-          borderRadius: TRACK_HEIGHT / 2,
-          backgroundColor: colors.primary,
-          justifyContent: 'center',
-        }}
+        style={[
+          {
+            width: TRACK_WIDTH,
+            height: TRACK_HEIGHT,
+            borderRadius: TRACK_HEIGHT / 2,
+            justifyContent: 'center',
+          },
+          trackStyle,
+        ]}
       >
         <Animated.View
           style={[
@@ -49,11 +55,9 @@ export function Switch({ value, onValueChange, disabled }: SwitchProps) {
               width: THUMB_SIZE,
               height: THUMB_SIZE,
               borderRadius: THUMB_SIZE / 2,
-              backgroundColor: colors.background,
+              backgroundColor: colors.primary,
               position: 'absolute',
               left: 0,
-              borderWidth: 1,
-              borderColor: colors.primary,
             },
             thumbStyle,
           ]}

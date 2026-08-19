@@ -22,15 +22,23 @@ export default function EditProfileScreen() {
   const { pastThreshold } = usePitchState();
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [autoRollEnabled, setAutoRollEnabled] = useState(profile?.autoRollEnabled ?? false);
+  const [initialValues, setInitialValues] = useState<{ displayName: string; autoRollEnabled: boolean } | null>(
+    profile ? { displayName: profile.displayName, autoRollEnabled: profile.autoRollEnabled } : null
+  );
   const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (profile) {
+    if (profile && !initialValues) {
       setDisplayName(profile.displayName);
       setAutoRollEnabled(profile.autoRollEnabled);
+      setInitialValues({ displayName: profile.displayName, autoRollEnabled: profile.autoRollEnabled });
     }
-  }, [profile]);
+  }, [profile, initialValues]);
+
+  const hasChanges =
+    !!initialValues &&
+    (displayName.trim() !== initialValues.displayName || autoRollEnabled !== initialValues.autoRollEnabled);
 
   const contentFadeStyle = useAnimatedStyle(() => ({
     opacity: 1 - pastThreshold.value,
@@ -48,7 +56,7 @@ export default function EditProfileScreen() {
 
     setSaving(true);
     setDisplayNameError(null);
-    
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -125,7 +133,7 @@ export default function EditProfileScreen() {
             <Switch value={autoRollEnabled} onValueChange={setAutoRollEnabled} disabled={loading || saving} />
           </View>
 
-          <Button className="mt-10" onPress={handleSave} disabled={saving || loading || !displayName.trim()}>
+          <Button className="mt-10 bg-level2" onPress={handleSave} disabled={saving || loading || !displayName.trim() || !hasChanges}>
             <Text className="text-lg">{saving ? 'Saving...' : 'Save Profile'}</Text>
           </Button>
         </View>
