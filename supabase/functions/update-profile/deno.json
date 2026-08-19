@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "profanease": "npm:profanease@11.16.0",
+    "profanease/langs/en": "npm:profanease@11.16.0/langs/en"
+  }
+}

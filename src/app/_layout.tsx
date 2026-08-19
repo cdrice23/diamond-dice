@@ -1,6 +1,5 @@
 import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
 import '@/global.css';
-import { startHeartbeatLogger } from '@/utils/heartbeat-logger';
 import { SessionProvider, useSession } from '@/utils/session-provider';
 import { NAV_THEME } from '@/utils/theme';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/utils/theme-provider';
@@ -11,7 +10,6 @@ import { ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
-import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -51,12 +49,6 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ VT323_400Regular, Silkscreen_400Regular, Poppins_200ExtraLight });
-
-  // TEMPORARY LOGGER
-  useEffect(() => {
-    const stop = startHeartbeatLogger();
-    return stop;
-  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

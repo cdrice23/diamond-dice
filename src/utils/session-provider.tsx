@@ -27,10 +27,17 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        console.log('[diag] getSession resolved, session:', !!session);
+        setSession(session);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error('getSession failed:', error);
+        setSession(null);
+        setIsLoading(false);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {

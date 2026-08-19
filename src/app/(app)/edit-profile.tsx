@@ -4,7 +4,7 @@ import { Button } from '@/components/primitives/button.component';
 import { Input } from '@/components/primitives/input.component';
 import { Switch } from '@/components/primitives/switch.component';
 import { Text } from '@/components/primitives/text.component';
-import { useCurrentProfile } from '@/hooks/use-current-profile.hook';
+import { updateCachedProfile, useCurrentProfile } from '@/hooks/use-current-profile.hook';
 import { supabase } from '@/utils/supabase';
 import { useTheme } from '@/utils/theme-provider';
 import { router } from 'expo-router';
@@ -12,17 +12,23 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
+type UpdateProfileErrorBody = {
+  error?: { code: string; field?: string; message: string };
+};
+
 export default function EditProfileScreen() {
   const { colors } = useTheme();
   const { profile, loading } = useCurrentProfile();
   const { pastThreshold } = usePitchState();
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
-  const [autoRollEnabled, setAutoRollEnabled] = useState(false);
+  const [autoRollEnabled, setAutoRollEnabled] = useState(profile?.autoRollEnabled ?? false);
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.displayName);
+      setAutoRollEnabled(profile.autoRollEnabled);
     }
   }, [profile]);
 
@@ -30,23 +36,61 @@ export default function EditProfileScreen() {
     opacity: 1 - pastThreshold.value,
   }));
 
+  function handleDisplayNameChange(value: string) {
+    setDisplayName(value);
+    if (displayNameError) {
+      setDisplayNameError(null);
+    }
+  }
+
   async function handleSave() {
     if (!profile || !displayName.trim()) return;
 
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({ display_name: displayName.trim() }).eq('id', profile.id);
+    setDisplayNameError(null);
+
+    const { data, error } = await supabase.functions.invoke('update-profile', {
+      body: {
+        display_name: displayName.trim(),
+        auto_roll_enabled: autoRollEnabled,
+      },
+    });
+
     setSaving(false);
 
-    if (!error) {
-      router.back();
+    if (error) {
+      let parsed: UpdateProfileErrorBody | null = null;
+      try {
+        parsed = await error.context?.json();
+      } catch {
+        parsed = null;
+      }
+
+      if (parsed?.error?.field === 'display_name') {
+        setDisplayNameError(parsed.error.message);
+      } else {
+        setDisplayNameError(parsed?.error?.message ?? 'Something went wrong saving your profile.');
+      }
+      return;
     }
+
+    if (data?.profile) {
+      updateCachedProfile({
+        id: data.profile.id,
+        username: data.profile.username,
+        displayName: data.profile.display_name,
+        autoRollEnabled: data.profile.auto_roll_enabled,
+      });
+    }
+
+    router.back();
   }
 
   return (
     <View style={{ flex: 1 }}>
       <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} />
       <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
-        <View className="flex-1 px-4 pt-32">
+        <View className="flex-1 px-4 pt-28">
           <Text className="text-foreground mb-8 text-3xl font-bold">Edit Profile</Text>
 
           <Text variant="muted" className="mb-2 text-lg">
@@ -54,21 +98,24 @@ export default function EditProfileScreen() {
           </Text>
           <Input
             value={displayName}
-            onChangeText={setDisplayName}
+            onChangeText={handleDisplayNameChange}
             placeholder="Display name"
             editable={!loading && !saving}
+            error={!!displayNameError}
             className="h-14 text-xl"
             style={{ lineHeight: 20, textAlignVertical: 'center', paddingVertical: 0 }}
           />
+          {displayNameError && (
+            <Text className="mt-1 text-sm" style={{ color: colors.destructive }}>
+              {displayNameError}
+            </Text>
+          )}
 
           <View className="mt-8 flex-row items-center justify-between">
             <View>
               <Text className="text-foreground text-lg font-medium">Enable Auto-Roll</Text>
-              <Text variant="muted" className="text-sm">
-                Coming soon
-              </Text>
             </View>
-            <Switch value={autoRollEnabled} onValueChange={setAutoRollEnabled} disabled />
+            <Switch value={autoRollEnabled} onValueChange={setAutoRollEnabled} disabled={loading || saving} />
           </View>
 
           <Button className="mt-10" onPress={handleSave} disabled={saving || loading || !displayName.trim()}>

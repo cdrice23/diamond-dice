@@ -26,8 +26,7 @@ export type MvpBatterStats = {
   totalTriples: number;
   totalHomeRuns: number;
   totalWalks: number;
-  totalStrikeouts: number;
-  totalFieldedOuts: number;
+  totalConnections: number;
 };
 
 export type MvpPitcherStats = {

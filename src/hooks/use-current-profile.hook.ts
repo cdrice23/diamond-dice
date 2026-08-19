@@ -5,6 +5,7 @@ export type CurrentProfile = {
   id: string;
   username: string;
   displayName: string;
+  autoRollEnabled: boolean;
 };
 
 let cachedProfile: CurrentProfile | null = null;
@@ -31,7 +32,7 @@ export function useCurrentProfile() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, display_name')
+      .select('id, username, display_name, auto_roll_enabled')
       .eq('id', user.id)
       .single();
 
@@ -39,7 +40,12 @@ export function useCurrentProfile() {
       cachedProfile = null;
       setProfile(null);
     } else {
-      const next: CurrentProfile = { id: data.id, username: data.username, displayName: data.display_name };
+      const next: CurrentProfile = {
+        id: data.id,
+        username: data.username,
+        displayName: data.display_name,
+        autoRollEnabled: data.auto_roll_enabled,
+      };
       cachedProfile = next;
       setProfile(next);
     }
@@ -51,4 +57,8 @@ export function useCurrentProfile() {
   }, [fetchProfile]);
 
   return { profile, loading, refetch: fetchProfile };
+}
+
+export function updateCachedProfile(next: CurrentProfile) {
+  cachedProfile = next;
 }
