@@ -64,7 +64,7 @@ function HitWipeTransitionInner({
         y: buttonAnchor.y + settleOffsetY.value,
       });
     }
-  }, [isHit]);
+  }, [isHit, buttonAnchor, settleOffsetX, settleOffsetY]);
 
   const lastDrawBridgeTime = useSharedValue(0);
   const lastFillBridgeTime = useSharedValue(0);
