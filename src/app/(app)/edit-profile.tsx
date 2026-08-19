@@ -48,8 +48,15 @@ export default function EditProfileScreen() {
 
     setSaving(true);
     setDisplayNameError(null);
+    
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
     const { data, error } = await supabase.functions.invoke('update-profile', {
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
       body: {
         display_name: displayName.trim(),
         auto_roll_enabled: autoRollEnabled,
