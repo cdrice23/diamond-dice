@@ -69,13 +69,13 @@ export default function PlayerDatabaseScreen() {
               onEndReachedThreshold={0.4}
               removeClippedSubviews={true}
               maxToRenderPerBatch={PAGE_SIZE}
-              windowSize={7}
+              windowSize={15}
               initialNumToRender={PAGE_SIZE}
               ListFooterComponent={
                 loadingMore ? (
                   <View className="mt-1">
-                    {Array.from({ length: 4 }).map((_, index) => (
-                      <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} />
+                    {Array.from({ length: 12 }).map((_, index) => (
+                      <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
                     ))}
                   </View>
                 ) : null

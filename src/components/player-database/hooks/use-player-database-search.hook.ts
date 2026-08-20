@@ -22,6 +22,7 @@ export function usePlayerDatabaseSearch() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const offsetRef = useRef(0);
+  const isFetchingRef = useRef(false);
 
   const fetchPage = useCallback(async (offset: number, replace: boolean) => {
     const { data, error } = await supabase.rpc('search_player_db', {
@@ -49,6 +50,8 @@ export function usePlayerDatabaseSearch() {
       });
       return deduped.length > RETAIN_CEILING ? deduped.slice(deduped.length - RETAIN_FLOOR) : deduped;
     });
+    setHasMore(rows.length === PAGE_SIZE);
+    offsetRef.current = offset + rows.length;
   }, []);
 
   useEffect(() => {
@@ -57,11 +60,13 @@ export function usePlayerDatabaseSearch() {
   }, [fetchPage]);
 
   const loadMore = useCallback(async () => {
-    if (loading || loadingMore || !hasMore) return;
+    if (isFetchingRef.current || !hasMore) return;
+    isFetchingRef.current = true;
     setLoadingMore(true);
     await fetchPage(offsetRef.current, false);
     setLoadingMore(false);
-  }, [loading, loadingMore, hasMore, fetchPage]);
+    isFetchingRef.current = false;
+  }, [hasMore, fetchPage]);
 
   return { players, loading, loadingMore, hasMore, loadMore };
 }
