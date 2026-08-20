@@ -6,10 +6,11 @@ import Animated from 'react-native-reanimated';
 type PlayerDatabaseRowSkeletonProps = {
   isFirst?: boolean;
   indexInBatch?: number;
+  reverseEntrance?: boolean;
 };
 
-export function PlayerDatabaseRowSkeleton({ isFirst, indexInBatch = 0 }: PlayerDatabaseRowSkeletonProps) {
-  const entranceStyle = usePlayerRowEntrance(indexInBatch);
+export function PlayerDatabaseRowSkeleton({ isFirst, indexInBatch = 0, reverseEntrance = false }: PlayerDatabaseRowSkeletonProps) {
+  const entranceStyle = usePlayerRowEntrance(indexInBatch, reverseEntrance);
 
   return (
     <Animated.View

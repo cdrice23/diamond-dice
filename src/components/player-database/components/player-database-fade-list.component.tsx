@@ -5,11 +5,16 @@ import { StyleSheet, View } from 'react-native';
 type PlayerDatabaseFadeListProps = {
   backgroundColor: string;
   fadeHeight?: number;
+  bottomInset?: number;
 };
 
 const DEFAULT_FADE_HEIGHT = 32;
 
-export function PlayerDatabaseFadeList({ backgroundColor, fadeHeight = DEFAULT_FADE_HEIGHT }: PlayerDatabaseFadeListProps) {
+export function PlayerDatabaseFadeList({
+  backgroundColor,
+  fadeHeight = DEFAULT_FADE_HEIGHT,
+  bottomInset = 0,
+}: PlayerDatabaseFadeListProps) {
   const transparent = hslToTransparentHsla(backgroundColor);
 
   return (
@@ -17,7 +22,7 @@ export function PlayerDatabaseFadeList({ backgroundColor, fadeHeight = DEFAULT_F
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: fadeHeight }}>
         <LinearGradient colors={[backgroundColor, transparent]} style={StyleSheet.absoluteFill} />
       </View>
-      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: fadeHeight }}>
+      <View style={{ position: 'absolute', bottom: bottomInset, left: 0, right: 0, height: fadeHeight }}>
         <LinearGradient colors={[transparent, backgroundColor]} style={StyleSheet.absoluteFill} />
       </View>
     </View>

@@ -10,10 +10,14 @@ import {
   type PlayerDatabaseRow as PlayerDatabaseRowData,
 } from '@/components/player-database/hooks/use-player-database-search.hook';
 import { useTheme } from '@/utils/theme-provider';
+import { useCallback, useRef } from 'react';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { FlatList, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 const PAGE_SIZE = 20;
+const TOP_SCROLL_THRESHOLD = 200;
+const NAV_CLEARANCE_EXTRA = 16;
 
 function deriveLevel(row: PlayerDatabaseRowData): 1 | 2 | 3 {
   const relevantLevel = row.is_qualified_batter ? row.batting_rating_level : row.pitching_rating_level;
@@ -25,13 +29,30 @@ export default function PlayerDatabaseScreen() {
   const { pastThreshold } = usePitchState();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
-  const { players, loading, loadingMore, loadMore } = usePlayerDatabaseSearch();
+  const { players, loading, loadingPrevious, hasPrevious, loadMore, loadPrevious } =
+    usePlayerDatabaseSearch();
+
+  const hasTriggeredPreviousRef = useRef(false);
 
   const contentFadeStyle = useAnimatedStyle(() => ({
     opacity: 1 - pastThreshold.value,
   }));
 
-  const navClearance = navTopY !== null ? screenHeight - navTopY : 116;
+  const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetY = event.nativeEvent.contentOffset.y;
+
+      if (offsetY < TOP_SCROLL_THRESHOLD && hasPrevious && !loadingPrevious && !hasTriggeredPreviousRef.current) {
+        hasTriggeredPreviousRef.current = true;
+        loadPrevious().finally(() => {
+          hasTriggeredPreviousRef.current = false;
+        });
+      }
+    },
+    [hasPrevious, loadingPrevious, loadPrevious]
+  );
 
   function renderItem({ item, index }: { item: PlayerDatabaseRowData; index: number }) {
     return (
@@ -52,11 +73,11 @@ export default function PlayerDatabaseScreen() {
       <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} />
       <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
         <PlayerDatabaseHeader />
-        <View style={{ flex: 1, paddingBottom: navClearance }}>
+        <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
           {loading ? (
             <View className="px-4">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} />
+              {Array.from({ length: 12 }).map((_, index) => (
+                <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
               ))}
             </View>
           ) : (
@@ -64,17 +85,29 @@ export default function PlayerDatabaseScreen() {
               data={players}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
-              contentContainerClassName="px-4"
+              contentContainerClassName="px-4 pt-2 pb-6"
               onEndReached={loadMore}
               onEndReachedThreshold={0.4}
+              onScroll={handleScroll}
+              scrollEventThrottle={100}
               removeClippedSubviews={true}
               maxToRenderPerBatch={PAGE_SIZE}
               windowSize={15}
               initialNumToRender={PAGE_SIZE}
+              maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+              ListHeaderComponent={
+                loadingPrevious ? (
+                  <View>
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} reverseEntrance />
+                    ))}
+                  </View>
+                ) : null
+              }
               ListFooterComponent={
-                loadingMore ? (
-                  <View className="mt-1">
-                    {Array.from({ length: 12 }).map((_, index) => (
+                loadingPrevious ? (
+                  <View>
+                    {Array.from({ length: 4 }).map((_, index) => (
                       <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
                     ))}
                   </View>
@@ -82,7 +115,7 @@ export default function PlayerDatabaseScreen() {
               }
             />
           )}
-          <PlayerDatabaseFadeList backgroundColor={colors.background} />
+          <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
         </View>
       </Animated.View>
     </View>
