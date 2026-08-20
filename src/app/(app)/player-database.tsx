@@ -3,15 +3,17 @@ import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
 import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
 import { PlayerDatabaseHeader } from '@/components/player-database/components/player-database-header.component';
-import { PlayerRowSkeleton } from '@/components/player-database/components/player-database-row-skeleton.component';
+import { PlayerDatabaseRowSkeleton } from '@/components/player-database/components/player-database-row-skeleton.component';
 import { PlayerDatabaseRow } from '@/components/player-database/components/player-database-row.component';
-import { usePlayerDatabaseSearch, type PlayerDatabaseRow as PlayerDatabaseRowData } from '@/components/player-database/hooks/use-player-database-search.hook';
+import {
+  usePlayerDatabaseSearch,
+  type PlayerDatabaseRow as PlayerDatabaseRowData,
+} from '@/components/player-database/hooks/use-player-database-search.hook';
 import { useTheme } from '@/utils/theme-provider';
-import { FlatList, useWindowDimensions, View } from 'react-native';
+import { FlatList, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
-const PERSISTENT_NAV_HEIGHT = 100;
-const NAV_CLEARANCE_EXTRA = 16;
+const PAGE_SIZE = 20;
 
 function deriveLevel(row: PlayerDatabaseRowData): 1 | 2 | 3 {
   const relevantLevel = row.is_qualified_batter ? row.batting_rating_level : row.pitching_rating_level;
@@ -54,7 +56,7 @@ export default function PlayerDatabaseScreen() {
           {loading ? (
             <View className="px-4">
               {Array.from({ length: 8 }).map((_, index) => (
-                <PlayerRowSkeleton key={index} isFirst={index === 0} />
+                <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} />
               ))}
             </View>
           ) : (
@@ -65,11 +67,15 @@ export default function PlayerDatabaseScreen() {
               contentContainerClassName="px-4"
               onEndReached={loadMore}
               onEndReachedThreshold={0.4}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={PAGE_SIZE}
+              windowSize={7}
+              initialNumToRender={PAGE_SIZE}
               ListFooterComponent={
                 loadingMore ? (
                   <View className="mt-1">
                     {Array.from({ length: 4 }).map((_, index) => (
-                      <PlayerRowSkeleton key={index} isFirst={index === 0} />
+                      <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} />
                     ))}
                   </View>
                 ) : null

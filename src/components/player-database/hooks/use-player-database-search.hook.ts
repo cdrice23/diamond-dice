@@ -13,6 +13,8 @@ export type PlayerDatabaseRow = {
 };
 
 const PAGE_SIZE = 20;
+const RETAIN_CEILING = PAGE_SIZE * 15;
+const RETAIN_FLOOR = PAGE_SIZE * 10;
 
 export function usePlayerDatabaseSearch() {
   const [players, setPlayers] = useState<PlayerDatabaseRow[]>([]);
@@ -32,14 +34,21 @@ export function usePlayerDatabaseSearch() {
       return;
     }
 
-    const rows = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch'>, index: number) => ({
+    const rows: PlayerDatabaseRow[] = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch'>, index: number) => ({
       ...row,
       indexInBatch: index,
     }));
 
-    setPlayers((prev) => (replace ? rows : [...prev, ...rows]));
-    setHasMore(rows.length === PAGE_SIZE);
-    offsetRef.current = offset + rows.length;
+    setPlayers((prev) => {
+      const merged = replace ? rows : [...prev, ...rows];
+      const seen = new Set<string>();
+      const deduped = merged.filter((row) => {
+        if (seen.has(row.id)) return false;
+        seen.add(row.id);
+        return true;
+      });
+      return deduped.length > RETAIN_CEILING ? deduped.slice(deduped.length - RETAIN_FLOOR) : deduped;
+    });
   }, []);
 
   useEffect(() => {
