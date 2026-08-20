@@ -6,6 +6,7 @@ import { PlayerDatabaseHeader } from '@/components/player-database/components/pl
 import { PlayerDatabaseRowSkeleton } from '@/components/player-database/components/player-database-row-skeleton.component';
 import { PlayerDatabaseRow } from '@/components/player-database/components/player-database-row.component';
 import {
+  PAGE_SIZE,
   usePlayerDatabaseSearch,
   type PlayerDatabaseRow as PlayerDatabaseRowData,
 } from '@/components/player-database/hooks/use-player-database-search.hook';
@@ -15,9 +16,9 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { FlatList, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
-const PAGE_SIZE = 20;
 const TOP_SCROLL_THRESHOLD = 200;
 const NAV_CLEARANCE_EXTRA = 16;
+const REQUIRED_NEAR_TOP_STREAK = 3;
 
 function deriveLevel(row: PlayerDatabaseRowData): 1 | 2 | 3 {
   const relevantLevel = row.is_qualified_batter ? row.batting_rating_level : row.pitching_rating_level;
@@ -29,10 +30,12 @@ export default function PlayerDatabaseScreen() {
   const { pastThreshold } = usePitchState();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
-  const { players, loading, loadingPrevious, hasPrevious, loadMore, loadPrevious } =
+  const { players, loading, loadingMore, loadingPrevious, hasPrevious, latestBatch, loadMore, loadPrevious, flushEviction } =
     usePlayerDatabaseSearch();
 
   const hasTriggeredPreviousRef = useRef(false);
+  const hasTriggeredMoreRef = useRef(false);
+  const nearTopStreakRef = useRef(0);
 
   const contentFadeStyle = useAnimatedStyle(() => ({
     opacity: 1 - pastThreshold.value,
@@ -44,17 +47,48 @@ export default function PlayerDatabaseScreen() {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetY = event.nativeEvent.contentOffset.y;
 
-      if (offsetY < TOP_SCROLL_THRESHOLD && hasPrevious && !loadingPrevious && !hasTriggeredPreviousRef.current) {
+      if (offsetY < TOP_SCROLL_THRESHOLD) {
+        nearTopStreakRef.current += 1;
+      } else {
+        nearTopStreakRef.current = 0;
+        return;
+      }
+
+      if (
+        nearTopStreakRef.current >= REQUIRED_NEAR_TOP_STREAK &&
+        hasPrevious &&
+        !loadingPrevious &&
+        !hasTriggeredPreviousRef.current
+      ) {
         hasTriggeredPreviousRef.current = true;
         loadPrevious().finally(() => {
           hasTriggeredPreviousRef.current = false;
+          nearTopStreakRef.current = 0;
         });
       }
     },
     [hasPrevious, loadingPrevious, loadPrevious]
   );
 
+  const handleEndReached = useCallback(() => {
+    if (hasTriggeredMoreRef.current) return;
+    hasTriggeredMoreRef.current = true;
+
+    requestAnimationFrame(() => {
+      loadMore().finally(() => {
+        hasTriggeredMoreRef.current = false;
+      });
+    });
+  }, [loadMore]);
+
+  const handleMomentumScrollEnd = useCallback(() => {
+    flushEviction();
+  }, [flushEviction]);
+
   function renderItem({ item, index }: { item: PlayerDatabaseRowData; index: number }) {
+    const isFromLatestBatch = latestBatch !== null && item.batchId === latestBatch.id;
+    const reverseEntrance = isFromLatestBatch && latestBatch?.direction === 'backward';
+
     return (
       <PlayerDatabaseRow
         id={item.id}
@@ -64,6 +98,8 @@ export default function PlayerDatabaseScreen() {
         level={deriveLevel(item)}
         isFirst={index === 0}
         indexInBatch={item.indexInBatch}
+        animate={isFromLatestBatch}
+        reverseEntrance={reverseEntrance}
       />
     );
   }
@@ -76,7 +112,7 @@ export default function PlayerDatabaseScreen() {
         <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
           {loading ? (
             <View className="px-4">
-              {Array.from({ length: 12 }).map((_, index) => (
+              {Array.from({ length: 2 }).map((_, index) => (
                 <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
               ))}
             </View>
@@ -86,9 +122,10 @@ export default function PlayerDatabaseScreen() {
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
               contentContainerClassName="px-4 pt-2 pb-6"
-              onEndReached={loadMore}
-              onEndReachedThreshold={0.4}
+              onEndReached={handleEndReached}
+              onEndReachedThreshold={1}
               onScroll={handleScroll}
+              onMomentumScrollEnd={handleMomentumScrollEnd}
               scrollEventThrottle={100}
               removeClippedSubviews={true}
               maxToRenderPerBatch={PAGE_SIZE}
@@ -98,16 +135,16 @@ export default function PlayerDatabaseScreen() {
               ListHeaderComponent={
                 loadingPrevious ? (
                   <View>
-                    {Array.from({ length: 4 }).map((_, index) => (
+                    {Array.from({ length: 2 }).map((_, index) => (
                       <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} reverseEntrance />
                     ))}
                   </View>
                 ) : null
               }
               ListFooterComponent={
-                loadingPrevious ? (
+                loadingMore ? (
                   <View>
-                    {Array.from({ length: 4 }).map((_, index) => (
+                    {Array.from({ length: 2 }).map((_, index) => (
                       <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
                     ))}
                   </View>

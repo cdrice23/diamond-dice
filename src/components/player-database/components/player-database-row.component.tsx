@@ -15,6 +15,7 @@ type PlayerDatabaseRowProps = {
   level: 1 | 2 | 3;
   isFirst: boolean;
   indexInBatch: number;
+  animate: boolean;
   reverseEntrance?: boolean;
 };
 
@@ -49,10 +50,11 @@ export function PlayerDatabaseRow({
   level,
   isFirst,
   indexInBatch,
+  animate,
   reverseEntrance = false,
 }: PlayerDatabaseRowProps) {
   const { colors } = useTheme();
-  const entranceStyle = usePlayerRowEntrance(indexInBatch, reverseEntrance);
+  const entranceStyle = usePlayerRowEntrance(indexInBatch, animate, reverseEntrance);
   const levelColor = getLevelColor(colors, level);
 
   return (

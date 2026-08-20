@@ -10,17 +10,12 @@ export type PlayerDatabaseRow = {
   is_qualified_batter: boolean;
   is_qualified_pitcher: boolean;
   indexInBatch: number;
+  batchId: number;
 };
 
-const PAGE_SIZE = 20;
-const RETAIN_CEILING = PAGE_SIZE * 15;
-const RETAIN_FLOOR = PAGE_SIZE * 10;
-
-type TrimResult = {
-  rows: PlayerDatabaseRow[];
-  trimmedFromFront: number;
-  trimmedFromBack: number;
-};
+export const PAGE_SIZE = 18;
+export const RETAIN_CEILING = 300;
+export const RETAIN_FLOOR = 200;
 
 function dedupe(rows: PlayerDatabaseRow[]): PlayerDatabaseRow[] {
   const seen = new Set<string>();
@@ -31,20 +26,6 @@ function dedupe(rows: PlayerDatabaseRow[]): PlayerDatabaseRow[] {
   });
 }
 
-function capFromOppositeEdge(rows: PlayerDatabaseRow[], trimFromFront: boolean): TrimResult {
-  if (rows.length <= RETAIN_CEILING) {
-    return { rows, trimmedFromFront: 0, trimmedFromBack: 0 };
-  }
-
-  const excess = rows.length - RETAIN_FLOOR;
-
-  if (trimFromFront) {
-    return { rows: rows.slice(excess), trimmedFromFront: excess, trimmedFromBack: 0 };
-  }
-
-  return { rows: rows.slice(0, rows.length - excess), trimmedFromFront: 0, trimmedFromBack: excess };
-}
-
 export function usePlayerDatabaseSearch() {
   const [players, setPlayers] = useState<PlayerDatabaseRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,10 +33,36 @@ export function usePlayerDatabaseSearch() {
   const [loadingPrevious, setLoadingPrevious] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [hasPrevious, setHasPrevious] = useState(false);
+  const [latestBatch, setLatestBatch] = useState<{ id: number; direction: 'forward' | 'backward' } | null>(null);
   const offsetRef = useRef(0);
   const earliestOffsetRef = useRef(0);
   const isFetchingForwardRef = useRef(false);
   const isFetchingBackwardRef = useRef(false);
+  const batchCounterRef = useRef(0);
+  const lastGrowthDirectionRef = useRef<'forward' | 'backward'>('forward');
+
+  const nextBatchId = useCallback(() => {
+    batchCounterRef.current += 1;
+    return batchCounterRef.current;
+  }, []);
+
+  const flushEviction = useCallback(() => {
+    setPlayers((prev) => {
+      if (prev.length <= RETAIN_CEILING) return prev;
+
+      const excess = prev.length - RETAIN_FLOOR;
+
+      if (lastGrowthDirectionRef.current === 'forward') {
+        earliestOffsetRef.current += excess;
+        setHasPrevious(earliestOffsetRef.current > 0);
+        return prev.slice(excess);
+      }
+
+      offsetRef.current -= excess;
+      setHasMore(true);
+      return prev.slice(0, prev.length - excess);
+    });
+  }, []);
 
   const fetchPage = useCallback(async (offset: number, replace: boolean) => {
     const { data, error } = await supabase.rpc('search_player_db', {
@@ -68,9 +75,11 @@ export function usePlayerDatabaseSearch() {
       return null;
     }
 
-    const rows: PlayerDatabaseRow[] = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch'>, index: number) => ({
+    const batchId = nextBatchId();
+    const rows: PlayerDatabaseRow[] = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch' | 'batchId'>, index: number) => ({
       ...row,
       indexInBatch: index,
+      batchId,
     }));
 
     if (replace) {
@@ -78,23 +87,15 @@ export function usePlayerDatabaseSearch() {
       setHasPrevious(false);
     }
 
-    setPlayers((prev) => {
-      const merged = dedupe(replace ? rows : [...prev, ...rows]);
-      const { rows: capped, trimmedFromFront } = capFromOppositeEdge(merged, true);
-
-      if (trimmedFromFront > 0) {
-        earliestOffsetRef.current += trimmedFromFront;
-        setHasPrevious(earliestOffsetRef.current > 0);
-      }
-
-      return capped;
-    });
+    lastGrowthDirectionRef.current = 'forward';
+    setPlayers((prev) => dedupe(replace ? rows : [...prev, ...rows]));
 
     setHasMore(rows.length === PAGE_SIZE);
     offsetRef.current = offset + rows.length;
+    setLatestBatch({ id: batchId, direction: 'forward' });
 
     return rows;
-  }, []);
+  }, [nextBatchId]);
 
   useEffect(() => {
     setLoading(true);
@@ -134,29 +135,34 @@ export function usePlayerDatabaseSearch() {
       return;
     }
 
-    const rows: PlayerDatabaseRow[] = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch'>, index: number) => ({
+    const batchId = nextBatchId();
+    const rows: PlayerDatabaseRow[] = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch' | 'batchId'>, index: number) => ({
       ...row,
       indexInBatch: index,
+      batchId,
     }));
 
-    setPlayers((prev) => {
-      const merged = dedupe([...rows, ...prev]);
-      const { rows: capped, trimmedFromBack } = capFromOppositeEdge(merged, false);
-
-      if (trimmedFromBack > 0) {
-        offsetRef.current -= trimmedFromBack;
-        setHasMore(true);
-      }
-
-      return capped;
-    });
+    lastGrowthDirectionRef.current = 'backward';
+    setPlayers((prev) => dedupe([...rows, ...prev]));
 
     earliestOffsetRef.current = previousOffset;
     setHasPrevious(previousOffset > 0);
+    setLatestBatch({ id: batchId, direction: 'backward' });
 
     setLoadingPrevious(false);
     isFetchingBackwardRef.current = false;
-  }, [hasPrevious]);
+  }, [hasPrevious, nextBatchId]);
 
-  return { players, loading, loadingMore, loadingPrevious, hasMore, hasPrevious, loadMore, loadPrevious };
+  return {
+    players,
+    loading,
+    loadingMore,
+    loadingPrevious,
+    hasMore,
+    hasPrevious,
+    latestBatch,
+    loadMore,
+    loadPrevious,
+    flushEviction,
+  };
 }
