@@ -26,7 +26,7 @@ function dedupe(rows: PlayerDatabaseRow[]): PlayerDatabaseRow[] {
   });
 }
 
-export function usePlayerDatabaseSearch() {
+export function usePlayerDatabaseSearch(searchTerm: string = '') {
   const [players, setPlayers] = useState<PlayerDatabaseRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -34,12 +34,14 @@ export function usePlayerDatabaseSearch() {
   const [hasMore, setHasMore] = useState(true);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [latestBatch, setLatestBatch] = useState<{ id: number; direction: 'forward' | 'backward' } | null>(null);
+
   const offsetRef = useRef(0);
   const earliestOffsetRef = useRef(0);
   const isFetchingForwardRef = useRef(false);
   const isFetchingBackwardRef = useRef(false);
   const batchCounterRef = useRef(0);
   const lastGrowthDirectionRef = useRef<'forward' | 'backward'>('forward');
+  const searchTokenRef = useRef(0);
 
   const nextBatchId = useCallback(() => {
     batchCounterRef.current += 1;
@@ -64,49 +66,77 @@ export function usePlayerDatabaseSearch() {
     });
   }, []);
 
-  const fetchPage = useCallback(async (offset: number, replace: boolean) => {
-    const { data, error } = await supabase.rpc('search_player_db', {
-      page_limit: PAGE_SIZE,
-      page_offset: offset,
-    });
+  const fetchPage = useCallback(
+    async (offset: number, replace: boolean, token: number) => {
+      const { data, error } = await supabase.rpc('search_player_db', {
+        search_term: searchTerm.trim() === '' ? null : searchTerm.trim(),
+        page_limit: PAGE_SIZE,
+        page_offset: offset,
+      });
 
-    if (error) {
-      console.error('search_player_db failed:', error);
-      return null;
-    }
+      if (token !== searchTokenRef.current) {
+        return null;
+      }
 
-    const batchId = nextBatchId();
-    const rows: PlayerDatabaseRow[] = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch' | 'batchId'>, index: number) => ({
-      ...row,
-      indexInBatch: index,
-      batchId,
-    }));
+      if (error) {
+        console.error('search_player_db failed:', error);
+        return null;
+      }
 
-    if (replace) {
-      earliestOffsetRef.current = 0;
-      setHasPrevious(false);
-    }
+      const batchId = nextBatchId();
+      const rows: PlayerDatabaseRow[] = (data ?? []).map(
+        (row: Omit<PlayerDatabaseRow, 'indexInBatch' | 'batchId'>, index: number) => ({
+          ...row,
+          indexInBatch: index,
+          batchId,
+        })
+      );
 
-    lastGrowthDirectionRef.current = 'forward';
-    setPlayers((prev) => dedupe(replace ? rows : [...prev, ...rows]));
+      if (replace) {
+        earliestOffsetRef.current = 0;
+        setHasPrevious(false);
+      }
 
-    setHasMore(rows.length === PAGE_SIZE);
-    offsetRef.current = offset + rows.length;
-    setLatestBatch({ id: batchId, direction: 'forward' });
+      lastGrowthDirectionRef.current = 'forward';
+      setPlayers((prev) => dedupe(replace ? rows : [...prev, ...rows]));
 
-    return rows;
-  }, [nextBatchId]);
+      setHasMore(rows.length === PAGE_SIZE);
+      offsetRef.current = offset + rows.length;
+      setLatestBatch({ id: batchId, direction: 'forward' });
+
+      return rows;
+    },
+    [nextBatchId, searchTerm]
+  );
 
   useEffect(() => {
+    searchTokenRef.current += 1;
+    const token = searchTokenRef.current;
+
+    offsetRef.current = 0;
+    earliestOffsetRef.current = 0;
+    isFetchingForwardRef.current = false;
+    isFetchingBackwardRef.current = false;
+    lastGrowthDirectionRef.current = 'forward';
+
+    setPlayers([]);
+    setHasMore(true);
+    setHasPrevious(false);
+    setLatestBatch(null);
     setLoading(true);
-    fetchPage(0, true).finally(() => setLoading(false));
-  }, [fetchPage]);
+
+    fetchPage(0, true, token).finally(() => {
+      if (token === searchTokenRef.current) {
+        setLoading(false);
+      }
+    });
+  }, [searchTerm, fetchPage]);
 
   const loadMore = useCallback(async () => {
     if (isFetchingForwardRef.current || !hasMore) return;
     isFetchingForwardRef.current = true;
     setLoadingMore(true);
-    await fetchPage(offsetRef.current, false);
+    await fetchPage(offsetRef.current, false, searchTokenRef.current);
     setLoadingMore(false);
     isFetchingForwardRef.current = false;
   }, [hasMore, fetchPage]);
@@ -123,10 +153,18 @@ export function usePlayerDatabaseSearch() {
     isFetchingBackwardRef.current = true;
     setLoadingPrevious(true);
 
+    const token = searchTokenRef.current;
     const { data, error } = await supabase.rpc('search_player_db', {
+      search_term: searchTerm.trim() === '' ? null : searchTerm.trim(),
       page_limit: PAGE_SIZE,
       page_offset: previousOffset,
     });
+
+    if (token !== searchTokenRef.current) {
+      setLoadingPrevious(false);
+      isFetchingBackwardRef.current = false;
+      return;
+    }
 
     if (error) {
       console.error('search_player_db (loadPrevious) failed:', error);
@@ -136,11 +174,13 @@ export function usePlayerDatabaseSearch() {
     }
 
     const batchId = nextBatchId();
-    const rows: PlayerDatabaseRow[] = (data ?? []).map((row: Omit<PlayerDatabaseRow, 'indexInBatch' | 'batchId'>, index: number) => ({
-      ...row,
-      indexInBatch: index,
-      batchId,
-    }));
+    const rows: PlayerDatabaseRow[] = (data ?? []).map(
+      (row: Omit<PlayerDatabaseRow, 'indexInBatch' | 'batchId'>, index: number) => ({
+        ...row,
+        indexInBatch: index,
+        batchId,
+      })
+    );
 
     lastGrowthDirectionRef.current = 'backward';
     setPlayers((prev) => dedupe([...rows, ...prev]));
@@ -151,7 +191,7 @@ export function usePlayerDatabaseSearch() {
 
     setLoadingPrevious(false);
     isFetchingBackwardRef.current = false;
-  }, [hasPrevious, nextBatchId]);
+  }, [hasPrevious, nextBatchId, searchTerm]);
 
   return {
     players,
