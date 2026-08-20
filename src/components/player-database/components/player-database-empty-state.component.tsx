@@ -9,7 +9,7 @@ export function PlayerDatabaseEmptyState() {
   const { colors } = useTheme();
 
   return (
-    <View className="flex-1 items-center justify-center gap-3 px-8 pt-16">
+    <View className="items-center gap-3 px-8 pt-12">
       <PixelIcon name="search" size={EMPTY_STATE_ICON_SIZE} color={colors.mutedForeground} />
       <Text className="text-foreground text-2xl font-bold">{'No players found :('}</Text>
       <Text variant="muted" className="text-center text-base">
