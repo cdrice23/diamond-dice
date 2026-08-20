@@ -11,7 +11,7 @@ type ChipProps = {
   size?: string
 };
 
-function Chip({ label, backgroundColor, textColor = '#FFFFFF', shape = 'rounded', className, size }: ChipProps) {
+function Chip({ label, backgroundColor, textColor = '#FFFFFF', shape = 'rounded', className }: ChipProps) {
   return (
     <View
       style={{ backgroundColor }}

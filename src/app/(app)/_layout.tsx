@@ -1,5 +1,6 @@
 import { PersistentNav } from '@/components/navigation/components/persistent-nav.component';
 import { useDragToPitch } from '@/components/navigation/hooks/use-drag-to-pitch.hook';
+import { NavLayoutProvider } from '@/components/navigation/nav-layout.context';
 import { PitchStateProvider } from '@/components/navigation/pitch-state.context';
 import { useTheme } from '@/utils/theme-provider';
 import { Stack, router, usePathname } from 'expo-router';
@@ -18,6 +19,7 @@ export default function AppLayout() {
 
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [strikeZoneBounds, setStrikeZoneBounds] = useState<Bounds | null>(null);
+  const [navTopY, setNavTopY] = useState<number | null>(null);
 
   const buttonRadius = (100 + 100 * 0.05 * 0.85) / 2;
   const maxScale = Math.sqrt(screenWidth ** 2 + screenHeight ** 2) / buttonRadius;
@@ -70,17 +72,19 @@ export default function AppLayout() {
   }, []);
 
   const handlePlayButtonLayout = useCallback((x: number, y: number, width: number, height: number) => {
-    // Intentionally unused for now -- see comment above.
+    setNavTopY((previous) => (previous === y ? previous : y));
   }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <PitchStateProvider pastThreshold={playDrag.pastThreshold}>
-        <Stack screenOptions={{ headerShown: false, animation: 'none' }} initialRouteName="home">
-          <Stack.Screen name="game-setup" options={{ animation: 'none' }} />
-          <Stack.Screen name="edit-profile" options={{ animation: 'default' }} />
-        </Stack>
-      </PitchStateProvider>
+      <NavLayoutProvider navTopY={navTopY}>
+        <PitchStateProvider pastThreshold={playDrag.pastThreshold}>
+          <Stack screenOptions={{ headerShown: false, animation: 'none' }} initialRouteName="home">
+            <Stack.Screen name="game-setup" options={{ animation: 'none' }} />
+            <Stack.Screen name="edit-profile" options={{ animation: 'default' }} />
+          </Stack>
+        </PitchStateProvider>
+      </NavLayoutProvider>
       {showPersistentNav && (
         <PersistentNav
           playDrag={playDrag}
