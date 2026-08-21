@@ -10,44 +10,27 @@ import Animated from 'react-native-reanimated';
 type PlayerDatabaseRowProps = {
   id: string;
   name: string;
+  eligiblePositions: string[];
   isQualifiedBatter: boolean;
   isQualifiedPitcher: boolean;
-  level: 1 | 2 | 3;
+  levelDisplay: string;
+  levelColor: string;
   isFirst: boolean;
   indexInBatch: number;
   animate: boolean;
   reverseEntrance?: boolean;
 };
 
-function getLevelColor(colors: ReturnType<typeof useTheme>['colors'], level: 1 | 2 | 3): string {
-  if (level === 1) return colors.level1;
-  if (level === 2) return colors.level2;
-  return colors.level3;
-}
-
-function PositionIcons({
-  isQualifiedBatter,
-  isQualifiedPitcher,
-  color,
-}: {
-  isQualifiedBatter: boolean;
-  isQualifiedPitcher: boolean;
-  color: string;
-}) {
-  return (
-    <View className="flex-row items-center gap-1">
-      {isQualifiedBatter && <PixelIcon name="bat" size={20} color={color} />}
-      {isQualifiedPitcher && <PixelIcon name="baseball" size={20} color={color} />}
-    </View>
-  );
-}
+const ICON_SIZE = 18;
 
 export function PlayerDatabaseRow({
   id,
   name,
+  eligiblePositions,
   isQualifiedBatter,
   isQualifiedPitcher,
-  level,
+  levelDisplay,
+  levelColor,
   isFirst,
   indexInBatch,
   animate,
@@ -55,7 +38,6 @@ export function PlayerDatabaseRow({
 }: PlayerDatabaseRowProps) {
   const { colors } = useTheme();
   const entranceStyle = usePlayerRowEntrance(indexInBatch, animate, reverseEntrance);
-  const levelColor = getLevelColor(colors, level);
 
   return (
     <Animated.View style={entranceStyle} className={isFirst ? undefined : 'border-border border-t'}>
@@ -64,15 +46,20 @@ export function PlayerDatabaseRow({
         className="flex-row items-center gap-3 px-1 py-3 active:opacity-70"
         accessibilityRole="button"
       >
-        <Chip label={`LVL. ${level}`} backgroundColor={levelColor} shape="square" className="w-12" />
-        <Text className="text-foreground flex-1 text-lg font-semibold" numberOfLines={1}>
+        <Chip label={levelDisplay} backgroundColor={levelColor} shape="square" className="w-18" />
+        <Text className="text-foreground flex-1 text-xl font-semibold" numberOfLines={1}>
           {name}
+          {eligiblePositions.length > 0 && (
+            <Text variant="muted" className="text-lg font-normal">
+              {' '}
+              - {eligiblePositions.join('/')}
+            </Text>
+          )}
         </Text>
-        <PositionIcons
-          isQualifiedBatter={isQualifiedBatter}
-          isQualifiedPitcher={isQualifiedPitcher}
-          color={colors.primary}
-        />
+        <View className="flex-row items-center gap-1">
+          {isQualifiedBatter && <PixelIcon name="bat" size={ICON_SIZE} color={colors.primary} />}
+          {isQualifiedPitcher && <PixelIcon name="baseball" size={ICON_SIZE} color={colors.primary} />}
+        </View>
       </Pressable>
     </Animated.View>
   );

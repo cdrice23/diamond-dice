@@ -13,8 +13,8 @@ import {
   usePlayerDatabaseSearch,
   type PlayerDatabaseRow as PlayerDatabaseRowData,
 } from '@/components/player-database/hooks/use-player-database-search.hook';
-import { DEFAULT_FILTERS } from '@/components/player-database/player-database.constants';
-import { PlayerDatabaseFilters } from '@/components/player-database/player-database.types';
+import { DEFAULT_FILTERS, NEUTRAL_FILTER_COLOR } from '@/components/player-database/player-database.constants';
+import { PlayerDatabaseFilters, PlayerType } from '@/components/player-database/player-database.types';
 import { useTheme } from '@/utils/theme-provider';
 import { useCallback, useRef, useState } from 'react';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
@@ -25,16 +25,59 @@ const TOP_SCROLL_THRESHOLD = 200;
 const NAV_CLEARANCE_EXTRA = 16;
 const REQUIRED_NEAR_TOP_STREAK = 3;
 
-function deriveLevel(row: PlayerDatabaseRowData): 1 | 2 | 3 {
+function deriveLevelDisplay(row: PlayerDatabaseRowData, activePlayerType: PlayerType): string {
+  const isTwoWay = row.is_qualified_batter && row.is_qualified_pitcher;
+
+  if (isTwoWay) {
+    if (activePlayerType === 'batter') {
+      return row.batting_rating_level != null ? `Lvl. ${row.batting_rating_level}` : '--';
+    }
+
+    if (activePlayerType === 'pitcher') {
+      return row.pitching_rating_level != null ? `Lvl. ${row.pitching_rating_level}` : '--';
+    }
+
+    const battingPart = row.batting_rating_level ?? '--';
+    const pitchingPart = row.pitching_rating_level ?? '--';
+
+    return `Lvl. ${battingPart} | ${pitchingPart}`;
+  }
+
   const relevantLevel = row.is_qualified_batter ? row.batting_rating_level : row.pitching_rating_level;
-  return (relevantLevel ?? 1) as 1 | 2 | 3;
+
+  return relevantLevel != null ? `Lvl. ${relevantLevel}` : '--';
+}
+
+function deriveLevelColor(
+  row: PlayerDatabaseRowData,
+  activePlayerType: PlayerType,
+  colors: ReturnType<typeof useTheme>['colors'],
+  colorScheme: 'light' | 'dark'
+): string {
+  const isTwoWay = row.is_qualified_batter && row.is_qualified_pitcher;
+
+  function colorForLevel(level: number | null): string {
+    if (level === 1) return colors.level1;
+    if (level === 2) return colors.level2;
+    if (level === 3) return colors.level3;
+    return colors.muted;
+  }
+
+  if (isTwoWay) {
+    if (activePlayerType === 'batter') return colorForLevel(row.batting_rating_level);
+    if (activePlayerType === 'pitcher') return colorForLevel(row.pitching_rating_level);
+    return NEUTRAL_FILTER_COLOR[colorScheme];
+  }
+
+  const relevantLevel = row.is_qualified_batter ? row.batting_rating_level : row.pitching_rating_level;
+  return colorForLevel(relevantLevel);
 }
 
 export default function PlayerDatabaseScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<PlayerDatabaseFilters>(DEFAULT_FILTERS);
   
-  const { colors } = useTheme();
+  const { colors, colorScheme } = useTheme();
   const { pastThreshold } = usePitchState();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
@@ -101,9 +144,11 @@ export default function PlayerDatabaseScreen() {
       <PlayerDatabaseRow
         id={item.id}
         name={item.name}
+        eligiblePositions={item.eligible_positions}
         isQualifiedBatter={item.is_qualified_batter}
         isQualifiedPitcher={item.is_qualified_pitcher}
-        level={deriveLevel(item)}
+        levelDisplay={deriveLevelDisplay(item, filters.playerType)}
+        levelColor={deriveLevelColor(item, filters.playerType, colors, colorScheme)}
         isFirst={index === 0}
         indexInBatch={item.indexInBatch}
         animate={isFromLatestBatch}

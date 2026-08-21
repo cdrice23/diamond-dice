@@ -1,4 +1,3 @@
-// player-database-filter-bar.component.tsx
 import { PlayerDatabasePositionFilterButton } from '@/components/player-database/components/player-database-position-filter-button.component';
 import { PlayerDatabaseRosteredFilterButton } from '@/components/player-database/components/player-database-rostered-filter-button.component';
 import type { PlayerDatabaseFilters } from '@/components/player-database/player-database.types';
