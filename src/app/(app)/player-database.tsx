@@ -14,7 +14,7 @@ import {
   type PlayerDatabaseRow as PlayerDatabaseRowData,
 } from '@/components/player-database/hooks/use-player-database-search.hook';
 import { DEFAULT_FILTERS, NEUTRAL_FILTER_COLOR } from '@/components/player-database/player-database.constants';
-import { PlayerDatabaseFilters, PlayerType } from '@/components/player-database/player-database.types';
+import type { EffectiveRoles, PlayerDatabaseFilters, PlayerType } from '@/components/player-database/player-database.types';
 import { useTheme } from '@/utils/theme-provider';
 import { useCallback, useRef, useState } from 'react';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
@@ -25,26 +25,44 @@ const TOP_SCROLL_THRESHOLD = 200;
 const NAV_CLEARANCE_EXTRA = 16;
 const REQUIRED_NEAR_TOP_STREAK = 3;
 
+function resolveEffectiveRoles(row: PlayerDatabaseRowData): EffectiveRoles {
+  const isEffectivePitcher = row.eligible_positions.includes('P') && row.is_qualified_pitcher;
+  const isEffectiveBatter =
+    row.eligible_positions.some((position) => position !== 'P') && row.is_qualified_batter;
+
+  return {
+    isEffectiveBatter,
+    isEffectivePitcher,
+    isTwoWay: isEffectiveBatter && isEffectivePitcher,
+  };
+}
+
+function colorForLevel(
+  level: number | null,
+  colors: ReturnType<typeof useTheme>['colors']
+): string {
+  if (level === 1) return colors.level1;
+  if (level === 2) return colors.level2;
+  if (level === 3) return colors.level3;
+  return colors.muted;
+}
+
 function deriveLevelDisplay(row: PlayerDatabaseRowData, activePlayerType: PlayerType): string {
-  const isTwoWay = row.is_qualified_batter && row.is_qualified_pitcher;
+  const { isEffectiveBatter, isTwoWay } = resolveEffectiveRoles(row);
 
   if (isTwoWay) {
     if (activePlayerType === 'batter') {
       return row.batting_rating_level != null ? `Lvl. ${row.batting_rating_level}` : '--';
     }
-
     if (activePlayerType === 'pitcher') {
       return row.pitching_rating_level != null ? `Lvl. ${row.pitching_rating_level}` : '--';
     }
-
     const battingPart = row.batting_rating_level ?? '--';
     const pitchingPart = row.pitching_rating_level ?? '--';
-
     return `Lvl. ${battingPart} | ${pitchingPart}`;
   }
 
-  const relevantLevel = row.is_qualified_batter ? row.batting_rating_level : row.pitching_rating_level;
-
+  const relevantLevel = isEffectiveBatter ? row.batting_rating_level : row.pitching_rating_level;
   return relevantLevel != null ? `Lvl. ${relevantLevel}` : '--';
 }
 
@@ -54,35 +72,36 @@ function deriveLevelColor(
   colors: ReturnType<typeof useTheme>['colors'],
   colorScheme: 'light' | 'dark'
 ): string {
-  const isTwoWay = row.is_qualified_batter && row.is_qualified_pitcher;
-
-  function colorForLevel(level: number | null): string {
-    if (level === 1) return colors.level1;
-    if (level === 2) return colors.level2;
-    if (level === 3) return colors.level3;
-    return colors.muted;
-  }
+  const { isEffectiveBatter, isTwoWay } = resolveEffectiveRoles(row);
 
   if (isTwoWay) {
-    if (activePlayerType === 'batter') return colorForLevel(row.batting_rating_level);
-    if (activePlayerType === 'pitcher') return colorForLevel(row.pitching_rating_level);
+    if (activePlayerType === 'batter') return colorForLevel(row.batting_rating_level, colors);
+    if (activePlayerType === 'pitcher') return colorForLevel(row.pitching_rating_level, colors);
     return NEUTRAL_FILTER_COLOR[colorScheme];
   }
 
-  const relevantLevel = row.is_qualified_batter ? row.batting_rating_level : row.pitching_rating_level;
-  return colorForLevel(relevantLevel);
+  const relevantLevel = isEffectiveBatter ? row.batting_rating_level : row.pitching_rating_level;
+  return colorForLevel(relevantLevel, colors);
 }
 
 export default function PlayerDatabaseScreen() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<PlayerDatabaseFilters>(DEFAULT_FILTERS);
-  
   const { colors, colorScheme } = useTheme();
   const { pastThreshold } = usePitchState();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
-  const { players, loading, loadingMore, loadingPrevious, hasPrevious, latestBatch, loadMore, loadPrevious, flushEviction } = 
-    usePlayerDatabaseSearch(searchTerm, filters);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<PlayerDatabaseFilters>(DEFAULT_FILTERS);
+  const {
+    players,
+    loading,
+    loadingMore,
+    loadingPrevious,
+    hasPrevious,
+    latestBatch,
+    loadMore,
+    loadPrevious,
+    flushEviction,
+  } = usePlayerDatabaseSearch(searchTerm, filters);
 
   const hasTriggeredPreviousRef = useRef(false);
   const hasTriggeredMoreRef = useRef(false);
@@ -139,14 +158,15 @@ export default function PlayerDatabaseScreen() {
   function renderItem({ item, index }: { item: PlayerDatabaseRowData; index: number }) {
     const isFromLatestBatch = latestBatch !== null && item.batchId === latestBatch.id;
     const reverseEntrance = isFromLatestBatch && latestBatch?.direction === 'backward';
+    const { isEffectiveBatter, isEffectivePitcher } = resolveEffectiveRoles(item);
 
     return (
       <PlayerDatabaseRow
         id={item.id}
         name={item.name}
         eligiblePositions={item.eligible_positions}
-        isQualifiedBatter={item.is_qualified_batter}
-        isQualifiedPitcher={item.is_qualified_pitcher}
+        isQualifiedBatter={isEffectiveBatter}
+        isQualifiedPitcher={isEffectivePitcher}
         levelDisplay={deriveLevelDisplay(item, filters.playerType)}
         levelColor={deriveLevelColor(item, filters.playerType, colors, colorScheme)}
         isFirst={index === 0}
@@ -159,61 +179,61 @@ export default function PlayerDatabaseScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-    <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
-    <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
-      <PlayerDatabaseHeader />
-      <PlayerDatabaseSearchInput onSearchTermChange={setSearchTerm} />
-      <PlayerDatabaseFilterBar filters={filters} onFiltersChange={setFilters} />
-      <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
-        {loading ? (
-          <View className="px-4">
-            {Array.from({ length: 2 }).map((_, index) => (
-              <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
-            ))}
-          </View>
-        ) : players.length === 0 ? (
-          <PlayerDatabaseEmptyState />
-        ) : (
-          <FlatList
-            data={players}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            contentContainerClassName="px-4 pt-2 pb-6"
-            onEndReached={handleEndReached}
-            onEndReachedThreshold={1}
-            onScroll={handleScroll}
-            onMomentumScrollEnd={handleMomentumScrollEnd}
-            scrollEventThrottle={100}
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={PAGE_SIZE}
-            windowSize={15}
-            initialNumToRender={PAGE_SIZE}
-            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            ListHeaderComponent={
-              loadingPrevious ? (
-                <View>
-                  {Array.from({ length: 2 }).map((_, index) => (
-                    <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} reverseEntrance />
-                  ))}
-                </View>
-              ) : null
-            }
-            ListFooterComponent={
-              loadingMore ? (
-                <View>
-                  {Array.from({ length: 2 }).map((_, index) => (
-                    <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
-                  ))}
-                </View>
-              ) : null
-            }
-          />
-        )}
-        <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
-      </View>
-    </Animated.View>
-  </View>
+      <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
+      <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
+        <PlayerDatabaseHeader />
+        <PlayerDatabaseSearchInput onSearchTermChange={setSearchTerm} />
+        <PlayerDatabaseFilterBar filters={filters} onFiltersChange={setFilters} />
+        <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
+          {loading ? (
+            <View className="px-4">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
+              ))}
+            </View>
+          ) : players.length === 0 ? (
+            <PlayerDatabaseEmptyState />
+          ) : (
+            <FlatList
+              data={players}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              contentContainerClassName="px-4 pt-2 pb-6"
+              onEndReached={handleEndReached}
+              onEndReachedThreshold={1}
+              onScroll={handleScroll}
+              onMomentumScrollEnd={handleMomentumScrollEnd}
+              scrollEventThrottle={100}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={PAGE_SIZE}
+              windowSize={15}
+              initialNumToRender={PAGE_SIZE}
+              maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              ListHeaderComponent={
+                loadingPrevious ? (
+                  <View>
+                    {Array.from({ length: 2 }).map((_, index) => (
+                      <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} reverseEntrance />
+                    ))}
+                  </View>
+                ) : null
+              }
+              ListFooterComponent={
+                loadingMore ? (
+                  <View>
+                    {Array.from({ length: 2 }).map((_, index) => (
+                      <PlayerDatabaseRowSkeleton key={index} isFirst={index === 0} indexInBatch={index} />
+                    ))}
+                  </View>
+                ) : null
+              }
+            />
+          )}
+          <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
+        </View>
+      </Animated.View>
+    </View>
   );
 }

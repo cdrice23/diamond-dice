@@ -18,3 +18,9 @@ export type PlayerDatabaseFilters = {
 
 export const POSITIONS = ['C', '1B', '2B', 'SS', '3B', 'OF', 'DH', 'P'] as const;
 export type Position = (typeof POSITIONS)[number];
+
+export type EffectiveRoles = {
+  isEffectiveBatter: boolean;
+  isEffectivePitcher: boolean;
+  isTwoWay: boolean;
+};
