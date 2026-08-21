@@ -1,5 +1,7 @@
 import { supabase } from '@/utils/supabase';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { PlayerDatabaseFilters } from '../player-database.types';
+import { useAwardGroupLookup } from './use-award-group-lookup.hook';
 
 export type PlayerDatabaseRow = {
   id: string;
@@ -26,7 +28,29 @@ function dedupe(rows: PlayerDatabaseRow[]): PlayerDatabaseRow[] {
   });
 }
 
-export function usePlayerDatabaseSearch(searchTerm: string = '') {
+function buildQueryParams(
+  searchTerm: string,
+  filters: PlayerDatabaseFilters,
+  expandedAwardTypeIds: string[],
+  pageLimit: number,
+  pageOffset: number
+) {
+  return {
+    search_term: searchTerm.trim() === '' ? null : searchTerm.trim(),
+    player_type: filters.playerType,
+    rating_levels: filters.ratingLevels.length === 3 ? null : filters.ratingLevels,
+    positions: filters.positions.length === 0 ? null : filters.positions,
+    team_ids: filters.teamIds.length === 0 ? null : filters.teamIds,
+    award_type_ids: expandedAwardTypeIds.length === 0 ? null : expandedAwardTypeIds,
+    on_my_roster: filters.isRostered,
+    debut_date_from: filters.debutYearFrom ? `${filters.debutYearFrom}-01-01` : null,
+    debut_date_to: filters.debutYearTo ? `${filters.debutYearTo}-12-31` : null,
+    page_limit: pageLimit,
+    page_offset: pageOffset,
+  };
+}
+
+export function usePlayerDatabaseSearch(searchTerm: string, filters: PlayerDatabaseFilters) {
   const [players, setPlayers] = useState<PlayerDatabaseRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -34,6 +58,8 @@ export function usePlayerDatabaseSearch(searchTerm: string = '') {
   const [hasMore, setHasMore] = useState(true);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [latestBatch, setLatestBatch] = useState<{ id: number; direction: 'forward' | 'backward' } | null>(null);
+
+  const { expandLabels, isReady: awardLookupReady } = useAwardGroupLookup();
 
   const offsetRef = useRef(0);
   const earliestOffsetRef = useRef(0);
@@ -67,12 +93,18 @@ export function usePlayerDatabaseSearch(searchTerm: string = '') {
   }, []);
 
   const fetchPage = useCallback(
-    async (offset: number, replace: boolean, token: number) => {
-      const { data, error } = await supabase.rpc('search_player_db', {
-        search_term: searchTerm.trim() === '' ? null : searchTerm.trim(),
-        page_limit: PAGE_SIZE,
-        page_offset: offset,
-      });
+    async (
+      currentSearchTerm: string,
+      currentFilters: PlayerDatabaseFilters,
+      expandedAwardTypeIds: string[],
+      offset: number,
+      replace: boolean,
+      token: number
+    ) => {
+      const { data, error } = await supabase.rpc(
+        'search_player_db',
+        buildQueryParams(currentSearchTerm, currentFilters, expandedAwardTypeIds, PAGE_SIZE, offset)
+      );
 
       if (token !== searchTokenRef.current) {
         return null;
@@ -106,10 +138,12 @@ export function usePlayerDatabaseSearch(searchTerm: string = '') {
 
       return rows;
     },
-    [nextBatchId, searchTerm]
+    [nextBatchId]
   );
 
   useEffect(() => {
+    if (!awardLookupReady) return;
+
     searchTokenRef.current += 1;
     const token = searchTokenRef.current;
 
@@ -125,21 +159,24 @@ export function usePlayerDatabaseSearch(searchTerm: string = '') {
     setLatestBatch(null);
     setLoading(true);
 
-    fetchPage(0, true, token).finally(() => {
+    const expandedAwardTypeIds = expandLabels(filters.awardGroupLabels);
+
+    fetchPage(searchTerm, filters, expandedAwardTypeIds, 0, true, token).finally(() => {
       if (token === searchTokenRef.current) {
         setLoading(false);
       }
     });
-  }, [searchTerm, fetchPage]);
+  }, [searchTerm, filters, awardLookupReady, expandLabels, fetchPage]);
 
   const loadMore = useCallback(async () => {
     if (isFetchingForwardRef.current || !hasMore) return;
     isFetchingForwardRef.current = true;
     setLoadingMore(true);
-    await fetchPage(offsetRef.current, false, searchTokenRef.current);
+    const expandedAwardTypeIds = expandLabels(filters.awardGroupLabels);
+    await fetchPage(searchTerm, filters, expandedAwardTypeIds, offsetRef.current, false, searchTokenRef.current);
     setLoadingMore(false);
     isFetchingForwardRef.current = false;
-  }, [hasMore, fetchPage]);
+  }, [hasMore, fetchPage, searchTerm, filters, expandLabels]);
 
   const loadPrevious = useCallback(async () => {
     if (isFetchingBackwardRef.current || !hasPrevious) return;
@@ -154,11 +191,11 @@ export function usePlayerDatabaseSearch(searchTerm: string = '') {
     setLoadingPrevious(true);
 
     const token = searchTokenRef.current;
-    const { data, error } = await supabase.rpc('search_player_db', {
-      search_term: searchTerm.trim() === '' ? null : searchTerm.trim(),
-      page_limit: PAGE_SIZE,
-      page_offset: previousOffset,
-    });
+    const expandedAwardTypeIds = expandLabels(filters.awardGroupLabels);
+    const { data, error } = await supabase.rpc(
+      'search_player_db',
+      buildQueryParams(searchTerm, filters, expandedAwardTypeIds, PAGE_SIZE, previousOffset)
+    );
 
     if (token !== searchTokenRef.current) {
       setLoadingPrevious(false);
@@ -191,7 +228,7 @@ export function usePlayerDatabaseSearch(searchTerm: string = '') {
 
     setLoadingPrevious(false);
     isFetchingBackwardRef.current = false;
-  }, [hasPrevious, nextBatchId, searchTerm]);
+  }, [hasPrevious, nextBatchId, searchTerm, filters, expandLabels]);
 
   return {
     players,

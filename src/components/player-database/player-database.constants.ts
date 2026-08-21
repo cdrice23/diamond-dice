@@ -27,3 +27,9 @@ export const DEFAULT_FILTERS: PlayerDatabaseFilters = {
 
 export const DEBUT_YEAR_FLOOR = 1901;
 export const DEBUT_YEAR_CEILING = new Date().getFullYear();
+
+export const NEUTRAL_FILTER_COLOR = { light: '#1E2D3F', dark: '#374555' } as const;
+export const NEUTRAL_FILTER_COLOR_MUTED = {
+  light: 'rgba(30, 45, 63, 0.12)',
+  dark: 'rgba(55, 69, 85, 0.3)',
+} as const;

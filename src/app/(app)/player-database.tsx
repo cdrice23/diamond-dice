@@ -3,6 +3,7 @@ import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
 import { PlayerDatabaseEmptyState } from '@/components/player-database/components/player-database-empty-state.component';
 import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
+import { PlayerDatabaseFilterBar } from '@/components/player-database/components/player-database-filter-bar.component';
 import { PlayerDatabaseHeader } from '@/components/player-database/components/player-database-header.component';
 import { PlayerDatabaseRowSkeleton } from '@/components/player-database/components/player-database-row-skeleton.component';
 import { PlayerDatabaseRow } from '@/components/player-database/components/player-database-row.component';
@@ -12,6 +13,8 @@ import {
   usePlayerDatabaseSearch,
   type PlayerDatabaseRow as PlayerDatabaseRowData,
 } from '@/components/player-database/hooks/use-player-database-search.hook';
+import { DEFAULT_FILTERS } from '@/components/player-database/player-database.constants';
+import { PlayerDatabaseFilters } from '@/components/player-database/player-database.types';
 import { useTheme } from '@/utils/theme-provider';
 import { useCallback, useRef, useState } from 'react';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
@@ -29,13 +32,14 @@ function deriveLevel(row: PlayerDatabaseRowData): 1 | 2 | 3 {
 
 export default function PlayerDatabaseScreen() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<PlayerDatabaseFilters>(DEFAULT_FILTERS);
   
   const { colors } = useTheme();
   const { pastThreshold } = usePitchState();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
-  const { players, loading, loadingMore, loadingPrevious, hasPrevious, latestBatch, loadMore, loadPrevious, flushEviction } =
-    usePlayerDatabaseSearch(searchTerm);
+  const { players, loading, loadingMore, loadingPrevious, hasPrevious, latestBatch, loadMore, loadPrevious, flushEviction } = 
+    usePlayerDatabaseSearch(searchTerm, filters);
 
   const hasTriggeredPreviousRef = useRef(false);
   const hasTriggeredMoreRef = useRef(false);
@@ -114,6 +118,7 @@ export default function PlayerDatabaseScreen() {
     <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
       <PlayerDatabaseHeader />
       <PlayerDatabaseSearchInput onSearchTermChange={setSearchTerm} />
+      <PlayerDatabaseFilterBar filters={filters} onFiltersChange={setFilters} />
       <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
         {loading ? (
           <View className="px-4">

@@ -34,3 +34,12 @@ export function hslToTransparentHsla(hsl: string): string {
   const [, hue, saturation, lightness] = match;
   return `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`;
 }
+
+export function adjustHslAlpha(hsl: string, alpha: number): string {
+  const match = hsl.match(/hsl\(([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\)/);
+  if (!match) return hsl;
+
+  const [, hue, saturation, lightness] = match;
+  const clampedAlpha = Math.max(0, Math.min(1, alpha));
+  return `hsla(${hue}, ${saturation}%, ${lightness}%, ${clampedAlpha})`;
+}
