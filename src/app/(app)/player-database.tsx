@@ -114,7 +114,7 @@ export default function PlayerDatabaseScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-    <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} />
+    <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
     <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
       <PlayerDatabaseHeader />
       <PlayerDatabaseSearchInput onSearchTermChange={setSearchTerm} />

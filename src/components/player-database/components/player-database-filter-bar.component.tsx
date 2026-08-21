@@ -1,9 +1,9 @@
-import { PlayerDatabasePlayerTypeFilterButton } from '@/components/player-database/components/player-database-player-type-filter-button.component';
+// player-database-filter-bar.component.tsx
 import { PlayerDatabasePositionFilterButton } from '@/components/player-database/components/player-database-position-filter-button.component';
-import { PlayerDatabaseRatingLevelFilterRow } from '@/components/player-database/components/player-database-rating-level-filter-row.component';
 import { PlayerDatabaseRosteredFilterButton } from '@/components/player-database/components/player-database-rostered-filter-button.component';
 import type { PlayerDatabaseFilters } from '@/components/player-database/player-database.types';
 import { View } from 'react-native';
+import { PlayerDatabaseLevelFilterGroup } from './player-database-level-filter-group.component';
 
 type PlayerDatabaseFilterBarProps = {
   filters: PlayerDatabaseFilters;
@@ -13,16 +13,11 @@ type PlayerDatabaseFilterBarProps = {
 export function PlayerDatabaseFilterBar({ filters, onFiltersChange }: PlayerDatabaseFilterBarProps) {
   return (
     <View className="gap-2 pb-3">
-      <View className="px-4">
-        <PlayerDatabasePlayerTypeFilterButton
-          value={filters.playerType}
-          onChange={(playerType) => onFiltersChange((prev) => ({ ...prev, playerType }))}
-        />
-      </View>
-
-      <PlayerDatabaseRatingLevelFilterRow
-        value={filters.ratingLevels}
-        onChange={(ratingLevels) => onFiltersChange((prev) => ({ ...prev, ratingLevels }))}
+      <PlayerDatabaseLevelFilterGroup
+        playerType={filters.playerType}
+        onPlayerTypeChange={(playerType) => onFiltersChange((prev) => ({ ...prev, playerType }))}
+        ratingLevels={filters.ratingLevels}
+        onRatingLevelsChange={(ratingLevels) => onFiltersChange((prev) => ({ ...prev, ratingLevels }))}
       />
 
       <View className="flex-row gap-2 px-4">
