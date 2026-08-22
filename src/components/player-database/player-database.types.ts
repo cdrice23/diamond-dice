@@ -24,3 +24,8 @@ export type EffectiveRoles = {
   isEffectivePitcher: boolean;
   isTwoWay: boolean;
 };
+
+export type SearchableMultiSelectOption = {
+  id: string;
+  label: string;
+};

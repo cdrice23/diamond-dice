@@ -15,6 +15,7 @@ type PlayerDatabaseFilterChipButtonProps = {
   inactiveTextColor?: string;
   inactiveBorderColor?: string;
   fullWidth?: boolean;
+  className?: string;
 };
 
 export function PlayerDatabaseFilterChipButton({
@@ -29,6 +30,7 @@ export function PlayerDatabaseFilterChipButton({
   inactiveTextColor,
   inactiveBorderColor,
   fullWidth = false,
+  className,
 }: PlayerDatabaseFilterChipButtonProps) {
   const { colors } = useTheme();
   const resolvedInactiveText = inactiveTextColor ?? colors.foreground;
@@ -37,7 +39,7 @@ export function PlayerDatabaseFilterChipButton({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 active:opacity-70 ${fullWidth ? 'flex-1' : ''}`}
+      className={`flex-row items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 active:opacity-70 ${fullWidth ? 'flex-1' : ''} ${className ?? ''}`}
       style={{
         borderColor: isActive ? activeColor : resolvedInactiveBorder,
         backgroundColor: isActive ? activeColor : inactiveBackgroundColor,
