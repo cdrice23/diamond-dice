@@ -131,13 +131,10 @@ export function PlayerDatabaseAdvancedFiltersModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
-      <Pressable className="flex-1 justify-end bg-black/40" onPress={onDismiss}>
-        <Pressable
-          className="bg-background rounded-t-2xl p-4 pb-10"
-          style={{ maxHeight: '85%' }}
-          onPress={(e) => e.stopPropagation()}
-        >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
+      <View className="flex-1 justify-end">
+        <Pressable className="absolute inset-0 bg-black/40" onPress={onDismiss} />
+        <View className="bg-background rounded-t-2xl p-4 pb-10" style={{ maxHeight: '85%' }}>
           <Text className="text-foreground mb-4 text-lg font-bold">Advanced Filters</Text>
 
           <View className="gap-6">
@@ -198,8 +195,8 @@ export function PlayerDatabaseAdvancedFiltersModal({
           <Pressable onPress={handleApply} className="mt-2 items-center rounded-md py-3" style={{ backgroundColor: colors.level2 }}>
             <Text className="font-semibold text-white">Apply</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
 
       <PlayerDatabaseMultiSelectModal
         visible={activeSubModal === 'teams'}
