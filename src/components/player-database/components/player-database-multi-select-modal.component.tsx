@@ -45,7 +45,7 @@ export function PlayerDatabaseMultiSelectModal({
     setDraft((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   }
 
-  function handleDone() {
+  function handleApply() {
     onApply(draft);
     onDismiss();
   }
@@ -60,7 +60,7 @@ export function PlayerDatabaseMultiSelectModal({
     >
       <View className="flex-1 justify-end">
         <Pressable className="absolute inset-0 bg-black/40" onPress={onDismiss} />
-        <View className="bg-background rounded-t-2xl p-4" style={{ height: '90%' }}>
+        <View className="bg-background rounded-t-2xl p-4 pb-10" style={{ height: '90%' }}>
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-foreground text-lg font-bold">{title}</Text>
             <Pressable onPress={onDismiss} hitSlop={12}>
@@ -94,9 +94,9 @@ export function PlayerDatabaseMultiSelectModal({
             }
           />
 
-          <Pressable onPress={handleDone} className="mt-3 items-center rounded-md py-3" style={{ backgroundColor: colors.level2 }}>
+          <Pressable onPress={handleApply} className="mt-3 items-center rounded-md py-3" style={{ backgroundColor: colors.level2 }}>
             <Text className="font-semibold text-white">
-              Done{draft.length > 0 ? ` (${draft.length})` : ''}
+              Apply{draft.length > 0 ? ` (${draft.length})` : ''}
             </Text>
           </Pressable>
         </View>
