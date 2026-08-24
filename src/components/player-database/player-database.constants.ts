@@ -12,6 +12,7 @@ export const AWARD_GROUPS: AwardGroup[] = [
   { label: 'Gold Glove', externalIds: ['ALGG', 'NLGG'], magnitudeRank: 9, tier: 'level2' },
   { label: 'Silver Slugger', externalIds: ['ALSS', 'NLSS'], magnitudeRank: 10, tier: 'level2' },
   { label: 'All-MLB Team', externalIds: ['MLBAFIRST', 'MLBSECOND'], magnitudeRank: 11, tier: 'level1' },
+  { label: 'All-Star', externalIds: ['ALAS', 'NLAS'], magnitudeRank: 12, tier: 'level1' },
 ];
 
 export const DEFAULT_FILTERS: PlayerDatabaseFilters = {
