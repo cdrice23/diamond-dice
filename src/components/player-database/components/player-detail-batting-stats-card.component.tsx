@@ -1,4 +1,5 @@
 import type { PlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
 import { View } from 'react-native';
@@ -30,7 +31,7 @@ function formatCount(value: number | null): string {
 export function PlayerDetailBattingStatsCard({ player }: PlayerDetailBattingStatsCardProps) {
   return (
     <Card className="mx-4">
-      <Text className="text-foreground mb-3 text-xl font-semibold">Career Batting</Text>
+      <CardSectionHeader label="Career Batting" />
       <View className="gap-4">
         <View className="flex-row justify-around">
           <StatCell label="PA" value={formatCount(player.mlb_career_pa)} />

@@ -1,3 +1,4 @@
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Chip } from '@/components/primitives/chip.component';
 import { Text } from '@/components/primitives/text.component';
@@ -53,7 +54,7 @@ export function ProfileRecentGamesCard({ games }: ProfileRecentGamesCardProps) {
 
   return (
     <Card className="mx-4">
-      <Text className="text-foreground mb-2 text-xl font-semibold">Recent Games</Text>
+      <CardSectionHeader label="Recent Games" />
       {games.slice(0, 5).map((game, index) => (
         <View key={game.gameId} className={index > 0 ? 'border-border border-t' : undefined}>
           <GameRow game={game} winColor={colors.level1} lossColor={colors.level3} />

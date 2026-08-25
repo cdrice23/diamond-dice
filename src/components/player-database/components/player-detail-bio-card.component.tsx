@@ -1,4 +1,5 @@
 import type { PlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
 import { View } from 'react-native';
@@ -28,7 +29,7 @@ function calculateAge(birthday: string): number {
 
 function BioRow({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-row justify-between py-3">
+    <View className="flex-row justify-between">
       <Text variant="muted" className="text-lg">
         {label}
       </Text>
@@ -46,20 +47,12 @@ export function PlayerDetailBioCard({ player }: PlayerDetailBioCardProps) {
 
   return (
     <Card className="mx-4">
-      <Text className="text-foreground mb-2 text-xl font-semibold">Bio</Text>
+      <CardSectionHeader label="Bio" />
 
-      {player.nickname && (
-        <View className="border-border border-t">
-          <BioRow label="Nickname" value={player.nickname} />
-        </View>
-      )}
-      <View className="border-border border-t">
+      <View className="gap-2.5">
+        {player.nickname && <BioRow label="Nickname" value={player.nickname} />}
         <BioRow label="Hometown" value={player.hometown ?? '—'} />
-      </View>
-      <View className="border-border border-t">
         <BioRow label="Born" value={birthdayDisplay} />
-      </View>
-      <View className="border-border border-t">
         <BioRow label="MLB Debut" value={formatDate(player.mlb_debut_date)} />
       </View>
     </Card>

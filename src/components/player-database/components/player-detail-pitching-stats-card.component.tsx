@@ -1,4 +1,5 @@
 import type { PlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
 import { View } from 'react-native';
@@ -34,7 +35,7 @@ function formatRecord(wins: number | null, losses: number | null): string {
 export function PlayerDetailPitchingStatsCard({ player }: PlayerDetailPitchingStatsCardProps) {
   return (
     <Card className="mx-4">
-      <Text className="text-foreground mb-3 text-xl font-semibold">Career Pitching</Text>
+      <CardSectionHeader label="Career Pitching" />
       <View className="gap-4">
         <View className="flex-row justify-around">
           <StatCell label="IP" value={formatDecimal(player.mlb_career_innings_pitched, 1)} />

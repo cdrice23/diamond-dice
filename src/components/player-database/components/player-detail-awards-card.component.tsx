@@ -1,5 +1,6 @@
 import type { PlayerAwardSummary } from '@/components/player-database/player-database.types';
 import { getAwardTierColor } from '@/components/player-database/utils/get-award-tier-color';
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Chip } from '@/components/primitives/chip.component';
 import { Text } from '@/components/primitives/text.component';
@@ -19,7 +20,7 @@ export function PlayerDetailAwardsCard({ awardSummaries }: PlayerDetailAwardsCar
 
   return (
     <Card className="mx-4">
-      <Text className="text-foreground mb-3 text-2xl font-semibold">Awards</Text>
+      <CardSectionHeader label="Awards" />
       {awardSummaries.map((award, index) => (
         <View key={award.label} className={`py-3 ${index > 0 ? 'border-border border-t' : ''}`}>
           <View className="flex-row items-center gap-2 self-start">

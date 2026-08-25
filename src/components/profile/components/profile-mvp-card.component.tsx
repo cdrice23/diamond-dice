@@ -1,3 +1,4 @@
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
 import { PlayerAvatar } from '@/components/profile/components/player-avatar.component';
@@ -127,9 +128,7 @@ export function ProfileMvpCard(props: ProfileMvpCardProps) {
 
   return (
     <Card className="mx-4" onPress={() => router.push(`/(app)/player-database/${props.stats.playerId}`)}>
-      <Text className="text-foreground mb-2 text-xl font-semibold">
-        {props.type === 'batter' ? 'MVP Batter' : 'MVP Pitcher'}
-      </Text>
+      <CardSectionHeader label={props.type === 'batter' ? 'MVP Batter' : 'MVP Pitcher'} />
       <View className="flex-row gap-4">
         <PlayerAvatar imageUrl={player?.imageUrl} width={64} />
         <View className="flex-1 justify-between">

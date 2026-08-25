@@ -1,4 +1,5 @@
 import type { PlayerTeamHistoryRow } from '@/components/player-database/hooks/use-player-detail.hook';
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
 import { View } from 'react-native';
@@ -18,7 +19,7 @@ export function PlayerDetailTeamHistoryCard({ teamHistory }: PlayerDetailTeamHis
 
   return (
     <Card className="mx-4">
-      <Text className="text-foreground mb-2 text-2xl font-semibold">Team History</Text>
+      <CardSectionHeader label="Team History" />
       {teamHistory.map((stint, index) => (
         <View
           key={`${stint.team_name}-${stint.start_year}`}
