@@ -27,6 +27,11 @@ function calculateAge(birthday: string): number {
   return age;
 }
 
+function formatHandedness(value: string | null): string {
+  if (!value) return '—';
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
 function BioRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row justify-between">
@@ -54,6 +59,8 @@ export function PlayerDetailBioCard({ player }: PlayerDetailBioCardProps) {
         <BioRow label="Hometown" value={player.hometown ?? '—'} />
         <BioRow label="Born" value={birthdayDisplay} />
         <BioRow label="MLB Debut" value={formatDate(player.mlb_debut_date)} />
+        <BioRow label="Bats" value={formatHandedness(player.bats)} />
+        <BioRow label="Throws" value={formatHandedness(player.throws)} />
       </View>
     </Card>
   );

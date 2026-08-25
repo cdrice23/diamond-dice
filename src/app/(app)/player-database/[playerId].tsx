@@ -13,10 +13,14 @@ import { PlayerDetailTeamHistoryCard } from '@/components/player-database/compon
 import { usePlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
 import { useTheme } from '@/utils/theme-provider';
 import { useLocalSearchParams } from 'expo-router';
-import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useState } from 'react';
+import { Text, View, useWindowDimensions } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const NAV_CLEARANCE_EXTRA = 16;
+const TOP_BAND_HEIGHT = 40;
+const FALLBACK_HEADER_HEIGHT = 260;
 
 function resolveEffectiveRoles(player: { eligible_positions: string[]; is_qualified_batter: boolean; is_qualified_pitcher: boolean }) {
   const isEffectivePitcher = player.eligible_positions.includes('P') && player.is_qualified_pitcher;
@@ -31,7 +35,19 @@ export default function PlayerDetailScreen() {
   const { pastThreshold } = usePitchState();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const { player, teamHistory, awardSummaries, loading, error } = usePlayerDetail(playerId);
+  const scrollY = useSharedValue(0);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
+  const measuredExpandedHeight = headerHeight || FALLBACK_HEADER_HEIGHT;
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   const contentFadeStyle = useAnimatedStyle(() => ({
     opacity: 1 - pastThreshold.value,
@@ -60,18 +76,37 @@ export default function PlayerDetailScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
+      <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={TOP_BAND_HEIGHT} />
       <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
         <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
-          <ScrollView className="flex-1" contentContainerClassName="gap-4 pt-16 pb-6">
-            <PlayerDetailBackButton />
-            <PlayerDetailHeader player={player} teamHistory={teamHistory} awardSummaries={awardSummaries} />
+          <Animated.ScrollView
+            className="flex-1"
+            style={{ marginTop: headerTopOffset, zIndex: 0 }}
+            contentContainerStyle={{ gap: 16, paddingBottom: 24 }}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+          >
+            <View style={{ height: measuredExpandedHeight }} />
             <PlayerDetailBioCard player={player} />
             {isEffectiveBatter && <PlayerDetailBattingStatsCard player={player} />}
             {isEffectivePitcher && <PlayerDetailPitchingStatsCard player={player} />}
             <PlayerDetailTeamHistoryCard teamHistory={teamHistory} />
             <PlayerDetailAwardsCard awardSummaries={awardSummaries} />
-          </ScrollView>
+          </Animated.ScrollView>
+
+          <View
+            onLayout={(event) => {
+              if (headerHeight === 0) {
+                setHeaderHeight(event.nativeEvent.layout.height);
+              }
+            }}
+            className="bg-background absolute left-0 right-0 gap-3 pb-4"
+            style={{ top: headerTopOffset, zIndex: 10 }}
+          >
+            <PlayerDetailBackButton />
+            <PlayerDetailHeader player={player} scrollY={scrollY} />
+          </View>
+
           <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
         </View>
       </Animated.View>

@@ -17,6 +17,8 @@ type ChipProps = {
 
 const GRADIENT_LIGHTEN_PERCENT = 4;
 const GRADIENT_DARKEN_PERCENT = -4;
+const LABEL_FONT_SIZE = 15;
+const LABEL_LINE_HEIGHT = 20;
 
 function Chip({
   label,
@@ -36,9 +38,12 @@ function Chip({
         colors={[lightStop, darkStop]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        className="flex-row items-center justify-center gap-1 px-2 py-1"
+        className="flex-row items-center justify-center gap-1 px-2.5 py-1.5"
       >
-        <Text style={{ color: textColor }} className={cn('my-1 mx-2 text-md font-semibold', labelClassName)}>
+        <Text
+          style={{ color: textColor, fontSize: LABEL_FONT_SIZE, lineHeight: LABEL_LINE_HEIGHT }}
+          className={cn('font-semibold', 'mx-2', labelClassName)}
+        >
           {label}
         </Text>
         {trailing}
