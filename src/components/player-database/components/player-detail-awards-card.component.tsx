@@ -114,10 +114,10 @@ function AwardRow({
   };
 
   return (
-    <View className="relative overflow-hidden rounded-md">
+    <View className="relative overflow-hidden rounded-sm">
       <Animated.View
         pointerEvents="none"
-        className="bg-muted absolute inset-0 rounded-md"
+        className="bg-muted absolute inset-0 rounded-sm"
         style={{ transform: [{ scaleY: progress }], transformOrigin: `50% ${ACCENT_ANCHOR_Y}px` }}
       />
 

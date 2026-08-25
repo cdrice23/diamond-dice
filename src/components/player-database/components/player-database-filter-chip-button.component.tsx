@@ -1,7 +1,10 @@
 import { Text } from '@/components/primitives/text.component';
+import { adjustHslLightness } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
+import { cn } from '@/utils/utils';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 type PlayerDatabaseFilterChipButtonProps = {
   label: string;
@@ -18,6 +21,9 @@ type PlayerDatabaseFilterChipButtonProps = {
   disabled?: boolean;
   className?: string;
 };
+
+const GRADIENT_LIGHTEN_PERCENT = 4;
+const GRADIENT_DARKEN_PERCENT = -4;
 
 export function PlayerDatabaseFilterChipButton({
   label,
@@ -38,27 +44,51 @@ export function PlayerDatabaseFilterChipButton({
   const resolvedInactiveText = inactiveTextColor ?? colors.foreground;
   const resolvedInactiveBorder = inactiveBorderColor ?? colors.border;
 
+  const lightStop = adjustHslLightness(activeColor, GRADIENT_LIGHTEN_PERCENT);
+  const darkStop = adjustHslLightness(activeColor, GRADIENT_DARKEN_PERCENT);
+
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      className={`flex-row items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 active:opacity-70 ${fullWidth ? 'flex-1' : ''} ${disabled ? 'opacity-40' : ''} ${className ?? ''}`}
-      style={{
-        borderColor: isActive ? activeColor : resolvedInactiveBorder,
-        backgroundColor: isActive ? activeColor : inactiveBackgroundColor,
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+    <View
+      className={cn(
+        'overflow-hidden rounded-sm border',
+        fullWidth ? 'flex-1' : '',
+        disabled ? 'opacity-40' : '',
+        className
+      )}
+      style={{ borderColor: isActive ? activeColor : resolvedInactiveBorder }}
     >
-      {leading}
-      <Text
-        style={{ color: isActive ? '#FFFFFF' : resolvedInactiveText }}
-        className="text-sm font-semibold"
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-      {trailing}
-    </Pressable>
+      {isActive ? (
+        <LinearGradient colors={[lightStop, darkStop]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}>
+          <Pressable
+            onPress={onPress}
+            disabled={disabled}
+            className="flex-row items-center justify-center gap-1.5 px-2.5 py-1.5 active:opacity-70"
+            accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel}
+          >
+            {leading}
+            <Text style={{ color: '#FFFFFF' }} className="text-sm font-semibold" numberOfLines={1}>
+              {label}
+            </Text>
+            {trailing}
+          </Pressable>
+        </LinearGradient>
+      ) : (
+        <Pressable
+          onPress={onPress}
+          disabled={disabled}
+          className="flex-row items-center justify-center gap-1.5 px-2.5 py-1.5 active:opacity-70"
+          style={{ backgroundColor: inactiveBackgroundColor }}
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel}
+        >
+          {leading}
+          <Text style={{ color: resolvedInactiveText }} className="text-sm font-semibold" numberOfLines={1}>
+            {label}
+          </Text>
+          {trailing}
+        </Pressable>
+      )}
+    </View>
   );
 }

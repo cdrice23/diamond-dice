@@ -23,7 +23,7 @@ export function PlayerDatabaseRowSkeleton({
       style={entranceStyle}
       className={`flex-row items-center gap-3 px-1 py-3 ${isFirst ? '' : 'border-border border-t'}`}
     >
-      <Skeleton className="h-8 w-12 rounded-md" />
+      <Skeleton className="h-8 w-12 rounded-sm" />
       <Skeleton className="h-5 flex-1" />
       <View className="flex-row items-center gap-1">
         <Skeleton className="h-5 w-5 rounded-sm" />

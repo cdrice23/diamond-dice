@@ -72,7 +72,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDa
 
       <Modal visible={isOpen} transparent animationType="slide" onRequestClose={handleDismiss}>
         <Pressable className="flex-1 justify-end bg-black/40" onPress={handleDismiss}>
-          <Pressable className="bg-background rounded-t-2xl p-4 pb-10" onPress={(e) => e.stopPropagation()}>
+          <Pressable className="bg-background rounded-sm p-4 pb-10" onPress={(e) => e.stopPropagation()}>
             <Text className="text-foreground mb-3 text-lg font-bold">Filter by Position</Text>
             <View className="flex-row flex-wrap justify-between gap-y-3">
               {POSITIONS.map((position) => {
@@ -103,7 +103,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDa
 
             <Pressable
               onPress={handleClear}
-              className="mt-4 items-center rounded-md py-2.5"
+              className="mt-4 items-center rounded-sm py-2.5"
               style={{ backgroundColor: colors.muted }}
             >
               <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
@@ -113,7 +113,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDa
 
             <Pressable
               onPress={handleDone}
-              className="mt-2 items-center rounded-md py-3"
+              className="mt-2 items-center rounded-sm py-3"
               style={{ backgroundColor: colors.level2 }}
             >
               <Text className="font-semibold text-white">Done</Text>

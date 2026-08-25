@@ -20,5 +20,5 @@ export function Skeleton({ className, style, ...props }: SkeletonProps) {
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
-  return <Animated.View className={cn('bg-muted rounded-md', className)} style={[style, animatedStyle]} {...props} />;
+  return <Animated.View className={cn('bg-muted rounded-sm', className)} style={[style, animatedStyle]} {...props} />;
 }

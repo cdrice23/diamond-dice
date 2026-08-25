@@ -94,7 +94,7 @@ export function PlayerDatabaseMultiSelectModal({
             }
           />
 
-          <Pressable onPress={handleApply} className="mt-3 items-center rounded-md py-3" style={{ backgroundColor: colors.level2 }}>
+          <Pressable onPress={handleApply} className="mt-3 items-center rounded-sm py-3" style={{ backgroundColor: colors.level2 }}>
             <Text className="font-semibold text-white">
               Apply{draft.length > 0 ? ` (${draft.length})` : ''}
             </Text>
