@@ -12,6 +12,17 @@ function formatDuration(startYear: number, endYear: number): string {
   return startYear === endYear ? String(startYear) : `${startYear} - ${endYear}`;
 }
 
+function TeamHistoryRow({ stint }: { stint: PlayerTeamHistoryRow }) {
+  return (
+    <View className="flex-row items-center justify-between">
+      <Text className="text-primary text-lg font-semibold">{stint.team_name}</Text>
+      <Text variant="muted" className="text-lg">
+        {formatDuration(stint.start_year, stint.end_year)}
+      </Text>
+    </View>
+  );
+}
+
 export function PlayerDetailTeamHistoryCard({ teamHistory }: PlayerDetailTeamHistoryCardProps) {
   if (teamHistory.length === 0) {
     return null;
@@ -20,17 +31,12 @@ export function PlayerDetailTeamHistoryCard({ teamHistory }: PlayerDetailTeamHis
   return (
     <Card className="mx-4">
       <CardSectionHeader label="Team History" />
-      {teamHistory.map((stint, index) => (
-        <View
-          key={`${stint.team_name}-${stint.start_year}`}
-          className={`flex-row items-center justify-between py-3 ${index > 0 ? 'border-border border-t' : ''}`}
-        >
-          <Text className="text-foreground text-lg font-medium">{stint.team_name}</Text>
-          <Text variant="muted" className="text-base">
-            {formatDuration(stint.start_year, stint.end_year)}
-          </Text>
-        </View>
-      ))}
+
+      <View className="gap-2.5">
+        {teamHistory.map((stint) => (
+          <TeamHistoryRow key={`${stint.team_name}-${stint.start_year}`} stint={stint} />
+        ))}
+      </View>
     </Card>
   );
 }
