@@ -156,6 +156,7 @@ def get_player_ids_missing_team_history() -> list[str]:
     ids_with_history = {row["player_id"] for row in history_rows}
     return [p["external_id"] for p in all_players if p["id"] not in ids_with_history]
 
+
 def get_award_types() -> list[dict]:
     result = (
         get_client()
@@ -165,3 +166,12 @@ def get_award_types() -> list[dict]:
         .execute()
     )
     return result.data
+
+
+def upsert_stat_distribution(
+    stat_key: str, distribution_type: str, value: dict
+) -> None:
+    get_client().table("stat_distributions").upsert(
+        {"stat_key": stat_key, "distribution_type": distribution_type, "value": value},
+        on_conflict="stat_key",
+    ).execute()
