@@ -1,8 +1,10 @@
-name: Annual Player Refresh
+name: Refresh Stat Distributions
 
 on:
-  schedule:
-    - cron: "0 6 1 12 *"
+  workflow_run:
+    workflows: ["Annual Player Refresh"]
+    types:
+      - completed
   workflow_dispatch: {}
 
 defaults:
@@ -10,12 +12,10 @@ defaults:
     working-directory: etl
 
 jobs:
-  refresh:
+  refresh-stat-distributions:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 300
-    concurrency:
-      group: bootstrap-crawl
-      cancel-in-progress: false
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v7.0.1
@@ -26,7 +26,7 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - run: python annual_refresh.py
+      - run: python compute_stat_distributions.py
         env:
           PYTHONUNBUFFERED: "1"
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
