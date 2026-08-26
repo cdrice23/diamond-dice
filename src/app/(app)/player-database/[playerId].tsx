@@ -9,6 +9,7 @@ import { PlayerDetailBattingStatsCard } from '@/components/player-database/compo
 import { PlayerDetailBioCard } from '@/components/player-database/components/player-detail-bio-card.component';
 import { HEIGHT_COLLAPSE_DISTANCE, PlayerDetailHeader } from '@/components/player-database/components/player-detail-header.component';
 import { PlayerDetailPitchingStatsCard } from '@/components/player-database/components/player-detail-pitching-stats-card.component';
+import { PlayerDetailStatCurveCard } from '@/components/player-database/components/player-detail-stat-curve-card.component';
 import { PlayerDetailTeamHistoryCard } from '@/components/player-database/components/player-detail-team-history-card.component';
 import { usePlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
 import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
@@ -121,11 +122,13 @@ export default function PlayerDetailScreen() {
                 <PlayerDetailBattingStatsCard player={player} />
               </Animated.View>
             )}
+            {isEffectiveBatter && <PlayerDetailStatCurveCard player={player} group="batting" />}
             {isEffectivePitcher && (
               <Animated.View style={pitchingFadeStyle}>
                 <PlayerDetailPitchingStatsCard player={player} />
               </Animated.View>
             )}
+            {isEffectivePitcher && <PlayerDetailStatCurveCard player={player} group="pitching" />}
             <Animated.View style={teamHistoryFadeStyle}>
               <PlayerDetailTeamHistoryCard teamHistory={teamHistory} />
             </Animated.View>

@@ -42,8 +42,6 @@ export function PlayerDetailPitchingStatsCard({ player }: PlayerDetailPitchingSt
           <StatCell label="W-L" value={formatRecord(player.mlb_career_wins, player.mlb_career_losses)} />
         </View>
         <View className="flex-row justify-around">
-          <StatCell label="ERA" value={formatDecimal(player.mlb_career_era, 2)} />
-          <StatCell label="WHIP" value={formatDecimal(player.mlb_career_whip, 2)} />
           <StatCell label="K" value={formatCount(player.mlb_career_strikeouts)} />
           <StatCell label="SV" value={formatCount(player.mlb_career_saves)} />
         </View>

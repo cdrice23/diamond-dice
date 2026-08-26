@@ -19,11 +19,6 @@ function StatCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function formatAvg(value: number | null): string {
-  if (value === null) return '—';
-  return value.toFixed(3).replace(/^0/, '');
-}
-
 function formatCount(value: number | null): string {
   return value === null ? '—' : String(value);
 }
@@ -36,11 +31,6 @@ export function PlayerDetailBattingStatsCard({ player }: PlayerDetailBattingStat
         <View className="flex-row justify-around">
           <StatCell label="PA" value={formatCount(player.mlb_career_pa)} />
           <StatCell label="AB" value={formatCount(player.mlb_career_at_bats)} />
-        </View>
-        <View className="flex-row justify-around">
-          <StatCell label="AVG" value={formatAvg(player.mlb_career_avg)} />
-          <StatCell label="OBP" value={formatAvg(player.mlb_career_obp)} />
-          <StatCell label="OPS" value={formatAvg(player.mlb_career_ops)} />
         </View>
         <View className="flex-row justify-around">
           <StatCell label="H" value={formatCount(player.mlb_career_hits)} />
