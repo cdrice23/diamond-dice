@@ -3,6 +3,7 @@ import type { PlayerDetail } from '@/components/player-database/hooks/use-player
 import { Chip } from '@/components/primitives/chip.component';
 import { Skeleton } from '@/components/primitives/skeleton.component';
 import { useTheme } from '@/utils/theme-provider';
+import { Image as ExpoImage } from 'expo-image';
 import { useState } from 'react';
 import { View } from 'react-native';
 import Animated, { Extrapolation, interpolate, useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
@@ -96,6 +97,8 @@ export function PlayerDetailHeader({ player, scrollY }: PlayerDetailHeaderProps)
   const { isEffectiveBatter, isEffectivePitcher, isTwoWay } = resolveEffectiveRoles(player);
   const [imageLoaded, setImageLoaded] = useState(!player.image_url);
 
+  const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
+
   const imageSizeStyle = useAnimatedStyle(() => {
     const width = interpolate(
       scrollY.value,
@@ -178,13 +181,15 @@ export function PlayerDetailHeader({ player, scrollY }: PlayerDetailHeaderProps)
         {player.image_url ? (
           <>
             {!imageLoaded && <Skeleton className="bg-border absolute rounded-[14px]" style={imageSizeStyle} />}
-            <Animated.Image
-              source={{ uri: player.image_url }}
-              resizeMode="cover"
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)}
-              style={[{ borderRadius: 14, opacity: imageLoaded ? 1 : 0 }, imageSizeStyle]}
-            />
+              <AnimatedExpoImage
+                source={{ uri: player.image_url }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                priority="high"
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageLoaded(true)}
+                style={[{ borderRadius: 14, opacity: imageLoaded ? 1 : 0 }, imageSizeStyle]}
+              />
           </>
         ) : (
           <Animated.View className="bg-muted items-center justify-center" style={[{ borderRadius: 14 }, imageSizeStyle]}>

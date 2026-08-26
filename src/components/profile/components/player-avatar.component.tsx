@@ -1,8 +1,8 @@
-// src/components/profile/components/player-avatar.component.tsx
 import { PixelIcon } from '@/components/branding/components/pixel-icon.component';
 import { useTheme } from '@/utils/theme-provider';
+import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 
 type PlayerAvatarProps = {
   imageUrl: string | null | undefined;
@@ -24,7 +24,8 @@ export function PlayerAvatar({ imageUrl, width = DEFAULT_WIDTH, aspectRatio = DE
       <View style={{ width, height, borderRadius: 4, overflow: 'hidden' }}>
         <Image
           source={{ uri: imageUrl }}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="memory-disk"
           style={{ width, height }}
           onError={() => setFailed(true)}
         />

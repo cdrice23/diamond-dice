@@ -6,27 +6,15 @@ import { CardSectionHeader } from '@/components/primitives/card-section-header.c
 import { Card } from '@/components/primitives/card.component';
 import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import { useTheme } from '@/utils/theme-provider';
-import { cn } from '@/utils/utils';
 import { useEffect, useRef, useState } from 'react';
-import { Easing, LayoutAnimation, Platform, Pressable, Animated as RNAnimated, Text, UIManager, View } from 'react-native';
+import { Easing, Pressable, Animated as RNAnimated, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const ANIMATION_DURATION = 400;
 const FADE_DURATION = 140;
 const CURSOR_BLINK_DURATION = 550;
 const THEME_BODY_FONT = 'VT323_400Regular';
 const ACCENT_ANCHOR_Y = 12;
-
-const EXPAND_LAYOUT_ANIMATION = {
-  duration: ANIMATION_DURATION,
-  create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-  update: { type: LayoutAnimation.Types.easeInEaseOut },
-  delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-};
 
 type Phase =
   | 'collapsed'
@@ -56,6 +44,7 @@ function AwardRow({
   const expandedOpacity = useRef(new RNAnimated.Value(1)).current;
   const [phase, setPhase] = useState<Phase>('collapsed');
   const [cursorVisible, setCursorVisible] = useState(true);
+  const [expandedBlockHeight, setExpandedBlockHeight] = useState(0);
 
   const tierColor = getAwardTierColor(award.tier, colors);
   const { label: collapsedLabel, isTruncatable } = getCollapsedSeasonSummary(award.seasons);
@@ -124,6 +113,8 @@ function AwardRow({
   const accentHeight = progress.interpolate({ inputRange: [0, 1], outputRange: [8, 18] });
   const accentRadius = progress.interpolate({ inputRange: [0, 1], outputRange: [4, 2] });
   const labelFontSize = progress.interpolate({ inputRange: [0, 1], outputRange: [18, 20] });
+  const rowPaddingBottom = progress.interpolate({ inputRange: [0, 1], outputRange: [4, 10] });
+  const expandedBlockAnimatedHeight = progress.interpolate({ inputRange: [0, 1], outputRange: [0, expandedBlockHeight] });
 
   const handlePress = () => {
     if (!isTruncatable) return;
@@ -138,59 +129,86 @@ function AwardRow({
         style={{ transform: [{ scaleY: progress }], transformOrigin: `50% ${ACCENT_ANCHOR_Y}px` }}
       />
 
-      <Pressable onPress={handlePress} className={cn('gap-1 px-3 pt-2', isExpanded ? 'pb-2.5' : 'pb-1')}>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <RNAnimated.View
-              style={{
-                width: accentWidth,
-                height: accentHeight,
-                borderRadius: accentRadius,
-                backgroundColor: tierColor,
-              }}
-            />
+      <Pressable onPress={handlePress}>
+        <RNAnimated.View style={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: rowPaddingBottom, gap: 4 }}>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <RNAnimated.View
+                style={{
+                  width: accentWidth,
+                  height: accentHeight,
+                  borderRadius: accentRadius,
+                  backgroundColor: tierColor,
+                }}
+              />
+              <RNAnimated.Text
+                style={{
+                  fontFamily: THEME_BODY_FONT,
+                  fontSize: labelFontSize,
+                  fontWeight: '600',
+                  color: colors.primary,
+                }}
+              >
+                {award.label}
+              </RNAnimated.Text>
+            </View>
+
             <RNAnimated.Text
               style={{
                 fontFamily: THEME_BODY_FONT,
-                fontSize: labelFontSize,
-                fontWeight: '600',
-                color: colors.primary,
+                fontSize: 18,
+                color: colors.mutedForeground,
+                opacity: summaryOpacity,
               }}
             >
-              {award.label}
+              {collapsedLabel}
             </RNAnimated.Text>
           </View>
 
-          <RNAnimated.Text
-            style={{
-              fontFamily: THEME_BODY_FONT,
-              fontSize: 18,
-              color: colors.mutedForeground,
-              opacity: summaryOpacity,
-            }}
-          >
-            {collapsedLabel}
-          </RNAnimated.Text>
-        </View>
-
-        {phase !== 'collapsed' && (
-          <RNAnimated.View style={{ opacity: expandedOpacity, flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            <Text style={{ fontFamily: THEME_BODY_FONT, fontSize: 18, color: colors.mutedForeground }}>{expandedTyped}</Text>
-            {showCursor && (
+          {isTruncatable && (
+            <View style={{ position: 'relative' }}>
               <Text
                 style={{
+                  position: 'absolute',
+                  right: 0,
+                  opacity: 0,
                   fontFamily: THEME_BODY_FONT,
                   fontSize: 18,
-                  color: colors.level2,
-                  opacity: cursorVisible ? 1 : 0,
-                  fontWeight: '300',
+                  textAlign: 'right',
+                }}
+                onLayout={(event) => {
+                  const measured = event.nativeEvent.layout.height;
+                  if (measured > 0 && measured !== expandedBlockHeight) {
+                    setExpandedBlockHeight(measured);
+                  }
                 }}
               >
-                |
+                {expandedLabel}
               </Text>
-            )}
-          </RNAnimated.View>
-        )}
+
+              <RNAnimated.View style={{ height: expandedBlockAnimatedHeight, overflow: 'hidden' }}>
+                <RNAnimated.View
+                  style={{ opacity: expandedOpacity, flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap' }}
+                >
+                  <Text style={{ fontFamily: THEME_BODY_FONT, fontSize: 18, color: colors.mutedForeground }}>{expandedTyped}</Text>
+                  {showCursor && (
+                    <Text
+                      style={{
+                        fontFamily: THEME_BODY_FONT,
+                        fontSize: 18,
+                        color: colors.level2,
+                        opacity: cursorVisible ? 1 : 0,
+                        fontWeight: '300',
+                      }}
+                    >
+                      |
+                    </Text>
+                  )}
+                </RNAnimated.View>
+              </RNAnimated.View>
+            </View>
+          )}
+        </RNAnimated.View>
       </Pressable>
     </View>
   );
@@ -224,7 +242,6 @@ export function PlayerDetailAwardsCard({ awardSummaries }: PlayerDetailAwardsCar
   }
 
   const handleToggleAward = (label: string) => {
-    LayoutAnimation.configureNext(EXPAND_LAYOUT_ANIMATION);
     setExpandedAwardLabel((prev) => (prev === label ? null : label));
   };
 
