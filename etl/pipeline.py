@@ -181,7 +181,14 @@ def process_roster(
     skip_existing: bool,
 ) -> None:
     for entry in roster:
-        player_id, name = entry["person"]["id"], entry["person"]["fullName"]
+        person = entry.get("person") or {}
+        player_id = person.get("id")
+        name = person.get("fullName")
+
+        if player_id is None or not name:
+            print(f"  SKIPPED malformed roster entry (missing person id/name): {entry}")
+            continue
+
         player_id_str = str(player_id)
 
         if skip_existing and player_id_str in existing_ids:

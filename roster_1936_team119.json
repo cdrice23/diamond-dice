@@ -1,0 +1,619 @@
+{
+    "copyright": "Copyright 2026 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+    "roster": [
+        {
+            "person": {
+                "id": 110488,
+                "fullName": "Tom Baker",
+                "link": "/api/v1/people/110488"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 110927,
+                "fullName": "Ray Berres",
+                "link": "/api/v1/people/110927"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "2",
+                "name": "Catcher",
+                "type": "Catcher",
+                "abbreviation": "C"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 111230,
+                "fullName": "Frenchy Bordagaray",
+                "link": "/api/v1/people/111230"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 111387,
+                "fullName": "Ed Brandt",
+                "link": "/api/v1/people/111387"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 111655,
+                "fullName": "Jim Bucher",
+                "link": "/api/v1/people/111655"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "4",
+                "name": "Second Base",
+                "type": "Infielder",
+                "abbreviation": "2B"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 111804,
+                "fullName": "Max Butcher",
+                "link": "/api/v1/people/111804"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 112348,
+                "fullName": "Watson Clark",
+                "link": "/api/v1/people/112348"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 112645,
+                "fullName": "Johnny Cooney",
+                "link": "/api/v1/people/112645"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 113700,
+                "fullName": "George Earnshaw",
+                "link": "/api/v1/people/113700"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 113729,
+                "fullName": "Ox Eckhardt",
+                "link": "/api/v1/people/113729"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 113787,
+                "fullName": "Harry Eisenstat",
+                "link": "/api/v1/people/113787"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 114381,
+                "fullName": "Fred Frankhouse",
+                "link": "/api/v1/people/114381"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 114427,
+                "fullName": "Lonny Frey",
+                "link": "/api/v1/people/114427"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "6",
+                "name": "Shortstop",
+                "type": "Infielder",
+                "abbreviation": "SS"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 114662,
+                "fullName": "Sid Gautreaux",
+                "link": "/api/v1/people/114662"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "2",
+                "name": "Catcher",
+                "type": "Catcher",
+                "abbreviation": "C"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 114707,
+                "fullName": "Ben Geraghty",
+                "link": "/api/v1/people/114707"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "6",
+                "name": "Shortstop",
+                "type": "Infielder",
+                "abbreviation": "SS"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 115593,
+                "fullName": "Buddy Hassett",
+                "link": "/api/v1/people/115593"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "3",
+                "name": "First Base",
+                "type": "Infielder",
+                "abbreviation": "1B"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 116264,
+                "fullName": "Johnny Hudson",
+                "link": "/api/v1/people/116264"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "4",
+                "name": "Second Base",
+                "type": "Infielder",
+                "abbreviation": "2B"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 116510,
+                "fullName": "George Jeffcoat",
+                "link": "/api/v1/people/116510"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 117689,
+                "fullName": "Dutch Leonard",
+                "link": "/api/v1/people/117689"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 117793,
+                "fullName": "Freddie Lindstrom",
+                "link": "/api/v1/people/117793"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 119314,
+                "fullName": "Randy Moore",
+                "link": "/api/v1/people/119314"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 119518,
+                "fullName": "Van Mungo",
+                "link": "/api/v1/people/119518"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 120507,
+                "fullName": "Babe Phelps",
+                "link": "/api/v1/people/120507"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "2",
+                "name": "Catcher",
+                "type": "Catcher",
+                "abbreviation": "C"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 120879,
+                "fullName": "Jack Radtke",
+                "link": "/api/v1/people/120879"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "4",
+                "name": "Second Base",
+                "type": "Infielder",
+                "abbreviation": "2B"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 122211,
+                "fullName": "Dick Siebert",
+                "link": "/api/v1/people/122211"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "3",
+                "name": "First Base",
+                "type": "Infielder",
+                "abbreviation": "1B"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 122881,
+                "fullName": "Joe Stripp",
+                "link": "/api/v1/people/122881"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "5",
+                "name": "Third Base",
+                "type": "Infielder",
+                "abbreviation": "3B"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 123130,
+                "fullName": "Danny Taylor",
+                "link": "/api/v1/people/123130"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 123455,
+                "fullName": "Nick Tremark",
+                "link": "/api/v1/people/123455"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 123975,
+                "fullName": "George Watkins",
+                "link": "/api/v1/people/123975"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 124387,
+                "fullName": "Eddie Wilson",
+                "link": "/api/v1/people/124387"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 124460,
+                "fullName": "Tom Winsett",
+                "link": "/api/v1/people/124460"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "O",
+                "name": "Outfield",
+                "type": "Outfielder",
+                "abbreviation": "OF"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 124462,
+                "fullName": "Hank Winston",
+                "link": "/api/v1/people/124462"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 124729,
+                "fullName": "Tom Zachary",
+                "link": "/api/v1/people/124729"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "1",
+                "name": "Pitcher",
+                "type": "Pitcher",
+                "abbreviation": "P"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        },
+        {
+            "person": {
+                "id": 116751,
+                "link": "/api/v1/people/116751"
+            },
+            "jerseyNumber": "",
+            "position": {
+                "code": "4",
+                "name": "Second Base",
+                "type": "Infielder",
+                "abbreviation": "2B"
+            },
+            "status": {
+                "code": "A",
+                "description": "Active"
+            }
+        }
+    ],
+    "link": "/api/v1/teams/119/roster",
+    "teamId": 119,
+    "rosterType": "fullSeason"
+}
