@@ -7,20 +7,23 @@ import { PlayerDetailAwardsCard } from '@/components/player-database/components/
 import { PlayerDetailBackButton } from '@/components/player-database/components/player-detail-back-button.component';
 import { PlayerDetailBattingStatsCard } from '@/components/player-database/components/player-detail-batting-stats-card.component';
 import { PlayerDetailBioCard } from '@/components/player-database/components/player-detail-bio-card.component';
-import { PlayerDetailHeader } from '@/components/player-database/components/player-detail-header.component';
+import { HEIGHT_COLLAPSE_DISTANCE, PlayerDetailHeader } from '@/components/player-database/components/player-detail-header.component';
 import { PlayerDetailPitchingStatsCard } from '@/components/player-database/components/player-detail-pitching-stats-card.component';
 import { PlayerDetailTeamHistoryCard } from '@/components/player-database/components/player-detail-team-history-card.component';
 import { usePlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
+import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Text, View, useWindowDimensions } from 'react-native';
-import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import Animated, { Extrapolation, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const NAV_CLEARANCE_EXTRA = 16;
 const TOP_BAND_HEIGHT = 40;
 const FALLBACK_HEADER_HEIGHT = 260;
+const BOTTOM_EDGE_FADE_HEIGHT = 22;
 
 function resolveEffectiveRoles(player: { eligible_positions: string[]; is_qualified_batter: boolean; is_qualified_pitcher: boolean }) {
   const isEffectivePitcher = player.eligible_positions.includes('P') && player.is_qualified_pitcher;
@@ -43,6 +46,12 @@ export default function PlayerDetailScreen() {
   const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
   const measuredExpandedHeight = headerHeight || FALLBACK_HEADER_HEIGHT;
 
+  const bottomFadeStops: [string, string, string] = [
+    adjustHslAlpha(colors.muted, 1),
+    adjustHslAlpha(colors.muted, 0.5),
+    adjustHslAlpha(colors.muted, 0),
+  ];
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
@@ -51,6 +60,10 @@ export default function PlayerDetailScreen() {
 
   const contentFadeStyle = useAnimatedStyle(() => ({
     opacity: 1 - pastThreshold.value,
+  }));
+
+  const bottomFadeSolidStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, HEIGHT_COLLAPSE_DISTANCE], [1, 0], Extrapolation.CLAMP),
   }));
 
   const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
@@ -76,7 +89,13 @@ export default function PlayerDetailScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={TOP_BAND_HEIGHT} />
+      <BandedScreenBackdrop
+        svgColor={colors.primary}
+        backgroundColor={colors.background}
+        topBandHeight={TOP_BAND_HEIGHT}
+        topBandBackgroundColor={colors.muted}
+        topBandSvgColor={colors.level2}
+      />
       <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
         <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
           <Animated.ScrollView
@@ -100,11 +119,27 @@ export default function PlayerDetailScreen() {
                 setHeaderHeight(event.nativeEvent.layout.height);
               }
             }}
-            className="bg-background absolute left-0 right-0 gap-3 pb-4"
+            className="absolute left-0 right-0"
             style={{ top: headerTopOffset, zIndex: 10 }}
           >
-            <PlayerDetailBackButton />
-            <PlayerDetailHeader player={player} scrollY={scrollY} />
+            <View className="gap-3" style={{ backgroundColor: colors.muted, zIndex: 2 }}>
+              <PlayerDetailBackButton />
+              <PlayerDetailHeader player={player} scrollY={scrollY} />
+            </View>
+
+            <View pointerEvents="none" style={{ height: BOTTOM_EDGE_FADE_HEIGHT, zIndex: 1 }}>
+              <LinearGradient
+                colors={bottomFadeStops}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <Animated.View
+                pointerEvents="none"
+                style={[StyleSheet.absoluteFill, { backgroundColor: colors.muted }, bottomFadeSolidStyle]}
+              />
+            </View>
           </View>
 
           <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
