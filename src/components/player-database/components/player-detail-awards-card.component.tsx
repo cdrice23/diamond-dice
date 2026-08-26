@@ -4,19 +4,38 @@ import { getAllSeasonsList, getCollapsedSeasonSummary } from '@/components/playe
 import { getAwardTierColor } from '@/components/player-database/utils/get-award-tier-color';
 import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
+import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import { useTheme } from '@/utils/theme-provider';
+import { cn } from '@/utils/utils';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { Easing, LayoutAnimation, Platform, Pressable, Animated as RNAnimated, Text, UIManager, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
-const ANIMATION_DURATION = 300;
-const FADE_DURATION = 100;
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const ANIMATION_DURATION = 400;
+const FADE_DURATION = 140;
 const CURSOR_BLINK_DURATION = 550;
 const THEME_BODY_FONT = 'VT323_400Regular';
 const ACCENT_ANCHOR_Y = 12;
-const EXPANDED_BLOCK_HEIGHT = 26;
-const EXPANDED_BLOCK_MARGIN_TOP = 12;
 
-type Phase = 'collapsed' | 'wiping-in' | 'typing-in-expanded' | 'expanded' | 'fading-out-expanded' | 'wiping-out' | 'summary-fading-in';
+const EXPAND_LAYOUT_ANIMATION = {
+  duration: ANIMATION_DURATION,
+  create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+  update: { type: LayoutAnimation.Types.easeInEaseOut },
+  delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+};
+
+type Phase =
+  | 'collapsed'
+  | 'wiping-in'
+  | 'typing-in-expanded'
+  | 'expanded'
+  | 'fading-out-expanded'
+  | 'wiping-out'
+  | 'summary-fading-in';
 
 type PlayerDetailAwardsCardProps = {
   awardSummaries: PlayerAwardSummary[];
@@ -32,9 +51,9 @@ function AwardRow({
   onToggle: () => void;
 }) {
   const { colors } = useTheme();
-  const progress = useRef(new Animated.Value(0)).current;
-  const summaryOpacity = useRef(new Animated.Value(1)).current;
-  const expandedOpacity = useRef(new Animated.Value(1)).current;
+  const progress = useRef(new RNAnimated.Value(0)).current;
+  const summaryOpacity = useRef(new RNAnimated.Value(1)).current;
+  const expandedOpacity = useRef(new RNAnimated.Value(1)).current;
   const [phase, setPhase] = useState<Phase>('collapsed');
   const [cursorVisible, setCursorVisible] = useState(true);
 
@@ -47,7 +66,7 @@ function AwardRow({
       expandedOpacity.setValue(1);
       summaryOpacity.setValue(0);
       setPhase('wiping-in');
-      Animated.timing(progress, {
+      RNAnimated.timing(progress, {
         toValue: 1,
         duration: ANIMATION_DURATION,
         easing: Easing.inOut(Easing.ease),
@@ -57,16 +76,16 @@ function AwardRow({
       });
     } else {
       setPhase('fading-out-expanded');
-      Animated.timing(expandedOpacity, { toValue: 0, duration: FADE_DURATION, useNativeDriver: true }).start(() => {
+      RNAnimated.timing(expandedOpacity, { toValue: 0, duration: FADE_DURATION, useNativeDriver: true }).start(() => {
         setPhase('wiping-out');
-        Animated.timing(progress, {
+        RNAnimated.timing(progress, {
           toValue: 0,
           duration: ANIMATION_DURATION,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: false,
         }).start(() => {
           setPhase('summary-fading-in');
-          Animated.timing(summaryOpacity, { toValue: 1, duration: FADE_DURATION, useNativeDriver: true }).start(() => {
+          RNAnimated.timing(summaryOpacity, { toValue: 1, duration: FADE_DURATION, useNativeDriver: true }).start(() => {
             setPhase('collapsed');
           });
         });
@@ -105,8 +124,6 @@ function AwardRow({
   const accentHeight = progress.interpolate({ inputRange: [0, 1], outputRange: [8, 18] });
   const accentRadius = progress.interpolate({ inputRange: [0, 1], outputRange: [4, 2] });
   const labelFontSize = progress.interpolate({ inputRange: [0, 1], outputRange: [18, 20] });
-  const expandedBlockHeight = progress.interpolate({ inputRange: [0, 1], outputRange: [0, EXPANDED_BLOCK_HEIGHT] });
-  const expandedBlockMarginTop = progress.interpolate({ inputRange: [0, 1], outputRange: [0, EXPANDED_BLOCK_MARGIN_TOP] });
 
   const handlePress = () => {
     if (!isTruncatable) return;
@@ -114,17 +131,17 @@ function AwardRow({
   };
 
   return (
-    <View className="relative overflow-hidden rounded-sm">
-      <Animated.View
+    <View className="relative overflow-hidden rounded-md">
+      <RNAnimated.View
         pointerEvents="none"
-        className="bg-muted absolute inset-0 rounded-sm"
+        className="bg-muted absolute inset-0 rounded-md"
         style={{ transform: [{ scaleY: progress }], transformOrigin: `50% ${ACCENT_ANCHOR_Y}px` }}
       />
 
-      <Pressable onPress={handlePress} className="px-3 pb-2 pt-2">
+      <Pressable onPress={handlePress} className={cn('gap-1 px-3 pt-2', isExpanded ? 'pb-2.5' : 'pb-1')}>
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
-            <Animated.View
+            <RNAnimated.View
               style={{
                 width: accentWidth,
                 height: accentHeight,
@@ -132,7 +149,7 @@ function AwardRow({
                 backgroundColor: tierColor,
               }}
             />
-            <Animated.Text
+            <RNAnimated.Text
               style={{
                 fontFamily: THEME_BODY_FONT,
                 fontSize: labelFontSize,
@@ -141,10 +158,10 @@ function AwardRow({
               }}
             >
               {award.label}
-            </Animated.Text>
+            </RNAnimated.Text>
           </View>
 
-          <Animated.Text
+          <RNAnimated.Text
             style={{
               fontFamily: THEME_BODY_FONT,
               fontSize: 18,
@@ -153,11 +170,11 @@ function AwardRow({
             }}
           >
             {collapsedLabel}
-          </Animated.Text>
+          </RNAnimated.Text>
         </View>
 
-        <Animated.View style={{ height: expandedBlockHeight, marginTop: expandedBlockMarginTop, overflow: 'hidden' }}>
-          <Animated.View style={{ opacity: expandedOpacity, flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+        {phase !== 'collapsed' && (
+          <RNAnimated.View style={{ opacity: expandedOpacity, flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <Text style={{ fontFamily: THEME_BODY_FONT, fontSize: 18, color: colors.mutedForeground }}>{expandedTyped}</Text>
             {showCursor && (
               <Text
@@ -172,10 +189,30 @@ function AwardRow({
                 |
               </Text>
             )}
-          </Animated.View>
-        </Animated.View>
+          </RNAnimated.View>
+        )}
       </Pressable>
     </View>
+  );
+}
+
+function AwardRowWithFadeIn({
+  award,
+  index,
+  isExpanded,
+  onToggle,
+}: {
+  award: PlayerAwardSummary;
+  index: number;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const fadeStyle = useCascadingFadeIn(index, { staggerDelayMs: 25, fadeDurationMs: 300, translateYStart: 6 });
+
+  return (
+    <Animated.View style={fadeStyle}>
+      <AwardRow award={award} isExpanded={isExpanded} onToggle={onToggle} />
+    </Animated.View>
   );
 }
 
@@ -187,6 +224,7 @@ export function PlayerDetailAwardsCard({ awardSummaries }: PlayerDetailAwardsCar
   }
 
   const handleToggleAward = (label: string) => {
+    LayoutAnimation.configureNext(EXPAND_LAYOUT_ANIMATION);
     setExpandedAwardLabel((prev) => (prev === label ? null : label));
   };
 
@@ -195,10 +233,11 @@ export function PlayerDetailAwardsCard({ awardSummaries }: PlayerDetailAwardsCar
       <CardSectionHeader label="Awards" />
 
       <View className="gap-2.5">
-        {awardSummaries.map((award) => (
-          <AwardRow
+        {awardSummaries.map((award, index) => (
+          <AwardRowWithFadeIn
             key={award.label}
             award={award}
+            index={index}
             isExpanded={expandedAwardLabel === award.label}
             onToggle={() => handleToggleAward(award.label)}
           />

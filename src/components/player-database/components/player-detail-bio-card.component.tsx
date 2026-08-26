@@ -2,7 +2,9 @@ import type { PlayerDetail } from '@/components/player-database/hooks/use-player
 import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
+import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import { View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type PlayerDetailBioCardProps = {
   player: PlayerDetail;
@@ -32,14 +34,16 @@ function formatHandedness(value: string | null): string {
   return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 }
 
-function BioRow({ label, value }: { label: string; value: string }) {
+function BioRow({ label, value, index }: { label: string; value: string; index: number }) {
+  const fadeStyle = useCascadingFadeIn(index, { staggerDelayMs: 25, fadeDurationMs: 300, translateYStart: 6 });
+
   return (
-    <View className="flex-row justify-between">
+    <Animated.View style={fadeStyle} className="flex-row justify-between">
       <Text variant="muted" className="text-lg">
         {label}
       </Text>
       <Text className="text-foreground text-lg font-semibold">{value}</Text>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -50,17 +54,22 @@ export function PlayerDetailBioCard({ player }: PlayerDetailBioCardProps) {
       : formatDate(player.birthday)
     : '—';
 
+  const rows: { label: string; value: string }[] = [];
+  if (player.nickname) rows.push({ label: 'Nickname', value: player.nickname });
+  rows.push({ label: 'Hometown', value: player.hometown ?? '—' });
+  rows.push({ label: 'Born', value: birthdayDisplay });
+  rows.push({ label: 'MLB Debut', value: formatDate(player.mlb_debut_date) });
+  rows.push({ label: 'Bats', value: formatHandedness(player.bats) });
+  rows.push({ label: 'Throws', value: formatHandedness(player.throws) });
+
   return (
     <Card className="mx-4">
       <CardSectionHeader label="Bio" />
 
       <View className="gap-2.5">
-        {player.nickname && <BioRow label="Nickname" value={player.nickname} />}
-        <BioRow label="Hometown" value={player.hometown ?? '—'} />
-        <BioRow label="Born" value={birthdayDisplay} />
-        <BioRow label="MLB Debut" value={formatDate(player.mlb_debut_date)} />
-        <BioRow label="Bats" value={formatHandedness(player.bats)} />
-        <BioRow label="Throws" value={formatHandedness(player.throws)} />
+        {rows.map((row, index) => (
+          <BioRow key={row.label} label={row.label} value={row.value} index={index} />
+        ))}
       </View>
     </Card>
   );

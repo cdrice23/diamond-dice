@@ -11,6 +11,7 @@ import { HEIGHT_COLLAPSE_DISTANCE, PlayerDetailHeader } from '@/components/playe
 import { PlayerDetailPitchingStatsCard } from '@/components/player-database/components/player-detail-pitching-stats-card.component';
 import { PlayerDetailTeamHistoryCard } from '@/components/player-database/components/player-detail-team-history-card.component';
 import { usePlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
+import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -66,6 +67,12 @@ export default function PlayerDetailScreen() {
     opacity: interpolate(scrollY.value, [0, HEIGHT_COLLAPSE_DISTANCE], [1, 0], Extrapolation.CLAMP),
   }));
 
+  const bioFadeStyle = useCascadingFadeIn(0, { enabled: !loading });
+  const battingFadeStyle = useCascadingFadeIn(1, { enabled: !loading });
+  const pitchingFadeStyle = useCascadingFadeIn(2, { enabled: !loading });
+  const teamHistoryFadeStyle = useCascadingFadeIn(3, { enabled: !loading });
+  const awardsFadeStyle = useCascadingFadeIn(4, { enabled: !loading });
+
   const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
 
   if (loading) {
@@ -106,11 +113,25 @@ export default function PlayerDetailScreen() {
             scrollEventThrottle={16}
           >
             <View style={{ height: measuredExpandedHeight }} />
-            <PlayerDetailBioCard player={player} />
-            {isEffectiveBatter && <PlayerDetailBattingStatsCard player={player} />}
-            {isEffectivePitcher && <PlayerDetailPitchingStatsCard player={player} />}
-            <PlayerDetailTeamHistoryCard teamHistory={teamHistory} />
-            <PlayerDetailAwardsCard awardSummaries={awardSummaries} />
+            <Animated.View style={bioFadeStyle}>
+              <PlayerDetailBioCard player={player} />
+            </Animated.View>
+            {isEffectiveBatter && (
+              <Animated.View style={battingFadeStyle}>
+                <PlayerDetailBattingStatsCard player={player} />
+              </Animated.View>
+            )}
+            {isEffectivePitcher && (
+              <Animated.View style={pitchingFadeStyle}>
+                <PlayerDetailPitchingStatsCard player={player} />
+              </Animated.View>
+            )}
+            <Animated.View style={teamHistoryFadeStyle}>
+              <PlayerDetailTeamHistoryCard teamHistory={teamHistory} />
+            </Animated.View>
+            <Animated.View style={awardsFadeStyle}>
+              <PlayerDetailAwardsCard awardSummaries={awardSummaries} />
+            </Animated.View>
           </Animated.ScrollView>
 
           <View
