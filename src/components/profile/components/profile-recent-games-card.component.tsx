@@ -2,64 +2,115 @@ import { CardSectionHeader } from '@/components/primitives/card-section-header.c
 import { Card } from '@/components/primitives/card.component';
 import { Chip } from '@/components/primitives/chip.component';
 import { Text } from '@/components/primitives/text.component';
+import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import type { RecentGameSummary } from '@/components/profile/profile.types';
 import { useTheme } from '@/utils/theme-provider';
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type ProfileRecentGamesCardProps = {
   games: RecentGameSummary[];
 };
 
+type RowItem = { type: 'divider'; year: number } | { type: 'game'; game: RecentGameSummary };
+
 function formatShortDate(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-
-  if (date.getFullYear() < now.getFullYear()) {
-    options.year = 'numeric';
-  }
-
-  return date.toLocaleDateString(undefined, options);
+  return new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function GameRow({ game, winColor, lossColor }: { game: RecentGameSummary; winColor: string; lossColor: string }) {
+function groupGamesWithYearDividers(games: RecentGameSummary[]): RowItem[] {
+  const items: RowItem[] = [];
+  const currentYear = new Date().getFullYear();
+  let lastYear: number | null = null;
+
+  for (const game of games) {
+    const year = new Date(game.playedAt).getFullYear();
+    if (year !== lastYear && year !== currentYear) {
+      items.push({ type: 'divider', year });
+    }
+    lastYear = year;
+    items.push({ type: 'game', game });
+  }
+
+  return items;
+}
+
+function YearDivider({ year }: { year: number }) {
+  const { colors } = useTheme();
+
   return (
-    <Pressable
-      onPress={() => router.push(`/(app)/stats/${game.gameId}`)}
-      className="flex-row items-center justify-between py-2 active:opacity-70"
-      accessibilityRole="button"
-    >
-      <Text variant="muted" className="w-20 text-lg">
-        {formatShortDate(game.playedAt)}
+    <View className="flex-row items-center gap-3 py-1">
+      <View className="h-px flex-1" style={{ backgroundColor: colors.border }} />
+      <Text variant="muted" className="text-sm font-semibold">
+        {year}
       </Text>
-      <Chip
-        label={game.isWin ? 'Win' : 'Loss'}
-        backgroundColor={game.isWin ? winColor : lossColor}
-        className="w-10 mr-2"
-      />
-      <Text className="text-foreground w-4 text-center text-lg">{game.isHome ? 'v' : '@'}</Text>
-      <Text className="text-foreground flex-1 text-lg" numberOfLines={1}>
-        {game.opponentName}
-      </Text>
-      <Text className="text-foreground font-semibold text-lg">
-        {game.profileScore}-{game.opponentScore}
-      </Text>
-    </Pressable>
+      <View className="h-px flex-1" style={{ backgroundColor: colors.border }} />
+    </View>
+  );
+}
+
+function GameRow({
+  game,
+  winColor,
+  lossColor,
+  index,
+}: {
+  game: RecentGameSummary;
+  winColor: string;
+  lossColor: string;
+  index: number;
+}) {
+  const fadeStyle = useCascadingFadeIn(index, { staggerDelayMs: 25, fadeDurationMs: 300, translateYStart: 6 });
+
+  return (
+    <Animated.View style={fadeStyle}>
+      <Pressable
+        onPress={() => router.push(`/(app)/stats/${game.gameId}`)}
+        className="flex-row items-center gap-2.5 active:opacity-70"
+        accessibilityRole="button"
+      >
+        <Text variant="muted" className="w-12 text-lg" numberOfLines={1}>
+          {formatShortDate(game.playedAt)}
+        </Text>
+
+        <Chip label={game.isWin ? 'Win' : 'Loss'} backgroundColor={game.isWin ? winColor : lossColor} shape="square" className="w-10" />
+
+        <Text className="text-primary flex-1 text-lg font-semibold" numberOfLines={1}>
+          {game.isHome ? 'v' : '@'} {game.opponentName}
+        </Text>
+
+        <Text className="text-foreground text-lg font-semibold">
+          {game.profileScore}-{game.opponentScore}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
 export function ProfileRecentGamesCard({ games }: ProfileRecentGamesCardProps) {
   const { colors } = useTheme();
+  const items = groupGamesWithYearDividers(games.slice(0, 5));
+
+  let gameIndex = 0;
 
   return (
     <Card className="mx-4">
       <CardSectionHeader label="Recent Games" />
-      {games.slice(0, 5).map((game, index) => (
-        <View key={game.gameId} className={index > 0 ? 'border-border border-t' : undefined}>
-          <GameRow game={game} winColor={colors.level1} lossColor={colors.level3} />
-        </View>
-      ))}
+
+      <View className="gap-2.5">
+        {items.map((item) => {
+          if (item.type === 'divider') {
+            return <YearDivider key={`divider-${item.year}`} year={item.year} />;
+          }
+
+          const index = gameIndex;
+          gameIndex += 1;
+          return (
+            <GameRow key={item.game.gameId} game={item.game} winColor={colors.level1} lossColor={colors.level3} index={index} />
+          );
+        })}
+      </View>
     </Card>
   );
 }

@@ -29,9 +29,9 @@ function deriveBatterOutcomeCounts(stats: {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <View className="items-center">
-      <Text className="text-foreground text-2xl font-bold">{value}</Text>
-      <Text variant="muted" className="text-md">
+    <View className="flex-1 items-center">
+      <Text className="text-foreground text-xl font-bold">{value}</Text>
+      <Text variant="muted" className="text-sm">
         {label}
       </Text>
     </View>
@@ -42,7 +42,7 @@ function BatterStatsRow({ stats }: { stats: MvpBatterStats }) {
   const battingAvg = stats.totalAtBats > 0 ? stats.totalHits / stats.totalAtBats : 0;
 
   return (
-    <View className="flex-row flex-wrap justify-between gap-y-3 mx-2">
+    <View className="flex-row flex-wrap gap-y-3">
       <Stat label="AB" value={String(stats.totalAtBats)} />
       <Stat label="AVG" value={battingAvg.toFixed(3).replace(/^0/, '')} />
       <Stat label="R" value={String(stats.totalRuns)} />
@@ -54,7 +54,7 @@ function BatterStatsRow({ stats }: { stats: MvpBatterStats }) {
 
 function PitcherStatsRow({ stats }: { stats: MvpPitcherStats }) {
   return (
-    <View className="flex-row flex-wrap justify-between gap-y-3 mx-4">
+    <View className="flex-row flex-wrap gap-y-3">
       <Stat label="IP" value={stats.totalInningsPitched?.toFixed(1) ?? '--'} />
       <Stat label="BF" value={String(stats.totalBattersFaced)} />
       <Stat label="ERA" value={stats.era?.toFixed(2) ?? '--'} />
@@ -82,7 +82,7 @@ function BatterStatLine({ stats }: { stats: MvpBatterStats }) {
   ];
 
   return (
-    <View className="mt-5">
+    <View className="mt-4">
       <ProfileStatBar segments={segments.map(({ percent, color }) => ({ percent, color }))} />
       <ProfileStatLegend
         items={segments.map(({ key, percent, color }) => ({
@@ -106,7 +106,7 @@ function PitcherStatLine({ stats }: { stats: MvpPitcherStats }) {
   ];
 
   return (
-    <View className="mt-5">
+    <View className="mt-4">
       <ProfileStatBar segments={segments.map(({ percent, color }) => ({ percent, color }))} />
       <ProfileStatLegend
         items={segments.map(({ key, percent, color }) => ({
@@ -129,9 +129,9 @@ export function ProfileMvpCard(props: ProfileMvpCardProps) {
   return (
     <Card className="mx-4" onPress={() => router.push(`/(app)/player-database/${props.stats.playerId}`)}>
       <CardSectionHeader label={props.type === 'batter' ? 'MVP Batter' : 'MVP Pitcher'} />
-      <View className="flex-row gap-4">
+      <View className="flex-row items-center gap-4">
         <PlayerAvatar imageUrl={player?.imageUrl} width={64} />
-        <View className="flex-1 justify-between">
+        <View className="flex-1 gap-2">
           <Text className="text-foreground text-2xl font-semibold" numberOfLines={1}>
             {player?.name ?? 'Unknown Player'}
           </Text>

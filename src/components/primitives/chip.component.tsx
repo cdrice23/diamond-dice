@@ -38,11 +38,18 @@ function Chip({
         colors={[lightStop, darkStop]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        className="flex-row items-center justify-center gap-1 px-2.5 py-1.5"
+        className="flex flex-row items-center justify-center gap-1 px-2.5 py-1.5"
       >
         <Text
-          style={{ color: textColor, fontSize: LABEL_FONT_SIZE, lineHeight: LABEL_LINE_HEIGHT }}
-          className={cn('font-semibold', 'mx-2', labelClassName)}
+          style={{ 
+            color: textColor, 
+            fontSize: LABEL_FONT_SIZE, 
+            lineHeight: LABEL_LINE_HEIGHT,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+           }}
+          className={cn('font-semibold', 'mx-auto px-2', labelClassName)}
         >
           {label}
         </Text>
