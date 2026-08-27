@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { profanities } from 'profanities';
+import { containsProfanity } from '../_shared/moderation.ts';
 
 const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')!);
 const SECRET_KEY = SUPABASE_SECRET_KEYS['default'];
@@ -17,41 +17,6 @@ function jsonResponse(body: unknown, status: number) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
-}
-
-const LEET_MAP: Record<string, string> = {
-  '@': 'a',
-  '4': 'a',
-  '8': 'b',
-  '3': 'e',
-  '6': 'g',
-  '1': 'i',
-  '!': 'i',
-  '|': 'i',
-  '0': 'o',
-  '$': 's',
-  '5': 's',
-  '7': 't',
-  '+': 't',
-};
-
-function normalizeLeet(value: string): string {
-  return value
-    .split('')
-    .map((char) => LEET_MAP[char] ?? char)
-    .join('');
-}
-
-function containsProfanity(value: string): boolean {
-  const blockedSet = new Set(profanities.map((word) => word.toLowerCase()));
-
-  const words = normalizeLeet(value.toLowerCase())
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean)
-    .map((word) => word.replace(/^[0-9]+|[0-9]+$/g, ''))
-    .filter(Boolean);
-
-  return words.some((word) => blockedSet.has(word));
 }
 
 Deno.serve(async (req) => {

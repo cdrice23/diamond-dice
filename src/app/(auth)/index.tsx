@@ -38,6 +38,7 @@ export default function LoginScreen() {
   const [step, setStep] = useState<Step>('initial');
   const [error, setError] = useState<string | null>(null);
   const [errorAction, setErrorAction] = useState<{ label: string; onPress: () => void } | null>(null);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [containerLayout, setContainerLayout] = useState({ y: 0, height: 0 });
@@ -128,21 +129,29 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: { data: { username: form.username } },
+      const { data, error } = await supabase.functions.invoke('signup', {
+        body: { email: form.email, password: form.password, username: form.username },
       });
 
       if (error) {
-        const info = getAuthErrorInfo(error);
-        if (info.code === 'weak_password') {
+        let info = getAuthErrorInfo(error);
+        const context = (error as { context?: Response }).context;
+        if (context) {
+          const body = await context.json();
+          info = getFunctionErrorInfo(body);
+        }
+
+        if (info.field === 'username') {
+          form.setFieldErrors((prev) => ({ ...prev, username: info.message }));
+        } else if (info.code === 'weak_password') {
           form.setFieldErrors((prev) => ({ ...prev, password: info.message }));
         } else {
           setError(info.message);
         }
         return;
       }
+
+      setConfirmationEmail(data?.email ?? form.email);
       setStep('checkEmail');
     } catch (err) {
       const info = getAuthErrorInfo(err);
@@ -264,8 +273,10 @@ export default function LoginScreen() {
 
               {step === 'checkEmail' ? (
                 <View className="items-center gap-4">
-                  <Text className="font-body text-foreground text-center">Check your email to confirm your account.</Text>
-                  <Text className="font-body text-muted-foreground text-center text-sm">
+                  <Text className="font-body text-foreground text-center">
+                    Check {confirmationEmail} to confirm your account.
+                  </Text>
+                  <Text className="font-body text-muted-foreground text-sm text-center">
                     Already have an account? Try resetting your password instead.
                   </Text>
                   <Button variant="ghost" onPress={() => { setStep('initial'); form.reset(); }}>

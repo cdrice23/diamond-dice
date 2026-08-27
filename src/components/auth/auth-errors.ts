@@ -36,6 +36,7 @@ export type AuthErrorInfo = {
   isRateLimit: boolean;
   isNetworkError: boolean;
   code: string | null;
+  field?: string;
 };
 
 export function getAuthErrorInfo(error: unknown): AuthErrorInfo {
