@@ -9,7 +9,11 @@ const corsHeaders = {
 };
 
 type ValidationError = {
-  code: 'ROSTER_COUNT_MISMATCH' | 'INELIGIBLE_POSITION' | 'UNQUALIFIED_PLAYER';
+  code:
+    | 'ROSTER_COUNT_MISMATCH'
+    | 'INELIGIBLE_POSITION'
+    | 'UNQUALIFIED_PLAYER'
+    | 'POSITION_COVERAGE_MISMATCH';
   player_type?: 'batter' | 'pitcher';
   level?: number | null;
   roster_slot_id?: string;
@@ -33,19 +37,19 @@ Deno.serve(async (req) => {
     try {
       body = await req.json();
     } catch {
-      return jsonResponse({ error: 'Invalid request body.' }, 400);
+      return jsonResponse({ error: { code: 'validation_failed', message: 'Request body must be valid JSON.' } }, 400);
     }
     const { team_id, format_id } = body;
 
     if (!team_id || !format_id) {
-      return jsonResponse({ error: 'team_id and format_id are required.' }, 400);
+      return jsonResponse({ error: { code: 'validation_failed', message: 'team_id and format_id are required.' } }, 400);
     }
 
     const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, SECRET_KEY);
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return jsonResponse({ error: 'Missing Authorization header.' }, 401);
+      return jsonResponse({ error: { code: 'unauthenticated', message: 'Missing Authorization header.' } }, 401);
     }
     const {
       data: { user },
@@ -53,7 +57,7 @@ Deno.serve(async (req) => {
     } = await adminClient.auth.getUser(authHeader.replace('Bearer ', ''));
 
     if (authError || !user) {
-      return jsonResponse({ error: 'Invalid or expired session.' }, 401);
+      return jsonResponse({ error: { code: 'unauthenticated', message: 'Invalid or expired session.' } }, 401);
     }
 
     const { data: team } = await adminClient
@@ -63,7 +67,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!team || team.owner_id !== user.id) {
-      return jsonResponse({ error: 'Team not found.' }, 404);
+      return jsonResponse({ error: { code: 'not_found', message: 'Team not found.' } }, 404);
     }
 
     const errors: ValidationError[] = [];
@@ -94,13 +98,24 @@ Deno.serve(async (req) => {
 
     if (reqError) throw reqError;
 
+    const { data: positionRequirements, error: posReqError } = await adminClient
+      .from('position_requirements')
+      .select('slot_position, requires_eligibility, min_count, max_count');
+
+    if (posReqError) throw posReqError;
+
+    const positionReqMap = new Map(
+      (positionRequirements ?? []).map((r) => [r.slot_position, r])
+    );
+
     for (const slot of rosterSlots ?? []) {
       const player = slot.players;
       if (!player) continue;
 
       const position = slot.current_position ?? slot.default_position;
+      const requirement = position ? positionReqMap.get(position) : undefined;
 
-      if (position && !player.eligible_positions?.includes(position)) {
+      if (requirement?.requires_eligibility && !player.eligible_positions?.includes(position)) {
         errors.push({
           code: 'INELIGIBLE_POSITION',
           roster_slot_id: slot.id,
@@ -118,6 +133,27 @@ Deno.serve(async (req) => {
           message: `Player does not meet the qualification standard for ${
             isPitcherSlot ? 'pitching' : 'batting'
           }.`,
+        });
+      }
+    }
+
+    const positionCounts = new Map<string, number>();
+    for (const slot of rosterSlots ?? []) {
+      const position = slot.current_position ?? slot.default_position;
+      if (!position) continue;
+      positionCounts.set(position, (positionCounts.get(position) ?? 0) + 1);
+    }
+
+    for (const [slotPosition, requirement] of positionReqMap) {
+      const actual = positionCounts.get(slotPosition) ?? 0;
+      if (actual < requirement.min_count || actual > requirement.max_count) {
+        const range =
+          requirement.max_count !== requirement.min_count
+            ? `${requirement.min_count}-${requirement.max_count}`
+            : `${requirement.min_count}`;
+        errors.push({
+          code: 'POSITION_COVERAGE_MISMATCH',
+          message: `Requires ${range} ${slotPosition}, has ${actual}.`,
         });
       }
     }
@@ -159,6 +195,6 @@ Deno.serve(async (req) => {
     return jsonResponse({ valid: errors.length === 0, errors }, 200);
   } catch (err) {
     console.error('validate-team-roster unexpected error:', err);
-    return jsonResponse({ error: 'Something went wrong validating the roster.' }, 500);
+    return jsonResponse({ error: { code: 'unexpected_error', message: 'Something went wrong validating the roster.' } }, 500);
   }
 });
