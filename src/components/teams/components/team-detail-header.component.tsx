@@ -1,5 +1,5 @@
 import { Text } from '@/components/primitives/text.component';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -17,12 +17,15 @@ export function TeamDetailHeader({ teamName, homeFieldName, textColor, onEditPre
   return (
     <View className="flex-row items-start justify-between px-4">
       <View className="flex-1 gap-0.5">
-        <Text style={{ color: textColor }} className="text-2xl font-bold" numberOfLines={1}>
+        <Text style={{ color: textColor }} className="text-3xl font-bold" numberOfLines={1}>
           {teamName}
         </Text>
-        <Text style={{ color: textColor, opacity: 0.75 }} className="text-base" numberOfLines={1}>
-          {homeFieldName}
-        </Text>
+        <View className="flex-row items-center gap-1.5">
+          <MaterialCommunityIcons name="stadium-outline" size={16} color={textColor} style={{ opacity: 0.75 }} />
+          <Text style={{ color: textColor, opacity: 0.75 }} className="text-xl" numberOfLines={1}>
+            {homeFieldName}
+          </Text>
+        </View>
       </View>
 
       <View>
@@ -49,7 +52,7 @@ export function TeamDetailHeader({ teamName, homeFieldName, textColor, onEditPre
                 }}
                 className="active:bg-accent px-3 py-2.5"
               >
-                <Text className="text-popover-foreground text-sm">Edit Team</Text>
+                <Text className="text-popover-foreground text-base">Edit Team</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -58,7 +61,7 @@ export function TeamDetailHeader({ teamName, homeFieldName, textColor, onEditPre
                 }}
                 className="active:bg-accent px-3 py-2.5"
               >
-                <Text className="text-destructive text-sm">Delete Team</Text>
+                <Text className="text-destructive text-base">Delete Team</Text>
               </Pressable>
             </View>
           </>
