@@ -312,6 +312,27 @@ const AVATAR_MARKER_CORNER_RADIUS = 3;
 const UNDERLINE_MARGIN_TOP = 4;
 const UNDERLINE_HEIGHT = 3;
 const UNDERLINE_CORNER_RADIUS = 1;
+const AVATAR_CORNER_MARKER_OFFSET = 30;
+const AVATAR_CORNER_MARKER_VERTICAL_OFFSET = 30;
+const AVATAR_CORNER_MARKER_FOUL_LINE_OFFSET = 18;
+const AVATAR_CATCHER_OFFSET = 20;
+const AVATAR_MIDDLE_INFIELD_VERTICAL_OFFSET = 20;
+
+function getMarkerPositions(viewMode: 'color' | 'avatar') {
+  const cornerOffset = viewMode === 'avatar' ? AVATAR_CORNER_MARKER_OFFSET : CORNER_MARKER_OFFSET;
+  const verticalOffset = viewMode === 'avatar' ? AVATAR_CORNER_MARKER_VERTICAL_OFFSET : CORNER_MARKER_VERTICAL_OFFSET;
+  const foulLineOffset = viewMode === 'avatar' ? AVATAR_CORNER_MARKER_FOUL_LINE_OFFSET : CORNER_MARKER_FOUL_LINE_OFFSET;
+  const catcherOffset = viewMode === 'avatar' ? AVATAR_CATCHER_OFFSET : 10;
+  const middleInfieldVerticalOffset = viewMode === 'avatar' ? AVATAR_MIDDLE_INFIELD_VERTICAL_OFFSET : 0;
+
+  return {
+    catcher: { x: APEX.x, y: HOME_PLATE_BOTTOM_Y + catcherOffset },
+    firstBase: { x: FIRST_BASE_CENTER.x + foulLineOffset, y: FIRST_BASE_CENTER.y - verticalOffset },
+    thirdBase: { x: THIRD_BASE_CENTER.x - foulLineOffset, y: THIRD_BASE_CENTER.y - verticalOffset },
+    secondBase: { x: SECOND_BASE_CENTER.x + cornerOffset, y: SECOND_BASE_CENTER.y - middleInfieldVerticalOffset },
+    shortstop: { x: SECOND_BASE_CENTER.x - cornerOffset, y: SECOND_BASE_CENTER.y - middleInfieldVerticalOffset },
+  };
+}
 
 function renderAvatarMarker(
   point: { x: number; y: number },
@@ -397,6 +418,7 @@ export const TeamDiamondPositions = memo(function TeamDiamondPositions({
   const { colors, colorScheme } = useTheme();
   const dirtColor = adjustHslLightness(colors.muted, colorScheme === 'dark' ? 12 : -18);
 
+  const markers = useMemo(() => getMarkerPositions(viewMode), [viewMode]);
   const outfielders = useMemo(() => outfielderMarkers(positions.OF.length), [positions.OF.length]);
   const pitchers = useMemo(() => pitcherMarkers(pitcherLevels), [pitcherLevels]);
 
@@ -447,11 +469,11 @@ export const TeamDiamondPositions = memo(function TeamDiamondPositions({
         <Polygon points={THIRD_BASE_POINTS} fill={colors.primary} />
         <Polygon points={HOME_PLATE_POINTS} fill={colors.primary} />
 
-        {renderMarker(CATCHER_MARKER, positions.C, positionPlayerRefs?.C ?? null, 'c')}
-        {renderMarker(FIRST_BASE_MARKER, positions['1B'], positionPlayerRefs?.['1B'] ?? null, '1b')}
-        {renderMarker(SECOND_BASE_MARKER, positions['2B'], positionPlayerRefs?.['2B'] ?? null, '2b')}
-        {renderMarker(SHORTSTOP_MARKER, positions.SS, positionPlayerRefs?.SS ?? null, 'ss')}
-        {renderMarker(THIRD_BASE_MARKER, positions['3B'], positionPlayerRefs?.['3B'] ?? null, '3b')}
+        {renderMarker(markers.catcher, positions.C, positionPlayerRefs?.C ?? null, 'c')}
+        {renderMarker(markers.firstBase, positions['1B'], positionPlayerRefs?.['1B'] ?? null, '1b')}
+        {renderMarker(markers.secondBase, positions['2B'], positionPlayerRefs?.['2B'] ?? null, '2b')}
+        {renderMarker(markers.shortstop, positions.SS, positionPlayerRefs?.SS ?? null, 'ss')}
+        {renderMarker(markers.thirdBase, positions['3B'], positionPlayerRefs?.['3B'] ?? null, '3b')}
         {outfielders.map((point, i) =>
           renderMarker(point, positions.OF[i], positionPlayerRefs?.OF[i] ?? null, `of-${i}`)
         )}
