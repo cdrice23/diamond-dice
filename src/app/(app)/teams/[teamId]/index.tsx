@@ -1,21 +1,29 @@
-// [teamId]/index.tsx
 import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
+import { useNavLayout } from '@/components/navigation/nav-layout.context';
+import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
 import { ScreenDetailBackButton } from '@/components/primitives/screen-detail-back-button.component';
 import { TeamDetailHeader } from '@/components/teams/components/team-detail-header.component';
+import { TeamDetailPitchersCard } from '@/components/teams/components/team-detail-pitchers-card.component';
+import { TeamDetailPositionPlayersCard } from '@/components/teams/components/team-detail-position-players-card.component';
+import { TeamDetailRecentGamesCard } from '@/components/teams/components/team-detail-recent-games-card.component';
+import { TeamDetailStatsCard } from '@/components/teams/components/team-detail-stats-card.component';
 import { MOCK_TEAM_DETAIL } from '@/components/teams/teams.mock';
 import { resolveTeamHeaderColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { View } from 'react-native';
+import { ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TOP_BAND_HEIGHT = 40;
+const NAV_CLEARANCE_EXTRA = 16;
 
 export default function TeamDetailScreen() {
   const { teamId } = useLocalSearchParams<{ teamId: string }>();
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { navTopY } = useNavLayout();
+  const { height: screenHeight } = useWindowDimensions();
 
   const team = MOCK_TEAM_DETAIL;
 
@@ -24,6 +32,7 @@ export default function TeamDetailScreen() {
     team.team_theme_color_primary,
     team.team_theme_color_secondary
   );
+  const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
 
   return (
     <View style={{ flex: 1 }}>
@@ -34,6 +43,7 @@ export default function TeamDetailScreen() {
         topBandBackgroundColor={bandColor}
         topBandSvgColor={team.team_theme_color_secondary}
       />
+
       <View style={{ marginTop: headerTopOffset, backgroundColor: bandColor }} className="gap-3 pb-3">
         <ScreenDetailBackButton flat textColor={bandTextColor} />
         <TeamDetailHeader
@@ -43,6 +53,16 @@ export default function TeamDetailScreen() {
           onEditPress={() => router.push(`/teams/${team.id}/edit`)}
           onDeletePress={() => {}}
         />
+      </View>
+
+      <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
+        <ScrollView className="flex-1" contentContainerStyle={{ gap: 16, paddingTop: 32, paddingBottom: 24 }}>
+          <TeamDetailPositionPlayersCard positionPlayers={team.position_players} bandColor={bandColor} textColor={bandTextColor} />
+          <TeamDetailPitchersCard pitchers={team.pitchers} bandColor={bandColor} textColor={bandTextColor} />
+          <TeamDetailRecentGamesCard games={team.recent_games} bandColor={bandColor} textColor={bandTextColor} />
+          <TeamDetailStatsCard wins={team.wins} losses={team.losses} gamesPlayed={team.games_played} bandColor={bandColor} textColor={bandTextColor} />
+        </ScrollView>
+        <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
       </View>
     </View>
   );
