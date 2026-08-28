@@ -12,7 +12,7 @@ import { PlayerDetailPitchingStatsCard } from '@/components/player-database/comp
 import { PlayerDetailStatCurveCard } from '@/components/player-database/components/player-detail-stat-curve-card.component';
 import { PlayerDetailTeamHistoryCard } from '@/components/player-database/components/player-detail-team-history-card.component';
 import { usePlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
-import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -68,12 +68,6 @@ export default function PlayerDetailScreen() {
     opacity: interpolate(scrollY.value, [0, HEIGHT_COLLAPSE_DISTANCE], [1, 0], Extrapolation.CLAMP),
   }));
 
-  const bioFadeStyle = useCascadingFadeIn(0, { enabled: !loading });
-  const battingFadeStyle = useCascadingFadeIn(1, { enabled: !loading });
-  const pitchingFadeStyle = useCascadingFadeIn(2, { enabled: !loading });
-  const teamHistoryFadeStyle = useCascadingFadeIn(3, { enabled: !loading });
-  const awardsFadeStyle = useCascadingFadeIn(4, { enabled: !loading });
-
   const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
 
   if (loading) {
@@ -114,27 +108,27 @@ export default function PlayerDetailScreen() {
             scrollEventThrottle={16}
           >
             <View style={{ height: measuredExpandedHeight }} />
-            <Animated.View style={bioFadeStyle}>
+            <AnimatedCascadeItem index={0} enabled={!loading}>
               <PlayerDetailBioCard player={player} />
-            </Animated.View>
+            </AnimatedCascadeItem>
             {isEffectiveBatter && (
-              <Animated.View style={battingFadeStyle}>
+              <AnimatedCascadeItem index={1} enabled={!loading}>
                 <PlayerDetailBattingStatsCard player={player} />
-              </Animated.View>
+              </AnimatedCascadeItem>
             )}
             {isEffectiveBatter && <PlayerDetailStatCurveCard player={player} group="batting" />}
             {isEffectivePitcher && (
-              <Animated.View style={pitchingFadeStyle}>
+              <AnimatedCascadeItem index={2} enabled={!loading}>
                 <PlayerDetailPitchingStatsCard player={player} />
-              </Animated.View>
+              </AnimatedCascadeItem>
             )}
             {isEffectivePitcher && <PlayerDetailStatCurveCard player={player} group="pitching" />}
-            <Animated.View style={teamHistoryFadeStyle}>
+            <AnimatedCascadeItem index={3} enabled={!loading}>
               <PlayerDetailTeamHistoryCard teamHistory={teamHistory} />
-            </Animated.View>
-            <Animated.View style={awardsFadeStyle}>
+            </AnimatedCascadeItem>
+            <AnimatedCascadeItem index={4} enabled={!loading}>
               <PlayerDetailAwardsCard awardSummaries={awardSummaries} />
-            </Animated.View>
+            </AnimatedCascadeItem>
           </Animated.ScrollView>
 
           <View

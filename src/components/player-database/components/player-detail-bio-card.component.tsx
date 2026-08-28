@@ -1,10 +1,9 @@
 import type { PlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
-import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import { View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 type PlayerDetailBioCardProps = {
   player: PlayerDetail;
@@ -34,19 +33,6 @@ function formatHandedness(value: string | null): string {
   return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 }
 
-function BioRow({ label, value, index }: { label: string; value: string; index: number }) {
-  const fadeStyle = useCascadingFadeIn(index, { staggerDelayMs: 25, fadeDurationMs: 300, translateYStart: 6 });
-
-  return (
-    <Animated.View style={fadeStyle} className="flex-row justify-between">
-      <Text variant="muted" className="text-lg">
-        {label}
-      </Text>
-      <Text className="text-foreground text-lg font-semibold">{value}</Text>
-    </Animated.View>
-  );
-}
-
 export function PlayerDetailBioCard({ player }: PlayerDetailBioCardProps) {
   const birthdayDisplay = player.birthday
     ? player.active
@@ -68,7 +54,19 @@ export function PlayerDetailBioCard({ player }: PlayerDetailBioCardProps) {
 
       <View className="gap-2.5">
         {rows.map((row, index) => (
-          <BioRow key={row.label} label={row.label} value={row.value} index={index} />
+          <AnimatedCascadeItem
+            key={row.label}
+            index={index}
+            staggerDelayMs={25}
+            fadeDurationMs={300}
+            translateYStart={6}
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+          >
+            <Text variant="muted" className="text-lg">
+              {row.label}
+            </Text>
+            <Text className="text-foreground text-lg font-semibold">{row.value}</Text>
+          </AnimatedCascadeItem>
         ))}
       </View>
     </Card>

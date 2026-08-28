@@ -2,6 +2,7 @@ import { BandedScreenBackdrop } from '@/components/navigation/components/banded-
 import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
 import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { TeamsEmptyState } from '@/components/teams/components/teams-empty-state.component';
 import { TeamsFilterBar, type TeamsSortDirection } from '@/components/teams/components/teams-filter-bar.component';
 import { TeamsHeader } from '@/components/teams/components/teams-header.component';
@@ -81,13 +82,15 @@ export default function TeamsScreen() {
             <FlatList
               data={teams}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TeamsListCard
-                  team={item}
-                  onPress={() => handleTeamPress(item)}
-                  onEditPress={() => handleEditTeam(item)}
-                  onDeletePress={() => handleDeleteTeam(item)}
-                />
+              renderItem={({ item, index }) => (
+                <AnimatedCascadeItem index={index} staggerDelayMs={100}>
+                  <TeamsListCard
+                    team={item}
+                    onPress={() => handleTeamPress(item)}
+                    onEditPress={() => handleEditTeam(item)}
+                    onDeletePress={() => handleDeleteTeam(item)}
+                  />
+                </AnimatedCascadeItem>
               )}
               contentContainerClassName="px-4 pb-6"
               contentContainerStyle={{ paddingTop: 32 }}

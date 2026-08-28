@@ -1,3 +1,4 @@
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { Text } from '@/components/primitives/text.component';
 import type { BattingOrderSlot } from '@/components/teams/teams.types';
 import { useTheme } from '@/utils/theme-provider';
@@ -7,7 +8,7 @@ const ACCENT_WIDTH = 3;
 const ACCENT_HEIGHT = 14;
 const NUMBER_COLUMN_WIDTH = 14;
 const POSITION_COLUMN_WIDTH = 24;
-const NUMBER_TO_UNIT_GAP = 12;
+const NUMBER_TO_UNIT_GAP = 10;
 const ACCENT_TO_POSITION_GAP = 6;
 
 type TeamsListCardBattingOrderGutterProps = {
@@ -31,7 +32,14 @@ export function TeamsListCardBattingOrderGutter({ battingOrder }: TeamsListCardB
       </Text>
 
       {battingOrder.map((slot, i) => (
-        <View key={i} className="flex-row items-center" style={{ gap: NUMBER_TO_UNIT_GAP }}>
+        <AnimatedCascadeItem
+          key={i}
+          index={i}
+          staggerDelayMs={50}
+          fadeDurationMs={250}
+          translateYStart={4}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: NUMBER_TO_UNIT_GAP }}
+        >
           <Text className="text-foreground text-right text-xs font-semibold" style={{ width: NUMBER_COLUMN_WIDTH }}>
             {i + 1}
           </Text>
@@ -48,7 +56,7 @@ export function TeamsListCardBattingOrderGutter({ battingOrder }: TeamsListCardB
               {slot.position}
             </Text>
           </View>
-        </View>
+        </AnimatedCascadeItem>
       ))}
     </View>
   );

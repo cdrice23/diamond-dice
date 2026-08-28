@@ -2,13 +2,12 @@ import { useTypewriterReveal } from '@/components/player-database/hooks/use-type
 import type { PlayerAwardSummary } from '@/components/player-database/player-database.types';
 import { getAllSeasonsList, getCollapsedSeasonSummary } from '@/components/player-database/utils/format-award-seasons';
 import { getAwardTierColor } from '@/components/player-database/utils/get-award-tier-color';
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
-import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import { useTheme } from '@/utils/theme-provider';
 import { useEffect, useRef, useState } from 'react';
 import { Easing, Pressable, Animated as RNAnimated, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 const ANIMATION_DURATION = 400;
 const FADE_DURATION = 140;
@@ -214,26 +213,6 @@ function AwardRow({
   );
 }
 
-function AwardRowWithFadeIn({
-  award,
-  index,
-  isExpanded,
-  onToggle,
-}: {
-  award: PlayerAwardSummary;
-  index: number;
-  isExpanded: boolean;
-  onToggle: () => void;
-}) {
-  const fadeStyle = useCascadingFadeIn(index, { staggerDelayMs: 25, fadeDurationMs: 300, translateYStart: 6 });
-
-  return (
-    <Animated.View style={fadeStyle}>
-      <AwardRow award={award} isExpanded={isExpanded} onToggle={onToggle} />
-    </Animated.View>
-  );
-}
-
 export function PlayerDetailAwardsCard({ awardSummaries }: PlayerDetailAwardsCardProps) {
   const [expandedAwardLabel, setExpandedAwardLabel] = useState<string | null>(null);
 
@@ -251,13 +230,13 @@ export function PlayerDetailAwardsCard({ awardSummaries }: PlayerDetailAwardsCar
 
       <View className="gap-2.5">
         {awardSummaries.map((award, index) => (
-          <AwardRowWithFadeIn
-            key={award.label}
-            award={award}
-            index={index}
-            isExpanded={expandedAwardLabel === award.label}
-            onToggle={() => handleToggleAward(award.label)}
-          />
+          <AnimatedCascadeItem key={award.label} index={index} staggerDelayMs={25} fadeDurationMs={300} translateYStart={6}>
+            <AwardRow
+              award={award}
+              isExpanded={expandedAwardLabel === award.label}
+              onToggle={() => handleToggleAward(award.label)}
+            />
+          </AnimatedCascadeItem>
         ))}
       </View>
     </Card>

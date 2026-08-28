@@ -1,11 +1,11 @@
 import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { PROFILE_HEADER_COLLAPSE_DISTANCE, ProfileHeader } from '@/components/profile/components/profile-header.component';
 import { ProfileMvpCard } from '@/components/profile/components/profile-mvp-card.component';
 import { ProfileOverviewCard } from '@/components/profile/components/profile-overview-card.component';
 import { ProfileRecentGamesCard } from '@/components/profile/components/profile-recent-games-card.component';
 import { ProfileSkeleton } from '@/components/profile/components/profile-skeleton';
-import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import {
   MOCK_MVP_BATTER_STATS,
   MOCK_MVP_PITCHER_STATS,
@@ -71,10 +71,6 @@ export default function ProfileScreen() {
     opacity: interpolate(scrollY.value, [0, PROFILE_HEADER_COLLAPSE_DISTANCE], [1, 0], Extrapolation.CLAMP),
   }));
 
-  const recentGamesFadeStyle = useCascadingFadeIn(0);
-  const mvpBatterFadeStyle = useCascadingFadeIn(1);
-  const mvpPitcherFadeStyle = useCascadingFadeIn(2);
-
   const hasTeamsAndGames = MOCK_OVERVIEW_STATS.teamCount > 0 && MOCK_OVERVIEW_STATS.wins + MOCK_OVERVIEW_STATS.losses > 0;
 
   return (
@@ -97,23 +93,23 @@ export default function ProfileScreen() {
           >
             <View style={{ height: measuredExpandedHeight }} />
 
-            <Animated.View style={recentGamesFadeStyle}>
+            <AnimatedCascadeItem index={0}>
               {RECENT_GAMES_LOADING ? (
                 <ProfileSkeleton variant="recent-games" />
               ) : (
                 <ProfileRecentGamesCard games={MOCK_RECENT_GAMES} />
               )}
-            </Animated.View>
+            </AnimatedCascadeItem>
 
             {hasTeamsAndGames && (
               <>
-                <Animated.View style={mvpBatterFadeStyle}>
+                <AnimatedCascadeItem index={1}>
                   <ProfileMvpCard type="batter" stats={MOCK_MVP_BATTER_STATS} />
-                </Animated.View>
+                </AnimatedCascadeItem>
 
-                <Animated.View style={mvpPitcherFadeStyle}>
+                <AnimatedCascadeItem index={2}>
                   <ProfileMvpCard type="pitcher" stats={MOCK_MVP_PITCHER_STATS} />
-                </Animated.View>
+                </AnimatedCascadeItem>
               </>
             )}
           </Animated.ScrollView>

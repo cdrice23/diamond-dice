@@ -1,13 +1,12 @@
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Chip } from '@/components/primitives/chip.component';
 import { Text } from '@/components/primitives/text.component';
-import { useCascadingFadeIn } from '@/components/profile/hooks/use-cascading-fade-in.hook';
 import type { RecentGameSummary } from '@/components/profile/profile.types';
 import { useTheme } from '@/utils/theme-provider';
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 type ProfileRecentGamesCardProps = {
   games: RecentGameSummary[];
@@ -61,10 +60,8 @@ function GameRow({
   lossColor: string;
   index: number;
 }) {
-  const fadeStyle = useCascadingFadeIn(index, { staggerDelayMs: 25, fadeDurationMs: 300, translateYStart: 6 });
-
   return (
-    <Animated.View style={fadeStyle}>
+    <AnimatedCascadeItem index={index} staggerDelayMs={25} fadeDurationMs={300} translateYStart={6}>
       <Pressable
         onPress={() => router.push(`/(app)/stats/${game.gameId}`)}
         className="flex-row items-center gap-2.5 active:opacity-70"
@@ -84,7 +81,7 @@ function GameRow({
           {game.profileScore}-{game.opponentScore}
         </Text>
       </Pressable>
-    </Animated.View>
+    </AnimatedCascadeItem>
   );
 }
 

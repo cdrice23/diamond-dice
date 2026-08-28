@@ -1,3 +1,4 @@
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { TeamDiamondPositions } from '@/components/teams/components/team-diamond-positions.component';
 import { TeamsListCardBattingOrderGutter } from '@/components/teams/components/teams-list-card-batting-order-gutter.component';
 import { TeamsListCardDates } from '@/components/teams/components/teams-list-card-dates.component';
@@ -54,11 +55,13 @@ export function TeamsListCard({ team, onPress, onEditPress, onDeletePress }: Tea
               <TeamsListCardBattingOrderGutter battingOrder={team.batting_order} />
             </View>
             {diamondWidth > 0 && (
-              <TeamDiamondPositions
-                positions={team.position_levels}
-                pitcherLevels={team.pitcher_levels}
-                width={diamondWidth}
-              />
+              <AnimatedCascadeItem index={0} staggerDelayMs={0} fadeDurationMs={500} translateYStart={0}>
+                <TeamDiamondPositions
+                  positions={team.position_levels}
+                  pitcherLevels={team.pitcher_levels}
+                  width={diamondWidth}
+                />
+              </AnimatedCascadeItem>
             )}
           </View>
           <TeamsListCardRosterPreview players={team.roster_preview} />

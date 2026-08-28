@@ -1,4 +1,5 @@
 import { PixelIcon } from '@/components/branding/components/pixel-icon.component';
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { Skeleton } from '@/components/primitives/skeleton.component';
 import type { TeamRosterPreviewPlayer } from '@/components/teams/teams.types';
 import { useTheme } from '@/utils/theme-provider';
@@ -13,7 +14,7 @@ type TeamsListCardRosterPreviewProps = {
   players: TeamRosterPreviewPlayer[];
 };
 
-function Avatar({ player, marginRight }: { player: TeamRosterPreviewPlayer; marginRight: number }) {
+function Avatar({ player, marginRight, index }: { player: TeamRosterPreviewPlayer; marginRight: number; index: number }) {
   const { colors } = useTheme();
   const [loaded, setLoaded] = useState(!player.image_url);
 
@@ -21,14 +22,20 @@ function Avatar({ player, marginRight }: { player: TeamRosterPreviewPlayer; marg
 
   if (!player.image_url) {
     return (
-      <View className="bg-muted items-center justify-center rounded-md" style={wrapperStyle}>
+      <AnimatedCascadeItem
+        index={index}
+        staggerDelayMs={55}
+        fadeDurationMs={400}
+        translateYStart={0}
+        style={[{ backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center', borderRadius: 8 }, wrapperStyle]}
+      >
         <PixelIcon name="player" size={AVATAR_SIZE * 0.5} color={colors.mutedForeground} />
-      </View>
+      </AnimatedCascadeItem>
     );
   }
 
   return (
-    <View style={wrapperStyle}>
+    <AnimatedCascadeItem index={index} staggerDelayMs={55} fadeDurationMs={400} translateYStart={0} style={wrapperStyle}>
       {!loaded && (
         <Skeleton className="bg-border absolute rounded-md" style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }} />
       )}
@@ -40,7 +47,7 @@ function Avatar({ player, marginRight }: { player: TeamRosterPreviewPlayer; marg
         onError={() => setLoaded(true)}
         style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: 8, opacity: loaded ? 1 : 0 }}
       />
-    </View>
+    </AnimatedCascadeItem>
   );
 }
 
@@ -60,13 +67,12 @@ export function TeamsListCardRosterPreview({ players }: TeamsListCardRosterPrevi
 
   const maxCount = Math.max(1, Math.floor((rowWidth + MIN_AVATAR_GAP) / (AVATAR_SIZE + MIN_AVATAR_GAP)));
   const shown = players.slice(0, maxCount);
-
   const gap = shown.length > 1 ? (rowWidth - shown.length * AVATAR_SIZE) / (shown.length - 1) : 0;
 
   return (
     <View className="flex-row" onLayout={handleLayout}>
       {shown.map((player, i) => (
-        <Avatar key={player.id} player={player} marginRight={i === shown.length - 1 ? 0 : gap} />
+        <Avatar key={player.id} player={player} marginRight={i === shown.length - 1 ? 0 : gap} index={i} />
       ))}
     </View>
   );
