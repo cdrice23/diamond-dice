@@ -43,3 +43,32 @@ export function adjustHslAlpha(hsl: string, alpha: number): string {
   const clampedAlpha = Math.max(0, Math.min(1, alpha));
   return `hsla(${hue}, ${saturation}%, ${lightness}%, ${clampedAlpha})`;
 }
+
+function hexRelativeLuminance(hex: string): number {
+  const match = hex.match(/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/);
+  if (!match) return 0;
+
+  const [r, g, b] = [match[1], match[2], match[3]].map((c) => parseInt(c, 16) / 255);
+  const toLinear = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+export function hexContrastRatio(hexA: string, hexB: string): number {
+  const lA = hexRelativeLuminance(hexA) + 0.05;
+  const lB = hexRelativeLuminance(hexB) + 0.05;
+  return lA > lB ? lA / lB : lB / lA;
+}
+
+const WCAG_AA_NORMAL_TEXT_MIN_RATIO = 4.5;
+
+export function resolveTeamHeaderColors(
+  primaryHex: string,
+  secondaryHex: string
+): { background: string; text: string } {
+  if (hexContrastRatio(primaryHex, secondaryHex) >= WCAG_AA_NORMAL_TEXT_MIN_RATIO) {
+    return { background: primaryHex, text: secondaryHex };
+  }
+  const blackContrast = hexContrastRatio(primaryHex, '#000000');
+  const whiteContrast = hexContrastRatio(primaryHex, '#FFFFFF');
+  return { background: primaryHex, text: blackContrast > whiteContrast ? '#000000' : '#FFFFFF' };
+}
