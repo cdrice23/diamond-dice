@@ -47,15 +47,15 @@ export default function TeamsScreen() {
   }, [searchTerm, sortDirection]);
 
   function handleAddNewTeam() {
-    // router.push('/teams/new');
+    router.push('/teams/new');
   }
 
   function handleTeamPress(team: TeamSummary) {
-    // router.push(`/teams/${team.id}`);
+    router.push(`/teams/${team.id}`);
   }
 
   function handleEditTeam(team: TeamSummary) {
-    // router.push(`/teams/${team.id}/edit`);
+    router.push(`/teams/${team.id}/edit`);
   }
 
   function handleDeleteTeam(team: TeamSummary) {

@@ -72,3 +72,31 @@ export function resolveTeamHeaderColors(
   const whiteContrast = hexContrastRatio(primaryHex, '#FFFFFF');
   return { background: primaryHex, text: blackContrast > whiteContrast ? '#000000' : '#FFFFFF' };
 }
+
+export function blendHsl(base: string, tint: string, tintOpacity: number): string {
+  const baseMatch = base.match(/hsl\(([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\)/);
+  if (!baseMatch) return base;
+  const [, baseH, baseS, baseL] = baseMatch.map(Number);
+
+  const tintHexMatch = tint.match(/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/);
+  if (!tintHexMatch) return base;
+  const [tr, tg, tb] = [tintHexMatch[1], tintHexMatch[2], tintHexMatch[3]].map((c) => parseInt(c, 16));
+
+  const c = (1 - Math.abs((2 * baseL) / 100 - 1)) * (baseS / 100);
+  const x = c * (1 - Math.abs(((baseH / 60) % 2) - 1));
+  const m = baseL / 100 - c / 2;
+  let [br, bg, bb] = [0, 0, 0];
+  if (baseH < 60) [br, bg, bb] = [c, x, 0];
+  else if (baseH < 120) [br, bg, bb] = [x, c, 0];
+  else if (baseH < 180) [br, bg, bb] = [0, c, x];
+  else if (baseH < 240) [br, bg, bb] = [0, x, c];
+  else if (baseH < 300) [br, bg, bb] = [x, 0, c];
+  else [br, bg, bb] = [c, 0, x];
+  [br, bg, bb] = [(br + m) * 255, (bg + m) * 255, (bb + m) * 255];
+
+  const r = Math.round(br * (1 - tintOpacity) + tr * tintOpacity);
+  const g = Math.round(bg * (1 - tintOpacity) + tg * tintOpacity);
+  const b = Math.round(bb * (1 - tintOpacity) + tb * tintOpacity);
+
+  return `rgb(${r}, ${g}, ${b})`;
+}

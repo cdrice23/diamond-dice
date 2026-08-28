@@ -4,7 +4,6 @@ import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
 import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
 import { PlayerDetailAwardsCard } from '@/components/player-database/components/player-detail-awards-card.component';
-import { PlayerDetailBackButton } from '@/components/player-database/components/player-detail-back-button.component';
 import { PlayerDetailBattingStatsCard } from '@/components/player-database/components/player-detail-batting-stats-card.component';
 import { PlayerDetailBioCard } from '@/components/player-database/components/player-detail-bio-card.component';
 import { HEIGHT_COLLAPSE_DISTANCE, PlayerDetailHeader } from '@/components/player-database/components/player-detail-header.component';
@@ -13,6 +12,7 @@ import { PlayerDetailStatCurveCard } from '@/components/player-database/componen
 import { PlayerDetailTeamHistoryCard } from '@/components/player-database/components/player-detail-team-history-card.component';
 import { usePlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
 import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
+import { ScreenDetailBackButton } from '@/components/primitives/screen-detail-back-button.component';
 import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -82,7 +82,7 @@ export default function PlayerDetailScreen() {
     return (
       <View className="bg-background flex-1 items-center justify-center gap-4 px-8">
         <Text className="text-foreground text-center text-xl font-semibold">Player not found</Text>
-        <PlayerDetailBackButton />
+        <ScreenDetailBackButton />
       </View>
     );
   }
@@ -141,7 +141,7 @@ export default function PlayerDetailScreen() {
             style={{ top: headerTopOffset, zIndex: 10 }}
           >
             <View className="gap-3" style={{ backgroundColor: colors.muted, zIndex: 2 }}>
-              <PlayerDetailBackButton />
+              <ScreenDetailBackButton />
               <PlayerDetailHeader player={player} scrollY={scrollY} />
             </View>
 
