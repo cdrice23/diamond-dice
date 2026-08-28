@@ -1,8 +1,8 @@
 import { adjustHslLightness } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
-import { memo, useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { View } from 'react-native';
-import Svg, { Circle, Defs, Line, Mask, Path, Polygon, Rect } from 'react-native-svg';
+import Svg, { Circle, ClipPath, Defs, Line, Mask, Path, Polygon, Rect, Image as SvgImage } from 'react-native-svg';
 import { PositionLevels } from '../teams.types';
 
 function bezierExtremeY(p0: { x: number; y: number }, p1: { x: number; y: number }, p2: { x: number; y: number }) {
@@ -300,22 +300,116 @@ function renderPositionMarker(
   );
 }
 
+export type PositionPlayerRef = {
+  id: string;
+  image_url: string | null;
+};
+
+const AVATAR_MARKER_WIDTH = 24;
+const AVATAR_MARKER_ASPECT_RATIO = 0.8;
+const AVATAR_MARKER_HEIGHT = AVATAR_MARKER_WIDTH / AVATAR_MARKER_ASPECT_RATIO;
+const AVATAR_MARKER_CORNER_RADIUS = 3;
+const UNDERLINE_MARGIN_TOP = 4;
+const UNDERLINE_HEIGHT = 3;
+const UNDERLINE_CORNER_RADIUS = 1;
+
+function renderAvatarMarker(
+  point: { x: number; y: number },
+  level: number | null,
+  playerRef: PositionPlayerRef | null,
+  colors: ReturnType<typeof useTheme>['colors'],
+  key: string
+) {
+  const clipId = `avatar-clip-${key}`;
+  const hasImage = Boolean(playerRef?.image_url);
+  const x = point.x - AVATAR_MARKER_WIDTH / 2;
+  const y = point.y - AVATAR_MARKER_HEIGHT / 2;
+  const underlineY = y + AVATAR_MARKER_HEIGHT + UNDERLINE_MARGIN_TOP;
+
+  if (!hasImage) {
+    return (
+      <React.Fragment key={key}>
+        <Rect x={x} y={y} width={AVATAR_MARKER_WIDTH} height={AVATAR_MARKER_HEIGHT} rx={AVATAR_MARKER_CORNER_RADIUS} fill={colors.muted} />
+        <Rect
+          x={x}
+          y={underlineY}
+          width={AVATAR_MARKER_WIDTH}
+          height={UNDERLINE_HEIGHT}
+          rx={UNDERLINE_CORNER_RADIUS}
+          fill={levelColor(level, colors)}
+        />
+      </React.Fragment>
+    );
+  }
+
+  return (
+    <React.Fragment key={key}>
+      <Defs>
+        <ClipPath id={clipId}>
+          <Rect x={x} y={y} width={AVATAR_MARKER_WIDTH} height={AVATAR_MARKER_HEIGHT} rx={AVATAR_MARKER_CORNER_RADIUS} />
+        </ClipPath>
+      </Defs>
+      <SvgImage
+        x={x}
+        y={y}
+        width={AVATAR_MARKER_WIDTH}
+        height={AVATAR_MARKER_HEIGHT}
+        href={{ uri: playerRef!.image_url! }}
+        preserveAspectRatio="xMidYMid slice"
+        clipPath={`url(#${clipId})`}
+      />
+      <Rect
+        x={x}
+        y={underlineY}
+        width={AVATAR_MARKER_WIDTH}
+        height={UNDERLINE_HEIGHT}
+        rx={UNDERLINE_CORNER_RADIUS}
+        fill={levelColor(level, colors)}
+      />
+    </React.Fragment>
+  );
+}
+
 type TeamDiamondPositionsProps = {
   positions: PositionLevels;
   pitcherLevels: (number | null)[];
   width: number;
+  viewMode?: 'color' | 'avatar';
+  showPitchers?: boolean;
+  positionPlayerRefs?: {
+    C: PositionPlayerRef | null;
+    '1B': PositionPlayerRef | null;
+    '2B': PositionPlayerRef | null;
+    SS: PositionPlayerRef | null;
+    '3B': PositionPlayerRef | null;
+    OF: (PositionPlayerRef | null)[];
+  };
 };
 
 export const TeamDiamondPositions = memo(function TeamDiamondPositions({
   positions,
   pitcherLevels,
   width,
+  viewMode = 'color',
+  showPitchers = true,
+  positionPlayerRefs,
 }: TeamDiamondPositionsProps) {
   const { colors, colorScheme } = useTheme();
   const dirtColor = adjustHslLightness(colors.muted, colorScheme === 'dark' ? 12 : -18);
 
   const outfielders = useMemo(() => outfielderMarkers(positions.OF.length), [positions.OF.length]);
   const pitchers = useMemo(() => pitcherMarkers(pitcherLevels), [pitcherLevels]);
+
+  function renderMarker(
+    point: { x: number; y: number },
+    level: number | null,
+    playerRef: PositionPlayerRef | null,
+    key: string
+  ) {
+    return viewMode === 'avatar'
+      ? renderAvatarMarker(point, level, playerRef, colors, key)
+      : renderPositionMarker(point, level, colors, key);
+  }
 
   return (
     <View style={{ width, aspectRatio: VIEWBOX_WIDTH / VIEWBOX_HEIGHT }}>
@@ -353,13 +447,15 @@ export const TeamDiamondPositions = memo(function TeamDiamondPositions({
         <Polygon points={THIRD_BASE_POINTS} fill={colors.primary} />
         <Polygon points={HOME_PLATE_POINTS} fill={colors.primary} />
 
-        {renderPositionMarker(CATCHER_MARKER, positions.C, colors, 'c')}
-        {renderPositionMarker(FIRST_BASE_MARKER, positions['1B'], colors, '1b')}
-        {renderPositionMarker(SECOND_BASE_MARKER, positions['2B'], colors, '2b')}
-        {renderPositionMarker(SHORTSTOP_MARKER, positions.SS, colors, 'ss')}
-        {renderPositionMarker(THIRD_BASE_MARKER, positions['3B'], colors, '3b')}
-        {outfielders.map((point, i) => renderPositionMarker(point, positions.OF[i], colors, `of-${i}`))}
-        {pitchers.map(({ point, level }, i) => renderPositionMarker(point, level, colors, `p-${i}`))}
+        {renderMarker(CATCHER_MARKER, positions.C, positionPlayerRefs?.C ?? null, 'c')}
+        {renderMarker(FIRST_BASE_MARKER, positions['1B'], positionPlayerRefs?.['1B'] ?? null, '1b')}
+        {renderMarker(SECOND_BASE_MARKER, positions['2B'], positionPlayerRefs?.['2B'] ?? null, '2b')}
+        {renderMarker(SHORTSTOP_MARKER, positions.SS, positionPlayerRefs?.SS ?? null, 'ss')}
+        {renderMarker(THIRD_BASE_MARKER, positions['3B'], positionPlayerRefs?.['3B'] ?? null, '3b')}
+        {outfielders.map((point, i) =>
+          renderMarker(point, positions.OF[i], positionPlayerRefs?.OF[i] ?? null, `of-${i}`)
+        )}
+        {showPitchers && pitchers.map(({ point, level }, i) => renderPositionMarker(point, level, colors, `p-${i}`))}
       </Svg>
     </View>
   );

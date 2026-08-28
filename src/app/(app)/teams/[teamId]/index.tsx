@@ -7,10 +7,12 @@ import { TeamDetailPitchersCard } from '@/components/teams/components/team-detai
 import { TeamDetailPositionPlayersCard } from '@/components/teams/components/team-detail-position-players-card.component';
 import { TeamDetailRecentGamesCard } from '@/components/teams/components/team-detail-recent-games-card.component';
 import { TeamDetailStatsCard } from '@/components/teams/components/team-detail-stats-card.component';
+import { type TeamDetailViewMode } from '@/components/teams/components/team-detail-view-toggle.component';
 import { MOCK_TEAM_DETAIL } from '@/components/teams/teams.mock';
 import { resolveTeamHeaderColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,6 +28,7 @@ export default function TeamDetailScreen() {
   const { height: screenHeight } = useWindowDimensions();
 
   const team = MOCK_TEAM_DETAIL;
+  const [viewMode, setViewMode] = useState<TeamDetailViewMode>('list');
 
   const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
   const { background: bandColor, text: bandTextColor } = resolveTeamHeaderColors(
@@ -57,7 +60,12 @@ export default function TeamDetailScreen() {
 
       <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
         <ScrollView className="flex-1" contentContainerStyle={{ gap: 16, paddingTop: 32, paddingBottom: 24 }}>
-          <TeamDetailPositionPlayersCard positionPlayers={team.position_players} bandColor={bandColor} textColor={bandTextColor} />
+          <TeamDetailPositionPlayersCard
+            positionPlayers={team.position_players}
+            pitchers={team.pitchers}
+            bandColor={bandColor}
+            textColor={bandTextColor}
+          />
           <TeamDetailPitchersCard pitchers={team.pitchers} bandColor={bandColor} textColor={bandTextColor} />
           <TeamDetailRecentGamesCard games={team.recent_games} bandColor={bandColor} textColor={bandTextColor} />
           <TeamDetailStatsCard wins={team.wins} losses={team.losses} gamesPlayed={team.games_played} bandColor={bandColor} textColor={bandTextColor} />
