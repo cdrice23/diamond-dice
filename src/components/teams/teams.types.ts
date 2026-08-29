@@ -73,3 +73,54 @@ export type TeamDetail = {
   pitchers: TeamDetailPitcherSlot[];
   recent_games: TeamDetailRecentGame[];
 };
+
+export type TeamWizardPath = 'scratch' | 'random';
+
+export type TeamWizardStep =
+  | 'entry'
+  | 'basicInfo'
+  | 'format'
+  | 'randomFilters'
+  | 'randomReview'
+  | 'slots'
+  | 'battingOrder'
+  | 'review';
+
+export type WizardPositionSlot = {
+  position: string;
+  playerId: string | null;
+  playerName: string | null;
+  playerImageUrl: string | null;
+  eligiblePositions: string[];
+  level: number | null;
+};
+
+export type WizardPitcherSlot = {
+  playerId: string | null;
+  playerName: string | null;
+  playerImageUrl: string | null;
+  eligiblePositions: string[];
+  level: number | null;
+};
+
+export type TeamWizardState = {
+  path: TeamWizardPath | null;
+  step: TeamWizardStep;
+  teamName: string;
+  homeFieldName: string;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  formatId: string | null;
+  formatName: string | null;
+  randomFilters: {
+    mlbTeamIds: string[];
+    debutYearFrom: number | null;
+    debutYearTo: number | null;
+    awardGroupLabels: string[];
+  };
+  positionSlots: WizardPositionSlot[];
+  pitcherSlots: WizardPitcherSlot[];
+  battingOrder: number[];
+  validationErrors: string[];
+  customColorSwatches: string[];
+};

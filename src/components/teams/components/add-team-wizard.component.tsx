@@ -1,0 +1,81 @@
+import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
+import { useNavLayout } from '@/components/navigation/nav-layout.context';
+import { Text } from '@/components/primitives/text.component';
+import { useTheme } from '@/utils/theme-provider';
+import type { ReactNode } from 'react';
+import { Pressable, View, useWindowDimensions } from 'react-native';
+
+type AddTeamWizardProps = {
+  onCancel: () => void;
+  onBack: (() => void) | null;
+  onConfirm: (() => void) | null;
+  confirmLabel?: string;
+  confirmDisabled?: boolean;
+  showBottomBar?: boolean;
+  children: ReactNode;
+};
+
+const NAV_CLEARANCE_EXTRA = 16;
+
+export function AddTeamWizard({
+  onCancel,
+  onBack,
+  onConfirm,
+  confirmLabel = 'Confirm',
+  confirmDisabled = false,
+  showBottomBar = true,
+  children,
+}: AddTeamWizardProps) {
+  const { colors } = useTheme();
+  const { navTopY } = useNavLayout();
+  const { height: screenHeight } = useWindowDimensions();
+
+  const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
+
+      <View className="px-4 pb-2 pt-20">
+        <Text className="text-foreground text-3xl font-bold">New Team</Text>
+      </View>
+
+      <View style={{ flex: 1, paddingBottom: showBottomBar ? 0 : navClearance }}>{children}</View>
+
+      {showBottomBar && (
+        <View style={{ paddingBottom: navClearance }} className="gap-2 px-4 pt-3">
+          <View className="flex-row gap-3">
+            {onBack ? (
+              <Pressable
+                onPress={onBack}
+                className="flex-1 items-center justify-center rounded-sm border-2 py-3 active:opacity-70"
+                style={{ borderColor: colors.primary }}
+              >
+                <Text style={{ color: colors.primary }} className="text-lg font-semibold">
+                  Back
+                </Text>
+              </Pressable>
+            ) : (
+              <View className="flex-1" />
+            )}
+            {onConfirm && (
+              <Pressable
+                onPress={onConfirm}
+                disabled={confirmDisabled}
+                className="flex-1 items-center justify-center rounded-sm py-3 active:opacity-70"
+                style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1 }}
+              >
+                <Text className="text-lg font-semibold text-white">{confirmLabel}</Text>
+              </Pressable>
+            )}
+          </View>
+          <Pressable onPress={onCancel} className="items-center rounded-sm py-2.5 active:opacity-60" style={{ backgroundColor: colors.muted }}>
+            <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+              Cancel
+            </Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+}
