@@ -1,3 +1,5 @@
+import { useTheme } from "./theme-provider";
+
 export function adjustHslLightness(hsl: string, deltaPercent: number): string {
   const match = hsl.match(/hsl\(([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\)/);
   if (!match) return hsl;
@@ -99,4 +101,11 @@ export function blendHsl(base: string, tint: string, tintOpacity: number): strin
   const b = Math.round(bb * (1 - tintOpacity) + tb * tintOpacity);
 
   return `rgb(${r}, ${g}, ${b})`;
+}
+
+export function levelColor(level: number | null, colors: ReturnType<typeof useTheme>['colors']): string {
+  if (level === 1) return colors.level1;
+  if (level === 2) return colors.level2;
+  if (level === 3) return colors.level3;
+  return colors.muted;
 }

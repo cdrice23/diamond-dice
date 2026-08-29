@@ -1,5 +1,5 @@
 import type { PlayerType } from '@/components/player-database/player-database.types';
-import { adjustHslAlpha } from '@/utils/color';
+import { adjustHslAlpha, levelColor } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
@@ -31,12 +31,6 @@ export function PlayerDatabaseLevelFilterGroup({
     );
   }
 
-  function levelColor(level: 1 | 2 | 3): string {
-    if (level === 1) return colors.level1;
-    if (level === 2) return colors.level2;
-    return colors.level3;
-  }
-
   return (
     <View className="flex-row gap-2 px-4">
       <View style={{ flex: 1 }}>
@@ -45,7 +39,7 @@ export function PlayerDatabaseLevelFilterGroup({
 
       {LEVELS.map((level) => {
         const isOn = ratingLevels.includes(level);
-        const color = levelColor(level);
+        const color = levelColor(level, colors);
         return (
           <View key={level} style={{ flex: 1 }}>
             <PlayerDatabaseFilterChipButton

@@ -2,6 +2,7 @@ import { PixelIcon } from '@/components/branding/components/pixel-icon.component
 import type { PlayerDetail } from '@/components/player-database/hooks/use-player-detail.hook';
 import { Chip } from '@/components/primitives/chip.component';
 import { Skeleton } from '@/components/primitives/skeleton.component';
+import { levelColor } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { Image as ExpoImage } from 'expo-image';
 import { useState } from 'react';
@@ -39,13 +40,6 @@ function resolveEffectiveRoles(player: PlayerDetail) {
     player.eligible_positions.some((position) => position !== 'P') && player.is_qualified_batter;
 
   return { isEffectiveBatter, isEffectivePitcher, isTwoWay: isEffectiveBatter && isEffectivePitcher };
-}
-
-function levelColor(level: number | null, colors: ReturnType<typeof useTheme>['colors']): string {
-  if (level === 1) return colors.level1;
-  if (level === 2) return colors.level2;
-  if (level === 3) return colors.level3;
-  return colors.muted;
 }
 
 function PositionsRow({ positions, scrollY }: { positions: string[]; scrollY: SharedValue<number> }) {

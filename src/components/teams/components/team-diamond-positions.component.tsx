@@ -1,4 +1,4 @@
-import { adjustHslLightness } from '@/utils/color';
+import { adjustHslLightness, levelColor } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import React, { memo, useMemo } from 'react';
 import { View } from 'react-native';
@@ -243,13 +243,6 @@ function outfielderMarkers(count: number) {
     markers.push(quadraticBezierPoint(OF_ARC_LEFT, OF_ARC_CONTROL, OF_ARC_RIGHT, t));
   }
   return markers;
-}
-
-function levelColor(level: number | null, colors: ReturnType<typeof useTheme>['colors']) {
-  if (level === 1) return colors.level1;
-  if (level === 2) return colors.level2;
-  if (level === 3) return colors.level3;
-  return colors.muted;
 }
 
 const PITCHER_ROW_GAP = 90;

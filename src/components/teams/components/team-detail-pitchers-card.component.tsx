@@ -4,6 +4,7 @@ import { Chip } from '@/components/primitives/chip.component';
 import { Text } from '@/components/primitives/text.component';
 import { PlayerAvatar } from '@/components/profile/components/player-avatar.component';
 import { TeamDetailCardHeader } from '@/components/teams/components/team-detail-card-header.component';
+import { levelColor } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
@@ -17,13 +18,6 @@ type TeamDetailPitchersCardProps = {
   bandColor: string;
   textColor: string;
 };
-
-function levelColor(level: number | null, colors: ReturnType<typeof useTheme>['colors']): string {
-  if (level === 1) return colors.level1;
-  if (level === 2) return colors.level2;
-  if (level === 3) return colors.level3;
-  return colors.muted;
-}
 
 function PitcherRow({ slot, index }: { slot: TeamDetailPitcherSlot; index: number }) {
   const { colors } = useTheme();

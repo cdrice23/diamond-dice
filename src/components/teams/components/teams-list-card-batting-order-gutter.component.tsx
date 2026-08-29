@@ -1,6 +1,7 @@
 import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { Text } from '@/components/primitives/text.component';
 import type { BattingOrderSlot } from '@/components/teams/teams.types';
+import { levelColor } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { View } from 'react-native';
 
@@ -14,13 +15,6 @@ const ACCENT_TO_POSITION_GAP = 6;
 type TeamsListCardBattingOrderGutterProps = {
   battingOrder: BattingOrderSlot[];
 };
-
-function levelColor(level: number | null, colors: ReturnType<typeof useTheme>['colors']) {
-  if (level === 1) return colors.level1;
-  if (level === 2) return colors.level2;
-  if (level === 3) return colors.level3;
-  return colors.muted;
-}
 
 export function TeamsListCardBattingOrderGutter({ battingOrder }: TeamsListCardBattingOrderGutterProps) {
   const { colors } = useTheme();

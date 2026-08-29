@@ -6,6 +6,7 @@ import { PlayerAvatar } from '@/components/profile/components/player-avatar.comp
 import { TeamDetailCardHeader } from '@/components/teams/components/team-detail-card-header.component';
 import { TeamDetailViewToggle, type TeamDetailViewMode } from '@/components/teams/components/team-detail-view-toggle.component';
 import { TeamDiamondPositions, type PositionPlayerRef } from '@/components/teams/components/team-diamond-positions.component';
+import { levelColor } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -22,13 +23,6 @@ type TeamDetailPositionPlayersCardProps = {
   bandColor: string;
   textColor: string;
 };
-
-function levelColor(level: number | null, colors: ReturnType<typeof useTheme>['colors']): string {
-  if (level === 1) return colors.level1;
-  if (level === 2) return colors.level2;
-  if (level === 3) return colors.level3;
-  return colors.muted;
-}
 
 function BattingOrderBox({ battingOrder }: { battingOrder: number | null }) {
   const height = AVATAR_WIDTH / AVATAR_ASPECT_RATIO;
