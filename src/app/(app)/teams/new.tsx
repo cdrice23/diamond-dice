@@ -2,6 +2,7 @@ import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-bas
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { useTeamWizard } from '@/components/teams/hooks/use-team-wizard.hook';
+import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-team-basic-info.hook';
 import type { TeamWizardState } from '@/components/teams/teams.types';
 import { useRouter } from 'expo-router';
 
@@ -18,10 +19,18 @@ function isBasicInfoValid(state: TeamWizardState): boolean {
 export default function AddTeamScreen() {
   const router = useRouter();
   const { state, dispatch } = useTeamWizard();
+  const { validateBasicInfo, errors: basicInfoErrors, checking: checkingBasicInfo } = useValidateTeamBasicInfo();
 
   function handleChoosePath(path: 'scratch' | 'random') {
     dispatch({ type: 'SET_PATH', path });
     dispatch({ type: 'GO_TO_STEP', step: path === 'scratch' ? 'basicInfo' : 'format' });
+  }
+
+  async function handleBasicInfoConfirm() {
+    const isValid = await validateBasicInfo(state.teamName, state.homeFieldName);
+    if (isValid) {
+      dispatch({ type: 'GO_TO_STEP', step: 'format' });
+    }
   }
 
   if (state.step === 'entry') {
@@ -33,32 +42,34 @@ export default function AddTeamScreen() {
   }
 
   if (state.step === 'basicInfo') {
-  return (
-    <AddTeamWizard
-      onCancel={() => router.replace('/teams')}
-      onBack={() => {
-        dispatch({ type: 'RESET_BASIC_INFO' });
-        dispatch({ type: 'GO_TO_STEP', step: 'entry' });
-      }}
-      onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'format' })}
-      confirmDisabled={!isBasicInfoValid(state)}
-    >
-      <AddTeamBasicInfoStep
-        teamName={state.teamName}
-        homeFieldName={state.homeFieldName}
-        primaryColor={state.primaryColor}
-        secondaryColor={state.secondaryColor}
-        customColorSwatches={state.customColorSwatches}
-        onTeamNameChange={(value) => dispatch({ type: 'SET_TEAM_NAME', value })}
-        onHomeFieldNameChange={(value) => dispatch({ type: 'SET_HOME_FIELD_NAME', value })}
-        onPrimaryColorChange={(value) => dispatch({ type: 'SET_PRIMARY_COLOR', value })}
-        onSecondaryColorChange={(value) => dispatch({ type: 'SET_SECONDARY_COLOR', value })}
-        onAddCustomSwatch={(hex) => dispatch({ type: 'ADD_CUSTOM_SWATCH', hex })}
-        onUpdateCustomSwatch={(index, hex) => dispatch({ type: 'UPDATE_CUSTOM_SWATCH', index, hex })}
-      />
-    </AddTeamWizard>
-  );
-}
+    return (
+      <AddTeamWizard
+        onCancel={() => router.replace('/teams')}
+        onBack={() => {
+          dispatch({ type: 'RESET_BASIC_INFO' });
+          dispatch({ type: 'GO_TO_STEP', step: 'entry' });
+        }}
+        onConfirm={handleBasicInfoConfirm}
+        confirmDisabled={!isBasicInfoValid(state) || checkingBasicInfo}
+        confirmLabel={checkingBasicInfo ? 'Checking...' : 'Confirm'}
+      >
+        <AddTeamBasicInfoStep
+          teamName={state.teamName}
+          homeFieldName={state.homeFieldName}
+          primaryColor={state.primaryColor}
+          secondaryColor={state.secondaryColor}
+          customColorSwatches={state.customColorSwatches}
+          fieldErrors={basicInfoErrors}
+          onTeamNameChange={(value) => dispatch({ type: 'SET_TEAM_NAME', value })}
+          onHomeFieldNameChange={(value) => dispatch({ type: 'SET_HOME_FIELD_NAME', value })}
+          onPrimaryColorChange={(value) => dispatch({ type: 'SET_PRIMARY_COLOR', value })}
+          onSecondaryColorChange={(value) => dispatch({ type: 'SET_SECONDARY_COLOR', value })}
+          onAddCustomSwatch={(hex) => dispatch({ type: 'ADD_CUSTOM_SWATCH', hex })}
+          onUpdateCustomSwatch={(index, hex) => dispatch({ type: 'UPDATE_CUSTOM_SWATCH', index, hex })}
+        />
+      </AddTeamWizard>
+    );
+  }
 
   return (
     <AddTeamWizard onCancel={() => router.replace('/teams')} onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'basicInfo' })} onConfirm={null}>

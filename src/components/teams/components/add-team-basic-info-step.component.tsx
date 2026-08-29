@@ -11,6 +11,7 @@ type AddTeamBasicInfoStepProps = {
   primaryColor: string | null;
   secondaryColor: string | null;
   customColorSwatches: string[];
+  fieldErrors: { team_name?: string; home_field_name?: string };
   onTeamNameChange: (value: string) => void;
   onHomeFieldNameChange: (value: string) => void;
   onPrimaryColorChange: (value: string) => void;
@@ -25,6 +26,7 @@ export function AddTeamBasicInfoStep({
   primaryColor,
   secondaryColor,
   customColorSwatches,
+  fieldErrors,
   onTeamNameChange,
   onHomeFieldNameChange,
   onPrimaryColorChange,
@@ -44,12 +46,20 @@ export function AddTeamBasicInfoStep({
     <View className="flex-1 gap-6 px-4">
       <View className="gap-2">
         <Text className="text-foreground text-base font-semibold">Team Name</Text>
-        <Input value={teamName} onChangeText={onTeamNameChange} placeholder="e.g. Riverside Ramblers" maxLength={30} />
+        <Input value={teamName} onChangeText={onTeamNameChange} placeholder="e.g. Riverside Ramblers" maxLength={30} error={!!fieldErrors.team_name} />
+        {fieldErrors.team_name && <Text className="text-destructive text-sm">{fieldErrors.team_name}</Text>}
       </View>
 
       <View className="gap-2">
         <Text className="text-foreground text-base font-semibold">Home Field</Text>
-        <Input value={homeFieldName} onChangeText={onHomeFieldNameChange} placeholder="e.g. Elm Street Diamond" maxLength={30} />
+        <Input
+          value={homeFieldName}
+          onChangeText={onHomeFieldNameChange}
+          placeholder="e.g. Elm Street Diamond"
+          maxLength={30}
+          error={!!fieldErrors.home_field_name}
+        />
+        {fieldErrors.home_field_name && <Text className="text-destructive text-sm">{fieldErrors.home_field_name}</Text>}
       </View>
 
       <View className="gap-2">

@@ -49,30 +49,22 @@ Deno.serve(async (req) => {
     const trimmedTeamName = team_name.trim();
     const trimmedHomeFieldName = home_field_name.trim();
 
+    const fieldErrors: Record<string, { code: string; message: string }> = {};
+
     if (trimmedTeamName.length < 1 || trimmedTeamName.length > TEAM_NAME_MAX_LENGTH) {
-      return jsonResponse(
-        { error: { code: 'team_name_invalid_length', field: 'team_name', message: `Team name must be 1-${TEAM_NAME_MAX_LENGTH} characters.` } },
-        400
-      );
-    }
-    if (trimmedHomeFieldName.length < 1 || trimmedHomeFieldName.length > HOME_FIELD_NAME_MAX_LENGTH) {
-      return jsonResponse(
-        { error: { code: 'home_field_name_invalid_length', field: 'home_field_name', message: `Home field name must be 1-${HOME_FIELD_NAME_MAX_LENGTH} characters.` } },
-        400
-      );
+      fieldErrors.team_name = { code: 'team_name_invalid_length', message: `Team name must be 1-${TEAM_NAME_MAX_LENGTH} characters.` };
+    } else if (containsProfanity(trimmedTeamName)) {
+      fieldErrors.team_name = { code: 'team_name_flagged', message: 'Team name contains disallowed content.' };
     }
 
-    if (containsProfanity(trimmedTeamName)) {
-      return jsonResponse(
-        { error: { code: 'team_name_flagged', field: 'team_name', message: 'Team name contains disallowed content.' } },
-        400
-      );
+    if (trimmedHomeFieldName.length < 1 || trimmedHomeFieldName.length > HOME_FIELD_NAME_MAX_LENGTH) {
+      fieldErrors.home_field_name = { code: 'home_field_name_invalid_length', message: `Home field name must be 1-${HOME_FIELD_NAME_MAX_LENGTH} characters.` };
+    } else if (containsProfanity(trimmedHomeFieldName)) {
+      fieldErrors.home_field_name = { code: 'home_field_name_flagged', message: 'Home field name contains disallowed content.' };
     }
-    if (containsProfanity(trimmedHomeFieldName)) {
-      return jsonResponse(
-        { error: { code: 'home_field_name_flagged', field: 'home_field_name', message: 'Home field name contains disallowed content.' } },
-        400
-      );
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return jsonResponse({ errors: fieldErrors }, 400);
     }
 
     const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, SECRET_KEY);
@@ -91,7 +83,7 @@ Deno.serve(async (req) => {
 
     if (existing) {
       return jsonResponse(
-        { error: { code: 'team_name_taken', field: 'team_name', message: 'You already have a team with this name.' } },
+        { errors: { team_name: { code: 'team_name_taken', message: 'You already have a team with this name.' } } },
         409
       );
     }
