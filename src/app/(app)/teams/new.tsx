@@ -1,5 +1,6 @@
 import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-basic-info-step.component';
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
+import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { useTeamWizard } from '@/components/teams/hooks/use-team-wizard.hook';
 import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-team-basic-info.hook';
@@ -66,6 +67,28 @@ export default function AddTeamScreen() {
           onSecondaryColorChange={(value) => dispatch({ type: 'SET_SECONDARY_COLOR', value })}
           onAddCustomSwatch={(hex) => dispatch({ type: 'ADD_CUSTOM_SWATCH', hex })}
           onUpdateCustomSwatch={(index, hex) => dispatch({ type: 'UPDATE_CUSTOM_SWATCH', index, hex })}
+        />
+      </AddTeamWizard>
+    );
+  }
+
+  if (state.step === 'format') {
+    return (
+      <AddTeamWizard
+        subtitle="Choose a Format"
+        helperText="Formats determine what level of gameplay you want to play with this team"
+        onCancel={() => router.replace('/teams')}
+        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'basicInfo' })}
+        onConfirm={() => {
+          /* validate-team-roster wiring comes next */
+        }}
+        confirmDisabled={!state.formatId}
+      >
+        <AddTeamFormatStep
+          formatId={state.formatId}
+          formatName={state.formatName}
+          onSelectFormat={(formatId, formatName) => dispatch({ type: 'SET_FORMAT', formatId, formatName })}
+          onPitcherSlotCountChange={(count) => dispatch({ type: 'SET_PITCHER_SLOT_COUNT', count })}
         />
       </AddTeamWizard>
     );

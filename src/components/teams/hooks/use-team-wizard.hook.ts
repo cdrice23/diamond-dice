@@ -43,7 +43,8 @@ type Action =
   | { type: 'ADD_CUSTOM_SWATCH'; hex: string }
   | { type: 'UPDATE_CUSTOM_SWATCH'; index: number; hex: string }
   | { type: 'RESET_BASIC_INFO' }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'SET_PITCHER_SLOT_COUNT'; count: number };
 
 function reducer(state: TeamWizardState, action: Action): TeamWizardState {
   switch (action.type) {
@@ -114,6 +115,13 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
         ...state,
         customColorSwatches: state.customColorSwatches.map((hex, i) => (i === action.index ? action.hex : hex)),
       };
+    case 'SET_PITCHER_SLOT_COUNT': {
+      const current = state.pitcherSlots;
+      if (action.count === current.length) return state;
+      const empty = { playerId: null, playerName: null, playerImageUrl: null, eligiblePositions: [], level: null };
+      const next = Array.from({ length: action.count }, (_, i) => current[i] ?? { ...empty });
+      return { ...state, pitcherSlots: next };
+    }
     default:
       return state;
   }

@@ -6,6 +6,8 @@ import type { ReactNode } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 
 type AddTeamWizardProps = {
+  subtitle?: string;
+  helperText?: string;
   onCancel: () => void;
   onBack: (() => void) | null;
   onConfirm: (() => void) | null;
@@ -24,6 +26,8 @@ export function AddTeamWizard({
   confirmLabel = 'Confirm',
   confirmDisabled = false,
   showBottomBar = true,
+  subtitle, 
+  helperText,
   children,
 }: AddTeamWizardProps) {
   const { colors } = useTheme();
@@ -36,8 +40,14 @@ export function AddTeamWizard({
     <View style={{ flex: 1 }}>
       <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
 
-      <View className="px-4 pb-2 pt-20">
+      <View className="gap-1 px-4 pb-2 pt-20">
         <Text className="text-foreground text-3xl font-bold">New Team</Text>
+        {subtitle && <Text className="text-foreground text-lg font-semibold">{subtitle}</Text>}
+        {helperText && (
+          <Text variant="muted" className="text-sm">
+            {helperText}
+          </Text>
+        )}
       </View>
 
       <View style={{ flex: 1, paddingBottom: showBottomBar ? 0 : navClearance }}>{children}</View>
