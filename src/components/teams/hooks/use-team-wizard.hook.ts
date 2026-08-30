@@ -42,8 +42,9 @@ type Action =
   | { type: 'RESET' }
   | { type: 'ADD_CUSTOM_SWATCH'; hex: string }
   | { type: 'UPDATE_CUSTOM_SWATCH'; index: number; hex: string }
-  | { type: 'RESET_BASIC_INFO' }
   | { type: 'RESET' }
+  | { type: 'RESET_BASIC_INFO' }
+  | { type: 'RESET_FORMAT' }
   | { type: 'SET_PITCHER_SLOT_COUNT'; count: number };
 
 function reducer(state: TeamWizardState, action: Action): TeamWizardState {
@@ -98,6 +99,8 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
       return { ...state, battingOrder: action.order };
     case 'SET_VALIDATION_ERRORS':
       return { ...state, validationErrors: action.errors };
+    case 'RESET':
+      return initialState();
     case 'RESET_BASIC_INFO':
       return {
         ...state,
@@ -106,8 +109,13 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
         primaryColor: null,
         secondaryColor: null,
       };
-    case 'RESET':
-      return initialState();
+    case 'RESET_FORMAT':
+      return {
+        ...state,
+        formatId: null,
+        formatName: null,
+        pitcherSlots: [],
+      };
     case 'ADD_CUSTOM_SWATCH':
       return { ...state, customColorSwatches: [...state.customColorSwatches, action.hex] };
     case 'UPDATE_CUSTOM_SWATCH':

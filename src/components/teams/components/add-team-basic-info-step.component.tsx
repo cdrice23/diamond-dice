@@ -3,7 +3,7 @@ import { Text } from '@/components/primitives/text.component';
 import { AddTeamColorPickerModal } from '@/components/teams/components/add-team-color-picker-modal.component';
 import { AddTeamColorSwatch } from '@/components/teams/components/add-team-color-swatch.component';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Keyboard, View } from 'react-native';
 
 type AddTeamBasicInfoStepProps = {
   teamName: string;
@@ -42,6 +42,11 @@ export function AddTeamBasicInfoStep({
     setActiveSwatch(null);
   }
 
+  function openColorPicker(target: 'primary' | 'secondary') {
+    Keyboard.dismiss();
+    setActiveSwatch(target);
+  }
+
   return (
     <View className="flex-1 gap-6 px-4">
       <View className="gap-2">
@@ -65,8 +70,8 @@ export function AddTeamBasicInfoStep({
       <View className="gap-2">
         <Text className="text-foreground text-base font-semibold">Team Colors</Text>
         <View className="flex-row">
-          <AddTeamColorSwatch label="Primary" color={primaryColor} onPress={() => setActiveSwatch('primary')} />
-          <AddTeamColorSwatch label="Secondary" color={secondaryColor} onPress={() => setActiveSwatch('secondary')} />
+          <AddTeamColorSwatch label="Primary" color={primaryColor} onPress={() => openColorPicker('primary')} />
+          <AddTeamColorSwatch label="Secondary" color={secondaryColor} onPress={() => openColorPicker('secondary')} />
         </View>
       </View>
 

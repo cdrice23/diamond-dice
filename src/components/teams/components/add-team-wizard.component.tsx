@@ -2,6 +2,7 @@ import { BandedScreenBackdrop } from '@/components/navigation/components/banded-
 import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { Text } from '@/components/primitives/text.component';
 import { useTheme } from '@/utils/theme-provider';
+import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 
@@ -58,22 +59,23 @@ export function AddTeamWizard({
             {onBack ? (
               <Pressable
                 onPress={onBack}
-                className="flex-1 items-center justify-center rounded-sm border-2 py-3 active:opacity-70"
-                style={{ borderColor: colors.primary }}
+                className="flex-row items-center justify-center gap-1 rounded-sm py-3 active:opacity-60"
+                style={{ backgroundColor: colors.muted, flex: 1 }}
               >
-                <Text style={{ color: colors.primary }} className="text-lg font-semibold">
+                <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
+                <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
                   Back
                 </Text>
               </Pressable>
             ) : (
-              <View className="flex-1" />
+              <View style={{ flex: 1 }} />
             )}
             {onConfirm && (
               <Pressable
                 onPress={onConfirm}
                 disabled={confirmDisabled}
-                className="flex-1 items-center justify-center rounded-sm py-3 active:opacity-70"
-                style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1 }}
+                className="items-center justify-center rounded-sm py-3 active:opacity-70"
+                style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1, flex: 2 }}
               >
                 <Text className="text-lg font-semibold text-white">{confirmLabel}</Text>
               </Pressable>

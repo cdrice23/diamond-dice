@@ -78,7 +78,10 @@ export default function AddTeamScreen() {
         subtitle="Choose a Format"
         helperText="Formats determine what level of gameplay you want to play with this team"
         onCancel={() => router.replace('/teams')}
-        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'basicInfo' })}
+        onBack={() => {
+          dispatch({ type: 'RESET_FORMAT' });
+          dispatch({ type: 'GO_TO_STEP', step: 'basicInfo' });
+        }}
         onConfirm={() => {
           /* validate-team-roster wiring comes next */
         }}

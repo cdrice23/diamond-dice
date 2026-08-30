@@ -1,7 +1,11 @@
 import { supabase } from '@/utils/supabase';
 import { useEffect, useState } from 'react';
 
-export type FormatOption = { id: string; name: string };
+export type FormatOption = {
+  id: string;
+  name: string;
+  description: string | null;
+};
 
 export function useFormats() {
   const [formats, setFormats] = useState<FormatOption[]>([]);
@@ -11,9 +15,19 @@ export function useFormats() {
     let isMounted = true;
 
     async function fetchFormats() {
-      const { data } = await supabase.from('formats').select('id, name').order('name');
+      const { data } = await supabase
+        .from('formats')
+        .select('id, name, team_format_description, display_order')
+        .order('display_order');
+
       if (isMounted) {
-        setFormats(data ?? []);
+        setFormats(
+          (data ?? []).map((row) => ({
+            id: row.id,
+            name: row.name,
+            description: row.team_format_description,
+          }))
+        );
         setLoading(false);
       }
     }
