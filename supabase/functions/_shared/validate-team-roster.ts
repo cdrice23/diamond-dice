@@ -83,7 +83,7 @@ export function computeRosterValidationErrors(
       errors.push({
         code: 'POSITION_COVERAGE_MISMATCH',
         player_type: 'batter',
-        message: `Requires ${range} ${slotPosition}, has ${actual}.`,
+        message: `Format requires ${range} ${slotPosition}, has ${actual}`,
       });
     }
   }
@@ -110,8 +110,8 @@ export function computeRosterValidationErrors(
         player_type: req.player_type,
         level: req.level_id ? (req.levels?.level ?? null) : null,
         message: req.level_id
-          ? `Requires ${range} Level ${req.levels?.level} ${req.player_type}(s), has ${actual}.`
-          : `Requires ${range} total ${req.player_type}(s), has ${actual}.`,
+          ? `Format requires ${range} Level ${req.levels?.level} ${req.player_type}(s), has ${actual}.`
+          : `Format requires ${range} total ${req.player_type}(s), has ${actual}.`,
       });
     }
   }

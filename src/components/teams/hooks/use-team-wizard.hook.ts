@@ -116,7 +116,6 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
         ...state,
         formatId: null,
         formatName: null,
-        pitcherSlots: [],
       };
     case 'ADD_CUSTOM_SWATCH':
       return { ...state, customColorSwatches: [...state.customColorSwatches, action.hex] };

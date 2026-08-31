@@ -12,7 +12,7 @@ import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useFormatRosterRequirements } from '../hooks/use-format-roster-requirements.hook';
 import type { WizardPitcherSlot, WizardPositionSlot } from '../teams.types';
 
@@ -44,9 +44,6 @@ function getExcludedPlayerIds(
     .filter((id): id is string => id !== null);
 }
 
-const ERROR_BANNER_BACKGROUND_ALPHA = 0.1;
-const ERROR_ICON_SIZE = 20;
-
 function ErrorBanner({ errors }: { errors: string[] }) {
   const { colors } = useTheme();
 
@@ -55,9 +52,9 @@ function ErrorBanner({ errors }: { errors: string[] }) {
   return (
     <View
       className="mb-3 flex-row gap-2.5 rounded-md p-3"
-      style={{ backgroundColor: adjustHslAlpha(colors.destructive, ERROR_BANNER_BACKGROUND_ALPHA), borderWidth: 1, borderColor: colors.destructive }}
+      style={{ backgroundColor: adjustHslAlpha(colors.destructive, 0.1), borderWidth: 1, borderColor: colors.destructive }}
     >
-      <MaterialCommunityIcons name="alert-circle-outline" size={ERROR_ICON_SIZE} color={colors.destructive} />
+      <MaterialCommunityIcons name="alert-circle-outline" size={20} color={colors.destructive} />
       <View className="flex-1 gap-1">
         {errors.map((error, index) => (
           <Text key={index} style={{ color: colors.destructive }} className="text-sm font-medium">
@@ -81,12 +78,9 @@ export function AddTeamRosterSlotsStep({
   onAddPitcherSlot,
   onRemovePitcherSlot,
 }: AddTeamRosterSlotsStepProps) {
-  const { colors } = useTheme();
   const [openSlot, setOpenSlot] = useState<OpenSlot | null>(null);
   const { requirements } = useFormatRosterRequirements(formatId);
-
   const pitcherRange = computePitcherSlotRange(requirements);
-  const canAddPitcherSlot = pitcherRange.max === null || pitcherSlots.length < pitcherRange.max;
 
   function handleSelectPlayer(player: PlayerDatabaseRowData) {
     if (!openSlot) return;
@@ -100,6 +94,9 @@ export function AddTeamRosterSlotsStep({
         level: player.batting_rating_level,
       });
     } else {
+      const willFillAllVisibleSlots = pitcherSlots.every((slot, i) => i === openSlot.slotIndex || slot.playerId !== null);
+      const canGrow = pitcherRange.max === null || pitcherSlots.length < pitcherRange.max;
+
       onAssignPitcherPlayer(openSlot.slotIndex, {
         playerId: player.id,
         playerName: player.name,
@@ -107,6 +104,10 @@ export function AddTeamRosterSlotsStep({
         eligiblePositions: player.eligible_positions,
         level: player.pitching_rating_level,
       });
+
+      if (willFillAllVisibleSlots && canGrow) {
+        onAddPitcherSlot();
+      }
     }
 
     setOpenSlot(null);
@@ -148,18 +149,6 @@ export function AddTeamRosterSlotsStep({
               />
             ))}
           </View>
-
-          {canAddPitcherSlot && (
-            <Pressable
-              onPress={onAddPitcherSlot}
-              className="border-border mt-4 flex-row items-center justify-center gap-1.5 rounded-md border border-dashed py-3 active:opacity-70"
-            >
-              <MaterialCommunityIcons name="plus" size={18} color={colors.mutedForeground} />
-              <Text variant="muted" className="text-base font-semibold">
-                Add Pitcher Slot
-              </Text>
-            </Pressable>
-          )}
         </Card>
       </ScrollView>
 

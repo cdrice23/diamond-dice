@@ -1,29 +1,19 @@
 import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamFormatCard } from '@/components/teams/components/add-team-format-card.component';
-import { useFormatPitcherCount } from '@/components/teams/hooks/use-format-pitcher-count.hook';
 import { useFormats } from '@/components/teams/hooks/use-formats.hook';
-import { useTheme } from '@/utils/theme-provider';
-import { useEffect } from 'react';
 import { ScrollView } from 'react-native';
+import { useFormatPitcherCounts } from '../hooks/user-format-pitcher-counts.hook';
 
 type AddTeamFormatStepProps = {
   formatId: string | null;
   formatName: string | null;
-  onSelectFormat: (formatId: string, formatName: string) => void;
-  onPitcherSlotCountChange: (count: number) => void;
+  onSelectFormat: (formatId: string, formatName: string, pitcherCount: number) => void;
 };
 
-export function AddTeamFormatStep({ formatId, formatName, onSelectFormat, onPitcherSlotCountChange }: AddTeamFormatStepProps) {
-  const { colors, colorScheme } = useTheme();
+export function AddTeamFormatStep({ formatId, formatName, onSelectFormat }: AddTeamFormatStepProps) {
   const { formats, loading } = useFormats();
-  const pitcherCount = useFormatPitcherCount(formatId);
-
-  useEffect(() => {
-    if (formatId) {
-      onPitcherSlotCountChange(pitcherCount);
-    }
-  }, [formatId, pitcherCount, onPitcherSlotCountChange]);
+  const { counts: pitcherCounts } = useFormatPitcherCounts();
 
   return (
     <ScrollView className="flex-1 px-4" contentContainerStyle={{ gap: 12, paddingBottom: 24 }}>
@@ -36,7 +26,7 @@ export function AddTeamFormatStep({ formatId, formatName, onSelectFormat, onPitc
               name={format.name}
               description={format.description ?? ''}
               isSelected={format.id === formatId}
-              onPress={() => onSelectFormat(format.id, format.name)}
+              onPress={() => onSelectFormat(format.id, format.name, pitcherCounts[format.id] ?? 0)}
             />
           </AnimatedCascadeItem>
         ))

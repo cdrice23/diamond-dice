@@ -31,7 +31,7 @@ export default function AddTeamScreen() {
   const router = useRouter();
   const { state, dispatch } = useTeamWizard();
   const { validateBasicInfo, errors: basicInfoErrors, checking: checkingBasicInfo } = useValidateTeamBasicInfo();
-  const { validateRosterDraft, errors: rosterErrors, checking: checkingRoster } = useValidateTeamRosterDraft();
+  const { validateRosterDraft, errors: rosterErrors, checking: checkingRoster, clearErrors: clearRosterErrors } = useValidateTeamRosterDraft();
 
   function handleChoosePath(path: 'scratch' | 'random') {
     dispatch({ type: 'SET_PATH', path });
@@ -43,6 +43,12 @@ export default function AddTeamScreen() {
     if (isValid) {
       dispatch({ type: 'GO_TO_STEP', step: 'format' });
     }
+  }
+
+  function handleSelectFormat(formatId: string, formatName: string, pitcherCount: number) {
+    dispatch({ type: 'SET_FORMAT', formatId, formatName });
+    dispatch({ type: 'SET_PITCHER_SLOT_COUNT', count: pitcherCount });
+    clearRosterErrors();
   }
 
   async function handleRosterConfirm() {
@@ -104,12 +110,7 @@ export default function AddTeamScreen() {
         onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })}
         confirmDisabled={!state.formatId}
       >
-        <AddTeamFormatStep
-          formatId={state.formatId}
-          formatName={state.formatName}
-          onSelectFormat={(formatId, formatName) => dispatch({ type: 'SET_FORMAT', formatId, formatName })}
-          onPitcherSlotCountChange={(count) => dispatch({ type: 'SET_PITCHER_SLOT_COUNT', count })}
-        />
+        <AddTeamFormatStep formatId={state.formatId} formatName={state.formatName} onSelectFormat={handleSelectFormat} />
       </AddTeamWizard>
     );
   }
@@ -136,6 +137,19 @@ export default function AddTeamScreen() {
           onAddPitcherSlot={() => dispatch({ type: 'ADD_PITCHER_SLOT' })}
           onRemovePitcherSlot={(slotIndex) => dispatch({ type: 'REMOVE_PITCHER_SLOT', slotIndex })}
         />
+      </AddTeamWizard>
+    );
+  }
+
+  if (state.step === 'battingOrder') {
+    return (
+      <AddTeamWizard
+        subtitle="Batting Order"
+        onCancel={() => router.replace('/teams')}
+        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })}
+        onConfirm={null}
+      >
+        <></>
       </AddTeamWizard>
     );
   }
