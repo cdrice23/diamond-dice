@@ -47,7 +47,9 @@ type Action =
   | { type: 'RESET_FORMAT' }
   | { type: 'SET_PITCHER_SLOT_COUNT'; count: number }
   | { type: 'ADD_PITCHER_SLOT' }
-  | { type: 'REMOVE_PITCHER_SLOT'; slotIndex: number };
+  | { type: 'REMOVE_PITCHER_SLOT'; slotIndex: number }
+  | { type: 'CLEAR_ALL_POSITION_PLAYERS' }
+  | { type: 'RESET_PITCHER_SLOTS'; count: number };
 
 function reducer(state: TeamWizardState, action: Action): TeamWizardState {
   switch (action.type) {
@@ -141,6 +143,22 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
       };
     case 'REMOVE_PITCHER_SLOT':
       return { ...state, pitcherSlots: state.pitcherSlots.filter((_, i) => i !== action.slotIndex) };
+    case 'CLEAR_ALL_POSITION_PLAYERS':
+      return {
+        ...state,
+        positionSlots: state.positionSlots.map((slot) => ({
+          ...slot,
+          playerId: null,
+          playerName: null,
+          playerImageUrl: null,
+          eligiblePositions: [],
+          level: null,
+        })),
+      };
+    case 'RESET_PITCHER_SLOTS': {
+      const empty = { playerId: null, playerName: null, playerImageUrl: null, eligiblePositions: [], level: null };
+      return { ...state, pitcherSlots: Array.from({ length: action.count }, () => ({ ...empty })) };
+    }
     default:
       return state;
   }

@@ -12,7 +12,7 @@ import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useFormatRosterRequirements } from '../hooks/use-format-roster-requirements.hook';
 import type { WizardPitcherSlot, WizardPositionSlot } from '../teams.types';
 
@@ -27,6 +27,8 @@ type AddTeamRosterSlotsStepProps = {
   onAssignPitcherPlayer: (slotIndex: number, player: WizardPitcherSlot) => void;
   onAddPitcherSlot: () => void;
   onRemovePitcherSlot: (slotIndex: number) => void;
+  onClearAllPositionPlayers: () => void;
+  onClearAllPitchers: (baseCount: number) => void;
 };
 
 type OpenSlot = { slotType: 'position'; slotIndex: number; position: Position } | { slotType: 'pitcher'; slotIndex: number };
@@ -66,6 +68,23 @@ function ErrorBanner({ errors }: { errors: string[] }) {
   );
 }
 
+function ClearAllButton({ onPress, disabled }: { onPress: () => void; disabled: boolean }) {
+  const { colors } = useTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      className="mt-4 items-center rounded-md py-2.5 active:opacity-70"
+      style={{ backgroundColor: colors.muted, opacity: disabled ? 0.4 : 1 }}
+    >
+      <Text style={{ color: colors.destructive }} className="text-sm font-semibold">
+        Clear All
+      </Text>
+    </Pressable>
+  );
+}
+
 export function AddTeamRosterSlotsStep({
   formatId,
   formatName,
@@ -77,10 +96,15 @@ export function AddTeamRosterSlotsStep({
   onAssignPitcherPlayer,
   onAddPitcherSlot,
   onRemovePitcherSlot,
+  onClearAllPositionPlayers,
+  onClearAllPitchers,
 }: AddTeamRosterSlotsStepProps) {
   const [openSlot, setOpenSlot] = useState<OpenSlot | null>(null);
   const { requirements } = useFormatRosterRequirements(formatId);
   const pitcherRange = computePitcherSlotRange(requirements);
+
+  const hasAnyPositionPlayer = positionSlots.some((slot) => slot.playerId !== null);
+  const hasAnyPitcher = pitcherSlots.some((slot) => slot.playerId !== null);
 
   function handleSelectPlayer(player: PlayerDatabaseRowData) {
     if (!openSlot) return;
@@ -134,6 +158,7 @@ export function AddTeamRosterSlotsStep({
               />
             ))}
           </View>
+          <ClearAllButton onPress={onClearAllPositionPlayers} disabled={!hasAnyPositionPlayer} />
         </Card>
 
         <Card>
@@ -149,6 +174,7 @@ export function AddTeamRosterSlotsStep({
               />
             ))}
           </View>
+          <ClearAllButton onPress={() => onClearAllPitchers(pitcherRange.min)} disabled={!hasAnyPitcher} />
         </Card>
       </ScrollView>
 

@@ -51,6 +51,16 @@ export default function AddTeamScreen() {
     clearRosterErrors();
   }
 
+  function handleClearAllPositionPlayers() {
+    dispatch({ type: 'CLEAR_ALL_POSITION_PLAYERS' });
+    clearRosterErrors();
+  }
+
+  function handleClearAllPitchers(baseCount: number) {
+    dispatch({ type: 'RESET_PITCHER_SLOTS', count: baseCount });
+    clearRosterErrors();
+  }
+
   async function handleRosterConfirm() {
     if (!state.formatId) return;
     const isValid = await validateRosterDraft(state.formatId, state.positionSlots, state.pitcherSlots);
@@ -136,6 +146,8 @@ export default function AddTeamScreen() {
           onAssignPitcherPlayer={(slotIndex, player) => dispatch({ type: 'ASSIGN_PITCHER_PLAYER', slotIndex, player })}
           onAddPitcherSlot={() => dispatch({ type: 'ADD_PITCHER_SLOT' })}
           onRemovePitcherSlot={(slotIndex) => dispatch({ type: 'REMOVE_PITCHER_SLOT', slotIndex })}
+          onClearAllPositionPlayers={handleClearAllPositionPlayers}
+          onClearAllPitchers={handleClearAllPitchers}
         />
       </AddTeamWizard>
     );
