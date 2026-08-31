@@ -11,6 +11,7 @@ type PlayerDatabaseLevelFilterGroupProps = {
   onPlayerTypeChange: (next: PlayerType) => void;
   ratingLevels: (1 | 2 | 3)[];
   onRatingLevelsChange: (next: (1 | 2 | 3)[]) => void;
+  disablePlayerType?: boolean;
 };
 
 const LEVELS: (1 | 2 | 3)[] = [1, 2, 3];
@@ -22,6 +23,7 @@ export function PlayerDatabaseLevelFilterGroup({
   onPlayerTypeChange,
   ratingLevels,
   onRatingLevelsChange,
+  disablePlayerType = false,
 }: PlayerDatabaseLevelFilterGroupProps) {
   const { colors } = useTheme();
 
@@ -34,7 +36,7 @@ export function PlayerDatabaseLevelFilterGroup({
   return (
     <View className="flex-row gap-2 px-4">
       <View style={{ flex: 1 }}>
-        <PlayerDatabasePlayerTypeFilterButton value={playerType} onChange={onPlayerTypeChange} />
+        <PlayerDatabasePlayerTypeFilterButton value={playerType} onChange={onPlayerTypeChange} disabled={disablePlayerType} />
       </View>
 
       {LEVELS.map((level) => {

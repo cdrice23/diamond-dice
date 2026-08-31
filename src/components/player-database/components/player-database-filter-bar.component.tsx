@@ -13,6 +13,7 @@ import { View } from 'react-native';
 type PlayerDatabaseFilterBarProps = {
   filters: PlayerDatabaseFilters;
   onFiltersChange: (updater: (prev: PlayerDatabaseFilters) => PlayerDatabaseFilters) => void;
+  disablePlayerType?: boolean;
 };
 
 function buildAdvancedFiltersLabel(filters: PlayerDatabaseFilters): string {
@@ -35,7 +36,7 @@ function isAnyFilterActive(filters: PlayerDatabaseFilters): boolean {
   );
 }
 
-export function PlayerDatabaseFilterBar({ filters, onFiltersChange }: PlayerDatabaseFilterBarProps) {
+export function PlayerDatabaseFilterBar({ filters, onFiltersChange, disablePlayerType = false }: PlayerDatabaseFilterBarProps) {
   const { colorScheme } = useTheme();
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
@@ -58,6 +59,7 @@ export function PlayerDatabaseFilterBar({ filters, onFiltersChange }: PlayerData
         onPlayerTypeChange={(playerType) => onFiltersChange((prev) => ({ ...prev, playerType }))}
         ratingLevels={filters.ratingLevels}
         onRatingLevelsChange={(ratingLevels) => onFiltersChange((prev) => ({ ...prev, ratingLevels }))}
+        disablePlayerType={disablePlayerType}
       />
 
       <View className="flex-row gap-2 px-4">

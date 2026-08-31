@@ -19,6 +19,7 @@ type PlayerDatabaseRowProps = {
   indexInBatch: number;
   animate: boolean;
   reverseEntrance?: boolean;
+  onPress?: () => void;
 };
 
 const ICON_SIZE = 18;
@@ -35,6 +36,7 @@ export function PlayerDatabaseRow({
   indexInBatch,
   animate,
   reverseEntrance = false,
+  onPress,
 }: PlayerDatabaseRowProps) {
   const { colors } = useTheme();
   const entranceStyle = usePlayerRowEntrance(indexInBatch, animate, reverseEntrance);
@@ -42,7 +44,7 @@ export function PlayerDatabaseRow({
   return (
     <Animated.View style={entranceStyle} className={isFirst ? undefined : 'border-border border-t'}>
       <Pressable
-        onPress={() => router.push(`/(app)/player-database/${id}`)}
+        onPress={onPress ?? (() => router.push(`/(app)/player-database/${id}`))}
         className="flex-row items-center gap-3 px-1 py-3 active:opacity-70"
         accessibilityRole="button"
       >

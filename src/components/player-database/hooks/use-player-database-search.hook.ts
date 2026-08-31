@@ -11,6 +11,7 @@ export type PlayerDatabaseRow = {
   pitching_rating_level: number | null;
   is_qualified_batter: boolean;
   is_qualified_pitcher: boolean;
+  image_url: string | null;
   indexInBatch: number;
   batchId: number;
 };

@@ -8,6 +8,7 @@ import { PlayerDatabaseFilterChipButton } from './player-database-filter-chip-bu
 type PlayerDatabasePlayerTypeFilterButtonProps = {
   value: PlayerType;
   onChange: (next: PlayerType) => void;
+  disabled?: boolean;
 };
 
 const CYCLE_ORDER: PlayerType[] = [null, 'batter', 'pitcher'];
@@ -18,10 +19,11 @@ function labelKey(value: PlayerType): 'null' | 'batter' | 'pitcher' {
   return value === null ? 'null' : value;
 }
 
-export function PlayerDatabasePlayerTypeFilterButton({ value, onChange }: PlayerDatabasePlayerTypeFilterButtonProps) {
+export function PlayerDatabasePlayerTypeFilterButton({ value, onChange, disabled = false }: PlayerDatabasePlayerTypeFilterButtonProps) {
   const { colorScheme, colors } = useTheme();
 
   function handlePress() {
+    if (disabled) return;
     const currentIndex = CYCLE_ORDER.indexOf(value);
     onChange(CYCLE_ORDER[(currentIndex + 1) % CYCLE_ORDER.length]);
   }
@@ -51,6 +53,7 @@ export function PlayerDatabasePlayerTypeFilterButton({ value, onChange }: Player
       leading={icons}
       inactiveBackgroundColor={NEUTRAL_FILTER_COLOR_MUTED[colorScheme]}
       inactiveBorderColor={NEUTRAL_FILTER_COLOR_MUTED[colorScheme]}
+      disabled={disabled}
     />
   );
 }

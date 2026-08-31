@@ -1,6 +1,7 @@
 import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-basic-info-step.component';
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
 import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
+import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-roster-slots-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { useTeamWizard } from '@/components/teams/hooks/use-team-wizard.hook';
 import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-team-basic-info.hook';
@@ -14,6 +15,14 @@ function isBasicInfoValid(state: TeamWizardState): boolean {
     state.primaryColor !== null &&
     state.secondaryColor !== null &&
     state.primaryColor.toLowerCase() !== state.secondaryColor.toLowerCase()
+  );
+}
+
+function isSlotsValid(state: TeamWizardState): boolean {
+  return (
+    state.positionSlots.every((slot) => slot.playerId !== null) &&
+    state.pitcherSlots.length > 0 &&
+    state.pitcherSlots.every((slot) => slot.playerId !== null)
   );
 }
 
@@ -82,9 +91,7 @@ export default function AddTeamScreen() {
           dispatch({ type: 'RESET_FORMAT' });
           dispatch({ type: 'GO_TO_STEP', step: 'basicInfo' });
         }}
-        onConfirm={() => {
-          /* validate-team-roster wiring comes next */
-        }}
+        onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })}
         confirmDisabled={!state.formatId}
       >
         <AddTeamFormatStep
@@ -92,6 +99,28 @@ export default function AddTeamScreen() {
           formatName={state.formatName}
           onSelectFormat={(formatId, formatName) => dispatch({ type: 'SET_FORMAT', formatId, formatName })}
           onPitcherSlotCountChange={(count) => dispatch({ type: 'SET_PITCHER_SLOT_COUNT', count })}
+        />
+      </AddTeamWizard>
+    );
+  }
+
+  if (state.step === 'slots') {
+    return (
+      <AddTeamWizard
+        subtitle="Build Your Roster"
+        helperText="Tap a slot to search for a player"
+        onCancel={() => router.replace('/teams')}
+        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'format' })}
+        onConfirm={() => {
+          /* validate-team-roster wiring comes next */
+        }}
+        confirmDisabled={!isSlotsValid(state)}
+      >
+        <AddTeamRosterSlotsStep
+          positionSlots={state.positionSlots}
+          pitcherSlots={state.pitcherSlots}
+          onAssignPositionPlayer={(slotIndex, player) => dispatch({ type: 'ASSIGN_POSITION_PLAYER', slotIndex, player })}
+          onAssignPitcherPlayer={(slotIndex, player) => dispatch({ type: 'ASSIGN_PITCHER_PLAYER', slotIndex, player })}
         />
       </AddTeamWizard>
     );
