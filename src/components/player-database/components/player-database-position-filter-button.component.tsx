@@ -11,9 +11,10 @@ import { PlayerDatabaseFilterChipButton } from './player-database-filter-chip-bu
 type PlayerDatabasePositionFilterButtonProps = {
   value: Position[];
   onChange: (next: Position[]) => void;
+  disabled?: boolean;
 };
 
-export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDatabasePositionFilterButtonProps) {
+export function PlayerDatabasePositionFilterButton({ value, onChange, disabled = false }: PlayerDatabasePositionFilterButtonProps) {
   const { colors, colorScheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState<Position[]>(value);
@@ -23,6 +24,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDa
   const label = value.length === 0 ? 'Position' : value.join(', ');
 
   function handleOpen() {
+    if (disabled) return;
     setDraft(value);
     setIsOpen(true);
   }
@@ -67,6 +69,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDa
         trailing={<Ionicons name="chevron-down" size={14} color={value.length > 0 ? '#FFFFFF' : neutralColor} />}
         inactiveBackgroundColor={neutralMuted}
         inactiveBorderColor={neutralMuted}
+        disabled={disabled}
         fullWidth
       />
 
@@ -89,10 +92,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDa
                       className="h-full w-full items-center justify-center rounded-lg"
                       style={{ backgroundColor: isSelected ? selectedColor : colors.muted }}
                     >
-                      <Text
-                        style={{ color: isSelected ? '#FFFFFF' : colors.foreground }}
-                        className="text-xl font-bold"
-                      >
+                      <Text style={{ color: isSelected ? '#FFFFFF' : colors.foreground }} className="text-xl font-bold">
                         {position}
                       </Text>
                     </View>
@@ -101,21 +101,13 @@ export function PlayerDatabasePositionFilterButton({ value, onChange }: PlayerDa
               })}
             </View>
 
-            <Pressable
-              onPress={handleClear}
-              className="mt-4 items-center rounded-sm py-2.5"
-              style={{ backgroundColor: colors.muted }}
-            >
+            <Pressable onPress={handleClear} className="mt-4 items-center rounded-sm py-2.5" style={{ backgroundColor: colors.muted }}>
               <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
                 Clear Position Filters
               </Text>
             </Pressable>
 
-            <Pressable
-              onPress={handleDone}
-              className="mt-2 items-center rounded-sm py-3"
-              style={{ backgroundColor: colors.level2 }}
-            >
+            <Pressable onPress={handleDone} className="mt-2 items-center rounded-sm py-3" style={{ backgroundColor: colors.level2 }}>
               <Text className="font-semibold text-white">Done</Text>
             </Pressable>
           </Pressable>

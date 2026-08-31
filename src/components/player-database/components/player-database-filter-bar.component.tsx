@@ -14,6 +14,7 @@ type PlayerDatabaseFilterBarProps = {
   filters: PlayerDatabaseFilters;
   onFiltersChange: (updater: (prev: PlayerDatabaseFilters) => PlayerDatabaseFilters) => void;
   disablePlayerType?: boolean;
+  disablePositions?: boolean;
 };
 
 function buildAdvancedFiltersLabel(filters: PlayerDatabaseFilters): string {
@@ -36,7 +37,7 @@ function isAnyFilterActive(filters: PlayerDatabaseFilters): boolean {
   );
 }
 
-export function PlayerDatabaseFilterBar({ filters, onFiltersChange, disablePlayerType = false }: PlayerDatabaseFilterBarProps) {
+export function PlayerDatabaseFilterBar({ filters, onFiltersChange, disablePlayerType = false, disablePositions = false, }: PlayerDatabaseFilterBarProps) {
   const { colorScheme } = useTheme();
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
@@ -67,6 +68,7 @@ export function PlayerDatabaseFilterBar({ filters, onFiltersChange, disablePlaye
           <PlayerDatabasePositionFilterButton
             value={filters.positions}
             onChange={(positions) => onFiltersChange((prev) => ({ ...prev, positions }))}
+            disabled={disablePositions}
           />
         </View>
         <View style={{ flex: 1 }}>

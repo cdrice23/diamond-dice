@@ -11,6 +11,7 @@ import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, View } from 'react-native';
+import { POSITION_LABELS } from '../teams.constants';
 
 export type AddPlayerModalSlotType = 'position' | 'pitcher';
 
@@ -50,10 +51,16 @@ export function AddPlayerModal({
 
   const { players, loading, loadingMore, hasMore, loadMore } = usePlayerDatabaseSearch(searchTerm, filters);
   const visiblePlayers = players.filter((player) => !excludePlayerIds.includes(player.id));
+  const disablePositions = !(slotType === 'position' && position === 'DH');
 
   function handleSelect(player: PlayerDatabaseRowData) {
     onSelectPlayer(player);
     onDismiss();
+  }
+
+  function modalTitle(slotType: AddPlayerModalSlotType, position?: Position): string {
+    if (slotType === 'pitcher') return 'Add Pitcher';
+    return `Add ${position ? POSITION_LABELS[position] : ''}`;
   }
 
   return (
@@ -67,7 +74,7 @@ export function AddPlayerModal({
         </View>
 
         <PlayerDatabaseSearchInput onSearchTermChange={setSearchTerm} />
-        <PlayerDatabaseFilterBar filters={filters} onFiltersChange={setFilters} disablePlayerType />
+        <PlayerDatabaseFilterBar filters={filters} onFiltersChange={setFilters} disablePlayerType disablePositions={disablePositions} />
 
         <FlatList
           data={visiblePlayers}

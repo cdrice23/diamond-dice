@@ -5,6 +5,7 @@ import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-r
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { useTeamWizard } from '@/components/teams/hooks/use-team-wizard.hook';
 import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-team-basic-info.hook';
+import { useValidateTeamRosterDraft } from '@/components/teams/hooks/use-validate-team-roster-draft.hook';
 import type { TeamWizardState } from '@/components/teams/teams.types';
 import { useRouter } from 'expo-router';
 
@@ -30,6 +31,7 @@ export default function AddTeamScreen() {
   const router = useRouter();
   const { state, dispatch } = useTeamWizard();
   const { validateBasicInfo, errors: basicInfoErrors, checking: checkingBasicInfo } = useValidateTeamBasicInfo();
+  const { validateRosterDraft, errors: rosterErrors, checking: checkingRoster } = useValidateTeamRosterDraft();
 
   function handleChoosePath(path: 'scratch' | 'random') {
     dispatch({ type: 'SET_PATH', path });
@@ -40,6 +42,14 @@ export default function AddTeamScreen() {
     const isValid = await validateBasicInfo(state.teamName, state.homeFieldName);
     if (isValid) {
       dispatch({ type: 'GO_TO_STEP', step: 'format' });
+    }
+  }
+
+  async function handleRosterConfirm() {
+    if (!state.formatId) return;
+    const isValid = await validateRosterDraft(state.formatId, state.positionSlots, state.pitcherSlots);
+    if (isValid) {
+      dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' });
     }
   }
 
@@ -108,19 +118,23 @@ export default function AddTeamScreen() {
     return (
       <AddTeamWizard
         subtitle="Build Your Roster"
-        helperText="Tap a slot to search for a player"
         onCancel={() => router.replace('/teams')}
         onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'format' })}
-        onConfirm={() => {
-          /* validate-team-roster wiring comes next */
-        }}
-        confirmDisabled={!isSlotsValid(state)}
+        onConfirm={handleRosterConfirm}
+        confirmDisabled={!isSlotsValid(state) || checkingRoster}
+        confirmLabel={checkingRoster ? 'Checking...' : 'Confirm'}
       >
         <AddTeamRosterSlotsStep
+          formatId={state.formatId}
+          formatName={state.formatName}
           positionSlots={state.positionSlots}
           pitcherSlots={state.pitcherSlots}
+          positionErrors={rosterErrors.position}
+          pitcherErrors={rosterErrors.pitcher}
           onAssignPositionPlayer={(slotIndex, player) => dispatch({ type: 'ASSIGN_POSITION_PLAYER', slotIndex, player })}
           onAssignPitcherPlayer={(slotIndex, player) => dispatch({ type: 'ASSIGN_PITCHER_PLAYER', slotIndex, player })}
+          onAddPitcherSlot={() => dispatch({ type: 'ADD_PITCHER_SLOT' })}
+          onRemovePitcherSlot={(slotIndex) => dispatch({ type: 'REMOVE_PITCHER_SLOT', slotIndex })}
         />
       </AddTeamWizard>
     );
