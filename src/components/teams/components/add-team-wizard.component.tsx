@@ -12,6 +12,7 @@ type AddTeamWizardProps = {
   subtitle?: string;
   helperText?: string;
   headerAction?: ReactNode;
+  footerBanner?: ReactNode;
   onCancel: () => void;
   onBack: (() => void) | null;
   onConfirm: (() => void) | null;
@@ -33,6 +34,7 @@ export function AddTeamWizard({
   subtitle,
   helperText,
   headerAction,
+  footerBanner,
   children,
 }: AddTeamWizardProps) {
   const { colors } = useTheme();
@@ -66,6 +68,8 @@ export function AddTeamWizard({
 
       {showBottomBar && (
         <View style={{ paddingBottom: navClearance }} className="gap-2 px-4 pt-3">
+          {footerBanner && <View className="pb-1">{footerBanner}</View>}
+
           <View className="flex-row gap-3">
             {onBack ? (
               <Pressable

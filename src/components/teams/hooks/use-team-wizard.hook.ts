@@ -5,6 +5,10 @@ const EMPTY_POSITION_SLOTS: WizardPositionSlot[] = [
   'C', '1B', '2B', 'SS', '3B', 'OF', 'OF', 'OF', 'DH',
 ].map((position) => ({ position, playerId: null, playerName: null, playerImageUrl: null, eligiblePositions: [], level: null }));
 
+function emptyRandomFilters() {
+  return { mlbTeamIds: [], debutYearFrom: null, debutYearTo: null, awardGroupLabels: [] };
+}
+
 function initialState(): TeamWizardState {
   return {
     path: null,
@@ -15,7 +19,7 @@ function initialState(): TeamWizardState {
     secondaryColor: null,
     formatId: null,
     formatName: null,
-    randomFilters: { mlbTeamIds: [], debutYearFrom: null, debutYearTo: null, awardGroupLabels: [] },
+    randomFilters: emptyRandomFilters(),
     positionSlots: EMPTY_POSITION_SLOTS,
     pitcherSlots: [],
     battingOrder: [],
@@ -42,7 +46,6 @@ type Action =
   | { type: 'RESET' }
   | { type: 'ADD_CUSTOM_SWATCH'; hex: string }
   | { type: 'UPDATE_CUSTOM_SWATCH'; index: number; hex: string }
-  | { type: 'RESET' }
   | { type: 'RESET_BASIC_INFO' }
   | { type: 'RESET_FORMAT' }
   | { type: 'SET_PITCHER_SLOT_COUNT'; count: number }
@@ -51,6 +54,7 @@ type Action =
   | { type: 'CLEAR_ALL_POSITION_PLAYERS' }
   | { type: 'RESET_PITCHER_SLOTS'; count: number }
   | { type: 'SET_RANDOM_FILTERS'; filters: Partial<TeamWizardState['randomFilters']> }
+  | { type: 'RESET_RANDOM_FILTERS' }
   | { type: 'SET_GENERATED_ROSTER'; positionSlots: WizardPositionSlot[]; pitcherSlots: WizardPitcherSlot[] };
 
 function reducer(state: TeamWizardState, action: Action): TeamWizardState {
@@ -120,6 +124,7 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
         ...state,
         formatId: null,
         formatName: null,
+        pitcherSlots: [],
       };
     case 'ADD_CUSTOM_SWATCH':
       return { ...state, customColorSwatches: [...state.customColorSwatches, action.hex] };
@@ -163,6 +168,8 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
     }
     case 'SET_RANDOM_FILTERS':
       return { ...state, randomFilters: { ...state.randomFilters, ...action.filters } };
+    case 'RESET_RANDOM_FILTERS':
+      return { ...state, randomFilters: emptyRandomFilters() };
     case 'SET_GENERATED_ROSTER':
       return { ...state, positionSlots: action.positionSlots, pitcherSlots: action.pitcherSlots };
     default:

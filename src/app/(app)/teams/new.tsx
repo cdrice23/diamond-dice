@@ -1,4 +1,5 @@
 import { useAwardGroupLookup } from '@/components/player-database/hooks/use-award-group-lookup.hook';
+import { ErrorBanner } from '@/components/primitives/error-banner.component';
 import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-basic-info-step.component';
 import { AddTeamBattingOrderStep } from '@/components/teams/components/add-team-batting-order-step.component';
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
@@ -53,8 +54,10 @@ export default function AddTeamScreen() {
   const pitcherRange = computePitcherSlotRange(requirements);
   const { saveTeam, saving, error: saveError } = useSaveTeam();
   const { generateRosterDraft, generating, error: generateError } = useGenerateTeamRosterDraft();
-  const { expandLabels } = useAwardGroupLookup();
   const [regenerateCount, setRegenerateCount] = useState(0);
+  const [generateErrorMessage, setGenerateErrorMessage] = useState<string | null>(null);
+  const { expandLabels } = useAwardGroupLookup();
+
 
   function handleChoosePath(path: 'scratch' | 'random') {
     dispatch({ type: 'SET_PATH', path });
@@ -95,29 +98,39 @@ export default function AddTeamScreen() {
   async function runGeneration(): Promise<boolean> {
     if (!state.formatId) return false;
 
-    const roster = await generateRosterDraft(state.formatId, {
+    const outcome = await generateRosterDraft(state.formatId, {
       mlbTeamIds: state.randomFilters.mlbTeamIds,
       debutYearFrom: state.randomFilters.debutYearFrom,
       debutYearTo: state.randomFilters.debutYearTo,
       awardTypeIds: expandLabels(state.randomFilters.awardGroupLabels),
     });
 
-    if (roster) {
-      dispatch({ type: 'SET_GENERATED_ROSTER', positionSlots: roster.positionSlots, pitcherSlots: roster.pitcherSlots });
+    if (outcome.success) {
+      setGenerateErrorMessage(null);
+      dispatch({ type: 'SET_GENERATED_ROSTER', positionSlots: outcome.roster.positionSlots, pitcherSlots: outcome.roster.pitcherSlots });
       return true;
     }
 
-    if (generateError) {
-      showToast(generateError, 'error');
-    }
+    const isPoolExhausted = outcome.code === 'POOL_EXHAUSTED';
+    setGenerateErrorMessage(isPoolExhausted ? `${outcome.message} Please try again with different criteria.` : outcome.message);
     return false;
   }
 
+  function handleChangeRandomFilters(partial: Partial<TeamWizardState['randomFilters']>) {
+    setGenerateErrorMessage(null);
+    dispatch({ type: 'SET_RANDOM_FILTERS', filters: partial });
+  }
+
   async function handleGenerateAndContinue() {
+    dispatch({ type: 'GO_TO_STEP', step: 'randomReview' });
+
     const ok = await runGeneration();
+
     if (ok) {
       setRegenerateCount(0);
-      dispatch({ type: 'GO_TO_STEP', step: 'randomReview' });
+      dispatch({ type: 'RESET_RANDOM_FILTERS' });
+    } else {
+      dispatch({ type: 'GO_TO_STEP', step: 'randomFilters' });
     }
   }
 
@@ -210,16 +223,21 @@ export default function AddTeamScreen() {
     return (
       <AddTeamWizard
         subtitle="Generate a Roster"
+        footerBanner={generateErrorMessage ? <ErrorBanner message={generateErrorMessage} /> : undefined}
         onCancel={() => router.replace('/teams')}
-        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'format' })}
+        onBack={() => {
+          dispatch({ type: 'RESET_RANDOM_FILTERS' });
+          setGenerateErrorMessage(null);
+          dispatch({ type: 'GO_TO_STEP', step: 'format' });
+        }}
         onConfirm={handleGenerateAndContinue}
-        confirmDisabled={generating}
+        confirmDisabled={generating || !!generateErrorMessage}
         confirmLabel={generating ? 'Generating...' : 'Generate My Team'}
       >
         <AddTeamRandomFiltersStep
           formatName={state.formatName}
           filters={state.randomFilters}
-          onChangeFilters={(partial) => dispatch({ type: 'SET_RANDOM_FILTERS', filters: partial })}
+          onChangeFilters={handleChangeRandomFilters}
         />
       </AddTeamWizard>
     );
@@ -230,6 +248,7 @@ export default function AddTeamScreen() {
       <AddTeamWizard
         subtitle="Review Generated Roster"
         headerAction={<RegenerateHeaderButton regenerating={generating} onPress={handleRegenerate} />}
+        footerBanner={generateErrorMessage ? <ErrorBanner message={generateErrorMessage} /> : undefined}
         onCancel={() => router.replace('/teams')}
         onBack={() => {
           setRegenerateCount(0);

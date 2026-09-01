@@ -2,6 +2,7 @@ import { PlayerDatabaseMultiSelectModal } from '@/components/player-database/com
 import { useMlbTeams } from '@/components/player-database/hooks/use-mlb-teams.hook';
 import { AWARD_GROUPS, DEBUT_YEAR_CEILING, DEBUT_YEAR_FLOOR } from '@/components/player-database/player-database.constants';
 import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
+import { ErrorBanner } from '@/components/primitives/error-banner.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamDebutRangeModal } from '@/components/teams/components/add-team-debut-range-modal.component';
 import { adjustHslAlpha } from '@/utils/color';
@@ -24,6 +25,7 @@ type AddTeamRandomFiltersStepProps = {
   formatName: string | null;
   filters: TeamWizardState['randomFilters'];
   onChangeFilters: (partial: Partial<TeamWizardState['randomFilters']>) => void;
+  generateErrorMessage?: string | null;
 };
 
 const MAX_SHOWN_ITEMS = 2;
@@ -71,7 +73,7 @@ type FilterRowDescriptor = {
   onPress: () => void;
 };
 
-export function AddTeamRandomFiltersStep({ formatName, filters, onChangeFilters }: AddTeamRandomFiltersStepProps) {
+export function AddTeamRandomFiltersStep({ formatName, filters, onChangeFilters, generateErrorMessage }: AddTeamRandomFiltersStepProps) {
   const { colors } = useTheme();
   const { options: teamOptions } = useMlbTeams();
   const [filtersExpanded, setFiltersExpanded] = useState(false);
@@ -139,6 +141,8 @@ export function AddTeamRandomFiltersStep({ formatName, filters, onChangeFilters 
 
   return (
     <ScrollView className="flex-1 px-4" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+      {generateErrorMessage && <ErrorBanner message={generateErrorMessage} />}
+      
       <Animated.View layout={LinearTransition.duration(CONTENT_ANIM_DURATION)} style={{ gap: 28 }}>
         <View className="gap-3">
           <Text className="text-foreground text-2xl font-bold">Format</Text>

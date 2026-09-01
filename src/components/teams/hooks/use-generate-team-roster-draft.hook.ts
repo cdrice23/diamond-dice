@@ -27,6 +27,10 @@ export type GeneratedRoster = {
   pitcherSlots: WizardPitcherSlot[];
 };
 
+export type GenerateRosterOutcome =
+  | { success: true; roster: GeneratedRoster }
+  | { success: false; message: string; code: string };
+
 const POSITION_SLOT_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'OF', 'OF', 'DH'];
 
 function toWizardSlots(entries: HydratedRosterEntry[]): GeneratedRoster {
@@ -63,7 +67,7 @@ export function useGenerateTeamRosterDraft() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function generateRosterDraft(formatId: string, filters: RandomFilters): Promise<GeneratedRoster | null> {
+  async function generateRosterDraft(formatId: string, filters: RandomFilters): Promise<GenerateRosterOutcome> {
     setGenerating(true);
     setError(null);
 
@@ -83,19 +87,22 @@ export function useGenerateTeamRosterDraft() {
 
     if (invokeError) {
       console.error('useGenerateTeamRosterDraft: invoke failed:', invokeError);
-      setError('Something went wrong generating a roster. Please try again.');
-      return null;
+      const message = 'Something went wrong generating a roster. Please try again.';
+      setError(message);
+      return { success: false, message, code: 'INVOKE_FAILED' };
     }
 
     const result = data as GenerateDraftResponse;
 
     if (!result.success) {
-      console.error('useGenerateTeamRosterDraft: generation failed:', result.error);
-      setError(result.error.message);
-      return null;
+      console.warn('useGenerateTeamRosterDraft: generation failed:', result.error);
+      const message =
+        result.error.code === 'POOL_EXHAUSTED' ? "We couldn't find enough players matching your filters." : result.error.message;
+      setError(message);
+      return { success: false, message, code: result.error.code };
     }
 
-    return toWizardSlots(result.roster);
+    return { success: true, roster: toWizardSlots(result.roster) };
   }
 
   function clearError() {
