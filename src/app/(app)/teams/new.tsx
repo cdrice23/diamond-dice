@@ -2,6 +2,7 @@ import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-bas
 import { AddTeamBattingOrderStep } from '@/components/teams/components/add-team-batting-order-step.component';
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
 import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
+import { AddTeamReviewStep } from '@/components/teams/components/add-team-review-step.component';
 import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-roster-slots-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { useFormatRosterRequirements } from '@/components/teams/hooks/use-format-roster-requirements.hook';
@@ -170,8 +171,25 @@ export default function AddTeamScreen() {
 
   if (state.step === 'review') {
     return (
-      <AddTeamWizard subtitle="Review Team" onCancel={() => router.replace('/teams')} onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' })} onConfirm={null}>
-        <></>
+      <AddTeamWizard
+        hideDefaultHeader
+        onCancel={() => router.replace('/teams')}
+        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' })}
+        onConfirm={() => {
+          /* upsert-team wiring comes next */
+        }}
+        confirmLabel="Save New Team"
+      >
+        <AddTeamReviewStep
+          teamName={state.teamName}
+          homeFieldName={state.homeFieldName}
+          formatName={state.formatName}
+          primaryColor={state.primaryColor}
+          secondaryColor={state.secondaryColor}
+          positionSlots={state.positionSlots}
+          pitcherSlots={state.pitcherSlots}
+          battingOrder={state.battingOrder}
+        />
       </AddTeamWizard>
     );
   }

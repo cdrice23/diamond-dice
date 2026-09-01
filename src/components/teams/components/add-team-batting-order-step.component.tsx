@@ -1,5 +1,5 @@
 import { BattingOrderRow } from '@/components/teams/components/batting-order-row.component';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import DraggableFlatList, { ShadowDecorator, type RenderItemParams } from 'react-native-draggable-flatlist';
 import type { WizardPositionSlot } from '../teams.types';
@@ -33,6 +33,11 @@ export function AddTeamBattingOrderStep({ positionSlots, battingOrder, onChangeB
   const [dragPreview, setDragPreview] = useState<DragPreview | null>(null);
   const [isReleased, setIsReleased] = useState(false);
 
+  useEffect(() => {
+    onChangeBattingOrder(orderedSlots.map((slot) => slot.playerId).filter((id): id is string => id !== null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderedSlots]);
+
   const displaySlots = useMemo(() => applyPreviewMove(orderedSlots, dragPreview), [orderedSlots, dragPreview]);
   const orderIndexByPlayerId = useMemo(() => new Map(displaySlots.map((slot, index) => [slot.playerId, index])), [displaySlots]);
 
@@ -53,7 +58,6 @@ export function AddTeamBattingOrderStep({ positionSlots, battingOrder, onChangeB
     setOrderedSlots(data);
     setDragPreview(null);
     setIsReleased(false);
-    onChangeBattingOrder(data.map((slot) => slot.playerId).filter((id): id is string => id !== null));
   }
 
   return (

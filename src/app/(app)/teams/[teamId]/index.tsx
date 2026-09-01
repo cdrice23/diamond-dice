@@ -52,6 +52,7 @@ export default function TeamDetailScreen() {
         <TeamDetailHeader
           teamName={team.team_name}
           homeFieldName={team.home_field_name}
+          formatName={team.format_name}
           textColor={bandTextColor}
           onEditPress={() => router.push(`/teams/${team.id}/edit`)}
           onDeletePress={() => {}}

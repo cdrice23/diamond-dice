@@ -15,6 +15,7 @@ type AddTeamWizardProps = {
   confirmLabel?: string;
   confirmDisabled?: boolean;
   showBottomBar?: boolean;
+  hideDefaultHeader?: boolean;
   children: ReactNode;
 };
 
@@ -27,7 +28,8 @@ export function AddTeamWizard({
   confirmLabel = 'Confirm',
   confirmDisabled = false,
   showBottomBar = true,
-  subtitle, 
+  hideDefaultHeader = false,
+  subtitle,
   helperText,
   children,
 }: AddTeamWizardProps) {
@@ -39,17 +41,21 @@ export function AddTeamWizard({
 
   return (
     <View style={{ flex: 1 }}>
-      <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
+      {!hideDefaultHeader && (
+        <>
+          <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
 
-      <View className="gap-1 px-4 pb-2 pt-20">
-        <Text className="text-foreground text-3xl font-bold">New Team</Text>
-        {subtitle && <Text className="text-foreground text-lg font-semibold">{subtitle}</Text>}
-        {helperText && (
-          <Text variant="muted" className="text-sm">
-            {helperText}
-          </Text>
-        )}
-      </View>
+          <View className="gap-1 px-4 pb-2 pt-20">
+            <Text className="text-foreground text-3xl font-bold">New Team</Text>
+            {subtitle && <Text className="text-foreground text-lg font-semibold">{subtitle}</Text>}
+            {helperText && (
+              <Text variant="muted" className="text-sm">
+                {helperText}
+              </Text>
+            )}
+          </View>
+        </>
+      )}
 
       <View style={{ flex: 1, paddingBottom: showBottomBar ? 0 : navClearance }}>{children}</View>
 

@@ -3,7 +3,7 @@ import { Text } from '@/components/primitives/text.component';
 import { AddTeamFormatCard } from '@/components/teams/components/add-team-format-card.component';
 import { useFormats } from '@/components/teams/hooks/use-formats.hook';
 import { ScrollView } from 'react-native';
-import { useFormatPitcherCounts } from '../hooks/user-format-pitcher-counts.hook';
+import { useFormatPitcherCounts } from '../hooks/use-format-pitcher-counts.hook';
 
 type AddTeamFormatStepProps = {
   formatId: string | null;

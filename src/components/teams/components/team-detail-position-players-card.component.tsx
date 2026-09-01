@@ -22,6 +22,7 @@ type TeamDetailPositionPlayersCardProps = {
   pitchers: TeamDetailPitcherSlot[];
   bandColor: string;
   textColor: string;
+  hideViewToggle?: boolean;
 };
 
 function BattingOrderBox({ battingOrder }: { battingOrder: number | null }) {
@@ -104,6 +105,7 @@ export function TeamDetailPositionPlayersCard({
   pitchers,
   bandColor,
   textColor,
+  hideViewToggle = false,
 }: TeamDetailPositionPlayersCardProps) {
   const { colors } = useTheme();
   const [viewMode, setViewMode] = useState<TeamDetailViewMode>('list');
@@ -122,22 +124,25 @@ export function TeamDetailPositionPlayersCard({
 
   const sorted = sortByBattingOrder(positionPlayers);
   const diamondData = buildDiamondData(positionPlayers, pitchers);
+  const showList = hideViewToggle || viewMode === 'list';
 
   return (
     <Card className="mx-4">
       <TeamDetailCardHeader label="Position Players" bandColor={bandColor} textColor={textColor} />
 
-      <View className="mb-3 flex-row justify-end">
-        <TeamDetailViewToggle
-          mode={viewMode}
-          onChange={setViewMode}
-          activeColor={bandColor}
-          activeIconColor={textColor}
-          inactiveColor={colors.mutedForeground}
-        />
-      </View>
+      {!hideViewToggle && (
+        <View className="mb-3 flex-row justify-end">
+          <TeamDetailViewToggle
+            mode={viewMode}
+            onChange={setViewMode}
+            activeColor={bandColor}
+            activeIconColor={textColor}
+            inactiveColor={colors.mutedForeground}
+          />
+        </View>
+      )}
 
-      {viewMode === 'list' ? (
+      {showList ? (
         <View className="gap-4">
           {sorted.map((slot, index) => (
             <PositionPlayerRow key={`${slot.position}-${slot.player.id}`} slot={slot} index={index} />

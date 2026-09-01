@@ -21,14 +21,18 @@ export function useValidateTeamBasicInfo() {
 
     const context = (error as { context?: Response }).context;
     if (context) {
-      const body = await context.json();
-      if (body?.errors) {
-        const nextErrors: BasicInfoFieldErrors = {};
-        if (body.errors.team_name) nextErrors.team_name = body.errors.team_name.message;
-        if (body.errors.home_field_name) nextErrors.home_field_name = body.errors.home_field_name.message;
-        setErrors(nextErrors);
-      } else {
-        setErrors({ team_name: body?.error?.message ?? 'Something went wrong. Please try again.' });
+      try {
+        const body = await context.json();
+        if (body?.errors) {
+          const nextErrors: BasicInfoFieldErrors = {};
+          if (body.errors.team_name) nextErrors.team_name = body.errors.team_name.message;
+          if (body.errors.home_field_name) nextErrors.home_field_name = body.errors.home_field_name.message;
+          setErrors(nextErrors);
+        } else {
+          setErrors({ team_name: body?.error?.message ?? 'Something went wrong. Please try again.' });
+        }
+      } catch {
+        setErrors({ team_name: 'Connection issue. Please try again.' });
       }
     } else {
       setErrors({ team_name: 'Something went wrong. Please try again.' });

@@ -32,8 +32,12 @@ export function useValidateTeamRosterDraft() {
 
     const context = (error as { context?: Response }).context;
     if (context) {
-      const body = await context.json();
-      setErrors({ position: body?.errors?.position ?? [], pitcher: body?.errors?.pitcher ?? [] });
+      try {
+        const body = await context.json();
+        setErrors({ position: body?.errors?.position ?? [], pitcher: body?.errors?.pitcher ?? [] });
+      } catch {
+        setErrors({ position: ['Connection issue. Please try again.'], pitcher: [] });
+      }
     } else {
       setErrors({ position: ['Something went wrong. Please try again.'], pitcher: [] });
     }

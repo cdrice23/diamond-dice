@@ -7,11 +7,21 @@ type TeamDetailHeaderProps = {
   teamName: string;
   homeFieldName: string;
   textColor: string;
-  onEditPress: () => void;
-  onDeletePress: () => void;
+  formatName?: string | null;
+  onEditPress?: () => void;
+  onDeletePress?: () => void;
+  showMenu?: boolean;
 };
 
-export function TeamDetailHeader({ teamName, homeFieldName, textColor, onEditPress, onDeletePress }: TeamDetailHeaderProps) {
+export function TeamDetailHeader({
+  teamName,
+  homeFieldName,
+  textColor,
+  formatName,
+  onEditPress,
+  onDeletePress,
+  showMenu = true,
+}: TeamDetailHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -26,47 +36,58 @@ export function TeamDetailHeader({ teamName, homeFieldName, textColor, onEditPre
             {homeFieldName}
           </Text>
         </View>
-      </View>
 
-      <View>
-        <Pressable
-          onPress={() => setMenuOpen((prev) => !prev)}
-          accessibilityLabel="Team options"
-          accessibilityRole="button"
-          hitSlop={8}
-        >
-          <Ionicons name="ellipsis-vertical" size={22} color={textColor} />
-        </Pressable>
-
-        {menuOpen && (
-          <>
-            <Pressable
-              style={{ position: 'absolute', top: -1000, left: -1000, right: -1000, bottom: -1000 }}
-              onPress={() => setMenuOpen(false)}
-            />
-            <View className="bg-popover border-border absolute right-0 top-8 z-10 w-36 rounded-sm border py-1 shadow-sm shadow-black/10">
-              <Pressable
-                onPress={() => {
-                  setMenuOpen(false);
-                  onEditPress();
-                }}
-                className="active:bg-accent px-3 py-2.5"
-              >
-                <Text className="text-popover-foreground text-base">Edit Team</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setMenuOpen(false);
-                  onDeletePress();
-                }}
-                className="active:bg-accent px-3 py-2.5"
-              >
-                <Text className="text-destructive text-base">Delete Team</Text>
-              </Pressable>
-            </View>
-          </>
+        {formatName && (
+          <View className="flex-row items-center gap-1.5">
+            <MaterialCommunityIcons name="baseball-bat" size={16} color={textColor} style={{ opacity: 0.75 }} />
+            <Text style={{ color: textColor, opacity: 0.75 }} className="text-xl" numberOfLines={1}>
+              {formatName}
+            </Text>
+          </View>
         )}
       </View>
+
+      {showMenu && (
+        <View>
+          <Pressable
+            onPress={() => setMenuOpen((prev) => !prev)}
+            accessibilityLabel="Team options"
+            accessibilityRole="button"
+            hitSlop={8}
+          >
+            <Ionicons name="ellipsis-vertical" size={22} color={textColor} />
+          </Pressable>
+
+          {menuOpen && (
+            <>
+              <Pressable
+                style={{ position: 'absolute', top: -1000, left: -1000, right: -1000, bottom: -1000 }}
+                onPress={() => setMenuOpen(false)}
+              />
+              <View className="bg-popover border-border absolute right-0 top-8 z-10 w-36 rounded-sm border py-1 shadow-sm shadow-black/10">
+                <Pressable
+                  onPress={() => {
+                    setMenuOpen(false);
+                    onEditPress?.();
+                  }}
+                  className="active:bg-accent px-3 py-2.5"
+                >
+                  <Text className="text-popover-foreground text-base">Edit Team</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setMenuOpen(false);
+                    onDeletePress?.();
+                  }}
+                  className="active:bg-accent px-3 py-2.5"
+                >
+                  <Text className="text-destructive text-base">Delete Team</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
+        </View>
+      )}
     </View>
   );
 }
