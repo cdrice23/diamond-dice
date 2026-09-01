@@ -8,12 +8,12 @@ import { TeamsFilterBar, type TeamsSortDirection } from '@/components/teams/comp
 import { TeamsHeader } from '@/components/teams/components/teams-header.component';
 import { TeamsListCard } from '@/components/teams/components/teams-list-card.component';
 import { TeamsSearchInput } from '@/components/teams/components/teams-search-input.component';
-import { MOCK_TEAMS } from '@/components/teams/teams.mock';
+import { useTeamsList } from '@/components/teams/hooks/use-teams-list.hook';
 import type { TeamSummary } from '@/components/teams/teams.types';
 import { useTheme } from '@/utils/theme-provider';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, View, useWindowDimensions } from 'react-native';
+import { FlatList, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 const NAV_CLEARANCE_EXTRA = 16;
@@ -24,6 +24,7 @@ export default function TeamsScreen() {
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
   const router = useRouter();
+  const { teams: fetchedTeams, loading } = useTeamsList();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortDirection, setSortDirection] = useState<TeamsSortDirection>('desc');
@@ -37,14 +38,14 @@ export default function TeamsScreen() {
 
   const teams = useMemo(() => {
     const filtered = searchTerm.trim()
-      ? MOCK_TEAMS.filter((t) => t.team_name.toLowerCase().includes(searchTerm.trim().toLowerCase()))
-      : MOCK_TEAMS;
+      ? fetchedTeams.filter((t) => t.team_name.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+      : fetchedTeams;
 
     return [...filtered].sort((a, b) => {
       const diff = new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
       return sortDirection === 'desc' ? -diff : diff;
     });
-  }, [searchTerm, sortDirection]);
+  }, [searchTerm, sortDirection, fetchedTeams]);
 
   function handleAddNewTeam() {
     router.push('/teams/new');
@@ -76,7 +77,9 @@ export default function TeamsScreen() {
           onFormatFilterPress={() => setFormatFilterOpen(true)}
         />
         <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
-          {teams.length === 0 ? (
+          {loading ? (
+            <Text className="text-muted-foreground px-4 pt-8 text-center">Loading teams...</Text>
+          ) : teams.length === 0 ? (
             <TeamsEmptyState />
           ) : (
             <FlatList

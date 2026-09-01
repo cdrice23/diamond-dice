@@ -104,7 +104,12 @@ export function AddTeamReviewStep({
           accentColor={bandAccentColor}
           hideViewToggle
         />
-        <TeamDetailPitchersCard pitchers={teamPitcherSlots} bandColor={bandColor} textColor={bandTextColor} accentColor={bandAccentColor} />
+        <TeamDetailPitchersCard
+          pitchers={teamPitcherSlots}
+          bandColor={bandColor}
+          textColor={bandTextColor}
+          accentColor={bandAccentColor}
+        />
       </ScrollView>
     </View>
   );

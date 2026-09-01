@@ -4,6 +4,18 @@ import { useState } from 'react';
 
 export type SaveTeamError = { message: string };
 
+async function extractErrorMessage(error: unknown, fallback: string): Promise<string> {
+  const context = (error as { context?: Response }).context;
+  if (!context) return fallback;
+
+  try {
+    const body = await context.json();
+    return body?.error?.message ?? body?.errors?.team_name?.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function useSaveTeam() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<SaveTeamError | null>(null);
@@ -32,8 +44,10 @@ export function useSaveTeam() {
     });
 
     if (teamError || !teamResult?.team?.id) {
+      const message = await extractErrorMessage(teamError, 'Could not save your team. Please try again.');
+      console.error('useSaveTeam: upsert-team failed:', message, teamError);
       setSaving(false);
-      setError({ message: 'Could not save your team. Please try again.' });
+      setError({ message });
       return null;
     }
 
@@ -52,7 +66,12 @@ export function useSaveTeam() {
     setSaving(false);
 
     if (rosterError) {
-      setError({ message: 'Your team was created, but the roster could not be saved. Please edit your team to try again.' });
+      const message = await extractErrorMessage(
+        rosterError,
+        'Your team was created, but the roster could not be saved. Please edit your team to try again.'
+      );
+      console.error('useSaveTeam: upsert-team-roster failed:', message, rosterError);
+      setError({ message });
       return teamId;
     }
 

@@ -3,6 +3,7 @@ import '@/global.css';
 import { SessionProvider, useSession } from '@/utils/session-provider';
 import { NAV_THEME } from '@/utils/theme';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/utils/theme-provider';
+import { ToastProvider } from '@/utils/toast-provider';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins';
 import { Silkscreen_400Regular } from '@expo-google-fonts/silkscreen';
 import { VT323_400Regular } from '@expo-google-fonts/vt323';
@@ -58,7 +59,9 @@ export default function RootLayout() {
             <LoadingScreen />
           ) : (
             <SessionProvider>
-              <RootLayoutNav />
+              <ToastProvider>
+                <RootLayoutNav />
+              </ToastProvider>
             </SessionProvider>
           )}
         </AppThemeProvider>

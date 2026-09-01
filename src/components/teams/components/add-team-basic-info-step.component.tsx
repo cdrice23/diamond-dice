@@ -2,7 +2,7 @@ import { Input } from '@/components/primitives/input.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamColorPickerModal } from '@/components/teams/components/add-team-color-picker-modal.component';
 import { AddTeamColorSwatch } from '@/components/teams/components/add-team-color-swatch.component';
-import { areTeamColorsTooSimilar } from '@/utils/color';
+import { adjustHslAlpha, areTeamColorsTooSimilar } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -82,10 +82,13 @@ export function AddTeamBasicInfoStep({
         </View>
 
         {showSimilarColorsWarning && (
-          <View className="flex-row items-start gap-2 pt-1">
+          <View
+            className="mt-2 flex-row items-start gap-2 rounded-md p-2.5"
+            style={{ backgroundColor: adjustHslAlpha(colors.level2, 0.1) }}
+          >
             <MaterialCommunityIcons name="alert-circle-outline" size={16} color={colors.mutedForeground} style={{ marginTop: 2 }} />
             <Text variant="muted" className="flex-1 text-sm">
-              These colors are hard to tell apart. Your team will still work fine, but a bit more contrast can help it stand out.
+              These colors are hard to tell apart. Your team will work fine, but you may want to consider team colors with more contrast.
             </Text>
           </View>
         )}

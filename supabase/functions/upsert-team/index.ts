@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: { code: 'validation_failed', message: 'Request body must be valid JSON.' } }, 400);
     }
 
-    const { team_id, team_name, home_field_name, team_theme_color_primary, team_theme_color_secondary } = body;
+    const { team_id, team_name, home_field_name, team_theme_color_primary, team_theme_color_secondary, format_id } = body;
 
     if (typeof team_name !== 'string' || typeof home_field_name !== 'string') {
       return jsonResponse(

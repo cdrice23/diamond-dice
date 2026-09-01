@@ -12,6 +12,7 @@ import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-
 import { useValidateTeamRosterDraft } from '@/components/teams/hooks/use-validate-team-roster-draft.hook';
 import type { TeamWizardState } from '@/components/teams/teams.types';
 import { computePitcherSlotRange } from '@/components/teams/utils/roster-level-counts';
+import { useToast } from '@/utils/toast-provider';
 import { useRouter } from 'expo-router';
 
 function isBasicInfoValid(state: TeamWizardState): boolean {
@@ -33,11 +34,17 @@ function isSlotsValid(state: TeamWizardState, pitcherMin: number): boolean {
 export default function AddTeamScreen() {
   const router = useRouter();
   const { state, dispatch } = useTeamWizard();
+  const { showToast } = useToast();
   const { validateBasicInfo, errors: basicInfoErrors, checking: checkingBasicInfo } = useValidateTeamBasicInfo();
-  const { validateRosterDraft, errors: rosterErrors, checking: checkingRoster, clearErrors: clearRosterErrors } = useValidateTeamRosterDraft();
-  const { saveTeam, saving, error: saveError } = useSaveTeam();
+  const {
+    validateRosterDraft,
+    errors: rosterErrors,
+    checking: checkingRoster,
+    clearErrors: clearRosterErrors,
+  } = useValidateTeamRosterDraft();
   const { requirements } = useFormatRosterRequirements(state.formatId);
   const pitcherRange = computePitcherSlotRange(requirements);
+  const { saveTeam, saving, error: saveError } = useSaveTeam();
 
   function handleChoosePath(path: 'scratch' | 'random') {
     dispatch({ type: 'SET_PATH', path });
@@ -92,6 +99,8 @@ export default function AddTeamScreen() {
     if (teamId) {
       dispatch({ type: 'RESET' });
       router.replace('/teams');
+    } else if (saveError) {
+      showToast(saveError.message, 'error');
     }
   }
 
@@ -181,11 +190,16 @@ export default function AddTeamScreen() {
 
   if (state.step === 'battingOrder') {
     return (
-      <AddTeamWizard subtitle="Set Batting Order" onCancel={() => router.replace('/teams')} onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })} onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'review' })}>
+      <AddTeamWizard
+        subtitle="Set Batting Order"
+        onCancel={() => router.replace('/teams')}
+        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })}
+        onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'review' })}
+      >
         <AddTeamBattingOrderStep
           positionSlots={state.positionSlots}
           battingOrder={state.battingOrder}
-          onChangeBattingOrder={(order: string[]) => dispatch({ type: 'SET_BATTING_ORDER', order })}
+          onChangeBattingOrder={(order) => dispatch({ type: 'SET_BATTING_ORDER', order })}
         />
       </AddTeamWizard>
     );

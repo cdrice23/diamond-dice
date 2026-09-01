@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
-import { runOnJS, useAnimatedStyle, useSharedValue, withDecay, withTiming } from 'react-native-reanimated';
+import { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-const DECAY_DECELERATION = 0.9995;
+const PROJECTION_FACTOR = 0.5;
+const MIN_SETTLE_DURATION = 180;
+const MAX_SETTLE_DURATION = 650;
+const DURATION_PER_ITEM = 22;
 
 export function useWheelPicker(
   itemCount: number,
@@ -33,33 +36,37 @@ export function useWheelPicker(
     onIndexChange(clamped);
   }
 
+  const minY = -(Math.max(itemCount - 1, 0)) * itemHeight;
+  const maxY = 0;
+
   const gesture = Gesture.Pan()
     .onBegin(() => {
       dragStartY.value = translateY.value;
     })
     .onUpdate((e) => {
-      translateY.value = dragStartY.value + e.translationY;
+      const raw = dragStartY.value + e.translationY;
+      translateY.value = Math.max(minY, Math.min(maxY, raw));
     })
     .onEnd((e) => {
-      const minY = -(itemCount - 1) * itemHeight;
-      const maxY = 0;
+      if (itemHeight <= 0 || itemCount <= 0) return;
 
-      translateY.value = withDecay(
-        {
-          velocity: e.velocityY,
-          deceleration: DECAY_DECELERATION,
-          clamp: [minY, maxY],
-        },
-        (finished) => {
-          if (finished) {
-            const settledIndex = Math.round(-translateY.value / itemHeight);
-            const clampedIndex = Math.max(0, Math.min(itemCount - 1, settledIndex));
-            translateY.value = withTiming(-clampedIndex * itemHeight, { duration: 150 });
-            runOnJS(commitIndex)(clampedIndex);
-          }
-        }
+      const startY = translateY.value;
+      const projectedY = startY + e.velocityY * PROJECTION_FACTOR;
+      const boundedY = Math.max(minY, Math.min(maxY, projectedY));
+
+      const rawIndex = Math.round(-boundedY / itemHeight);
+      const safeIndex = Number.isFinite(rawIndex) ? Math.max(0, Math.min(itemCount - 1, rawIndex)) : 0;
+      const targetY = -safeIndex * itemHeight;
+
+      const itemsTraveled = Math.abs(targetY - startY) / itemHeight;
+      const duration = Math.min(
+        MAX_SETTLE_DURATION,
+        Math.max(MIN_SETTLE_DURATION, itemsTraveled * DURATION_PER_ITEM)
       );
-    })
+
+      translateY.value = withTiming(targetY, { duration, easing: Easing.out(Easing.cubic) });
+      runOnJS(commitIndex)(safeIndex);
+    });
 
   const containerStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
