@@ -147,13 +147,13 @@ export function resolveTeamColors(primaryHex: string, secondaryHex: string, appB
     textColor = blackContrast > whiteContrast ? '#000000' : '#FFFFFF';
   }
 
-  const accentColor = remainingVsBackground >= DECORATIVE_MIN_CONTRAST_RATIO ? remainingAccent : textColor;
+  const accentColor = colorDistance(remainingAccent, backgroundColor) >= DECORATIVE_MIN_COLOR_DISTANCE ? remainingAccent : textColor;
 
   return { backgroundColor, textColor, accentColor };
 }
 
 export function areTeamColorsTooSimilar(primaryHex: string, secondaryHex: string): boolean {
-  return contrastRatio(primaryHex, secondaryHex) < DECORATIVE_MIN_CONTRAST_RATIO;
+  return colorDistance(primaryHex, secondaryHex) < DECORATIVE_MIN_COLOR_DISTANCE;
 }
 
 export function blendHsl(base: string, tint: string, tintOpacity: number): string {
@@ -190,3 +190,51 @@ export function levelColor(level: number | null, colors: ReturnType<typeof useTh
   if (level === 3) return colors.level3;
   return colors.muted;
 }
+
+type LabColor = { L: number; a: number; b: number };
+
+function hexToLinearRgb(hex: string): [number, number, number] | null {
+  const match = hex.match(/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/);
+  if (!match) return null;
+
+  const toLinear = (v: number) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+
+  const [r, g, b] = [match[1], match[2], match[3]].map((c) => toLinear(parseInt(c, 16)));
+  return [r, g, b];
+}
+
+const D65_WHITE = { x: 0.95047, y: 1.0, z: 1.08883 };
+
+function hexToLab(hex: string): LabColor | null {
+  const linear = hexToLinearRgb(hex);
+  if (!linear) return null;
+  const [r, g, b] = linear;
+
+  const x = 0.4124 * r + 0.3576 * g + 0.1805 * b;
+  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const z = 0.0193 * r + 0.1192 * g + 0.9505 * b;
+
+  const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const fx = f(x / D65_WHITE.x);
+  const fy = f(y / D65_WHITE.y);
+  const fz = f(z / D65_WHITE.z);
+
+  return {
+    L: 116 * fy - 16,
+    a: 500 * (fx - fy),
+    b: 200 * (fy - fz),
+  };
+}
+
+export function colorDistance(hexA: string, hexB: string): number {
+  const labA = hexToLab(hexA);
+  const labB = hexToLab(hexB);
+  if (!labA || !labB) return 0;
+
+  return Math.sqrt((labA.L - labB.L) ** 2 + (labA.a - labB.a) ** 2 + (labA.b - labB.b) ** 2);
+}
+
+export const DECORATIVE_MIN_COLOR_DISTANCE = 25;

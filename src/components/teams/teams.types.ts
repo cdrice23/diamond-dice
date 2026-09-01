@@ -65,7 +65,7 @@ export type TeamDetail = {
   home_field_name: string;
   team_theme_color_primary: string;
   team_theme_color_secondary: string;
-  format_name: string;
+  format_name: string | null;
   wins: number;
   losses: number;
   games_played: number;

@@ -7,13 +7,11 @@ import { TeamDetailPitchersCard } from '@/components/teams/components/team-detai
 import { TeamDetailPositionPlayersCard } from '@/components/teams/components/team-detail-position-players-card.component';
 import { TeamDetailRecentGamesCard } from '@/components/teams/components/team-detail-recent-games-card.component';
 import { TeamDetailStatsCard } from '@/components/teams/components/team-detail-stats-card.component';
-import { type TeamDetailViewMode } from '@/components/teams/components/team-detail-view-toggle.component';
-import { MOCK_TEAM_DETAIL } from '@/components/teams/teams.mock';
+import { useTeamDetail } from '@/components/teams/hooks/use-team-detail.hook';
 import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { ScrollView, View, useWindowDimensions } from 'react-native';
+import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TOP_BAND_HEIGHT = 40;
@@ -26,9 +24,27 @@ export default function TeamDetailScreen() {
   const insets = useSafeAreaInsets();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
+  const { team, loading } = useTeamDetail(teamId);
 
-  const team = MOCK_TEAM_DETAIL;
-  const [viewMode, setViewMode] = useState<TeamDetailViewMode>('list');
+  const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1 }}>
+        <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={TOP_BAND_HEIGHT} />
+        <Text className="text-muted-foreground px-4 pt-24 text-center">Loading team...</Text>
+      </View>
+    );
+  }
+
+  if (!team) {
+    return (
+      <View style={{ flex: 1 }}>
+        <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={TOP_BAND_HEIGHT} />
+        <Text className="text-muted-foreground px-4 pt-24 text-center">Team not found.</Text>
+      </View>
+    );
+  }
 
   const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
   const { backgroundColor: bandColor, textColor: bandTextColor, accentColor: bandAccentColor } = resolveTeamColors(
@@ -36,7 +52,6 @@ export default function TeamDetailScreen() {
     team.team_theme_color_secondary,
     colors.background
   );
-  const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
 
   return (
     <View style={{ flex: 1 }}>
