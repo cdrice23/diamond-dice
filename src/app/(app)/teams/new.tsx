@@ -1,11 +1,15 @@
+import { useAwardGroupLookup } from '@/components/player-database/hooks/use-award-group-lookup.hook';
 import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-basic-info-step.component';
 import { AddTeamBattingOrderStep } from '@/components/teams/components/add-team-batting-order-step.component';
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
 import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
+import { AddTeamRandomFiltersStep } from '@/components/teams/components/add-team-random-filters-step.component';
+import { AddTeamRandomReviewStep, RegenerateHeaderButton } from '@/components/teams/components/add-team-random-review-step.component';
 import { AddTeamReviewStep } from '@/components/teams/components/add-team-review-step.component';
 import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-roster-slots-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { useFormatRosterRequirements } from '@/components/teams/hooks/use-format-roster-requirements.hook';
+import { useGenerateTeamRosterDraft } from '@/components/teams/hooks/use-generate-team-roster-draft.hook';
 import { useSaveTeam } from '@/components/teams/hooks/use-save-team.hook';
 import { useTeamWizard } from '@/components/teams/hooks/use-team-wizard.hook';
 import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-team-basic-info.hook';
@@ -14,6 +18,9 @@ import type { TeamWizardState } from '@/components/teams/teams.types';
 import { computePitcherSlotRange } from '@/components/teams/utils/roster-level-counts';
 import { useToast } from '@/utils/toast-provider';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
+
+const REGENERATE_WARNING_THRESHOLD = 3;
 
 function isBasicInfoValid(state: TeamWizardState): boolean {
   return (
@@ -45,10 +52,13 @@ export default function AddTeamScreen() {
   const { requirements } = useFormatRosterRequirements(state.formatId);
   const pitcherRange = computePitcherSlotRange(requirements);
   const { saveTeam, saving, error: saveError } = useSaveTeam();
+  const { generateRosterDraft, generating, error: generateError } = useGenerateTeamRosterDraft();
+  const { expandLabels } = useAwardGroupLookup();
+  const [regenerateCount, setRegenerateCount] = useState(0);
 
   function handleChoosePath(path: 'scratch' | 'random') {
     dispatch({ type: 'SET_PATH', path });
-    dispatch({ type: 'GO_TO_STEP', step: path === 'scratch' ? 'basicInfo' : 'format' });
+    dispatch({ type: 'GO_TO_STEP', step: 'basicInfo' });
   }
 
   async function handleBasicInfoConfirm() {
@@ -79,6 +89,42 @@ export default function AddTeamScreen() {
     const isValid = await validateRosterDraft(state.formatId, state.positionSlots, state.pitcherSlots);
     if (isValid) {
       dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' });
+    }
+  }
+
+  async function runGeneration(): Promise<boolean> {
+    if (!state.formatId) return false;
+
+    const roster = await generateRosterDraft(state.formatId, {
+      mlbTeamIds: state.randomFilters.mlbTeamIds,
+      debutYearFrom: state.randomFilters.debutYearFrom,
+      debutYearTo: state.randomFilters.debutYearTo,
+      awardTypeIds: expandLabels(state.randomFilters.awardGroupLabels),
+    });
+
+    if (roster) {
+      dispatch({ type: 'SET_GENERATED_ROSTER', positionSlots: roster.positionSlots, pitcherSlots: roster.pitcherSlots });
+      return true;
+    }
+
+    if (generateError) {
+      showToast(generateError, 'error');
+    }
+    return false;
+  }
+
+  async function handleGenerateAndContinue() {
+    const ok = await runGeneration();
+    if (ok) {
+      setRegenerateCount(0);
+      dispatch({ type: 'GO_TO_STEP', step: 'randomReview' });
+    }
+  }
+
+  async function handleRegenerate() {
+    const ok = await runGeneration();
+    if (ok) {
+      setRegenerateCount((prev) => prev + 1);
     }
   }
 
@@ -152,10 +198,53 @@ export default function AddTeamScreen() {
           dispatch({ type: 'RESET_FORMAT' });
           dispatch({ type: 'GO_TO_STEP', step: 'basicInfo' });
         }}
-        onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })}
+        onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: state.path === 'random' ? 'randomFilters' : 'slots' })}
         confirmDisabled={!state.formatId}
       >
         <AddTeamFormatStep formatId={state.formatId} formatName={state.formatName} onSelectFormat={handleSelectFormat} />
+      </AddTeamWizard>
+    );
+  }
+
+  if (state.step === 'randomFilters') {
+    return (
+      <AddTeamWizard
+        subtitle="Generate a Roster"
+        onCancel={() => router.replace('/teams')}
+        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'format' })}
+        onConfirm={handleGenerateAndContinue}
+        confirmDisabled={generating}
+        confirmLabel={generating ? 'Generating...' : 'Generate My Team'}
+      >
+        <AddTeamRandomFiltersStep
+          formatName={state.formatName}
+          filters={state.randomFilters}
+          onChangeFilters={(partial) => dispatch({ type: 'SET_RANDOM_FILTERS', filters: partial })}
+        />
+      </AddTeamWizard>
+    );
+  }
+
+  if (state.step === 'randomReview') {
+    return (
+      <AddTeamWizard
+        subtitle="Review Generated Roster"
+        headerAction={<RegenerateHeaderButton regenerating={generating} onPress={handleRegenerate} />}
+        onCancel={() => router.replace('/teams')}
+        onBack={() => {
+          setRegenerateCount(0);
+          dispatch({ type: 'GO_TO_STEP', step: 'randomFilters' });
+        }}
+        onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })}
+        confirmLabel="Continue"
+      >
+        <AddTeamRandomReviewStep
+          formatName={state.formatName}
+          positionSlots={state.positionSlots}
+          pitcherSlots={state.pitcherSlots}
+          loading={generating}
+          showSpamWarning={regenerateCount >= REGENERATE_WARNING_THRESHOLD}
+        />
       </AddTeamWizard>
     );
   }
@@ -165,7 +254,7 @@ export default function AddTeamScreen() {
       <AddTeamWizard
         subtitle="Add Players to Roster"
         onCancel={() => router.replace('/teams')}
-        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'format' })}
+        onBack={() => dispatch({ type: 'GO_TO_STEP', step: state.path === 'random' ? 'randomReview' : 'format' })}
         onConfirm={handleRosterConfirm}
         confirmDisabled={!isSlotsValid(state, pitcherRange.min) || checkingRoster}
         confirmLabel={checkingRoster ? 'Checking...' : 'Confirm'}

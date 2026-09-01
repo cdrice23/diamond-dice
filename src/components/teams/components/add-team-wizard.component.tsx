@@ -6,9 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 
+const NAV_CLEARANCE_EXTRA = 16;
+
 type AddTeamWizardProps = {
   subtitle?: string;
   helperText?: string;
+  headerAction?: ReactNode;
   onCancel: () => void;
   onBack: (() => void) | null;
   onConfirm: (() => void) | null;
@@ -18,8 +21,6 @@ type AddTeamWizardProps = {
   hideDefaultHeader?: boolean;
   children: ReactNode;
 };
-
-const NAV_CLEARANCE_EXTRA = 16;
 
 export function AddTeamWizard({
   onCancel,
@@ -31,6 +32,7 @@ export function AddTeamWizard({
   hideDefaultHeader = false,
   subtitle,
   helperText,
+  headerAction,
   children,
 }: AddTeamWizardProps) {
   const { colors } = useTheme();
@@ -46,7 +48,10 @@ export function AddTeamWizard({
           <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
 
           <View className="gap-1 px-4 pb-2 pt-20">
-            <Text className="text-foreground text-3xl font-bold">New Team</Text>
+            <View className="flex-row items-start justify-between">
+              <Text className="text-foreground text-3xl font-bold">New Team</Text>
+              {headerAction}
+            </View>
             {subtitle && <Text className="text-foreground text-lg font-semibold">{subtitle}</Text>}
             {helperText && (
               <Text variant="muted" className="text-sm">
