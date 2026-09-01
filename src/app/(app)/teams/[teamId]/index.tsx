@@ -9,7 +9,7 @@ import { TeamDetailRecentGamesCard } from '@/components/teams/components/team-de
 import { TeamDetailStatsCard } from '@/components/teams/components/team-detail-stats-card.component';
 import { type TeamDetailViewMode } from '@/components/teams/components/team-detail-view-toggle.component';
 import { MOCK_TEAM_DETAIL } from '@/components/teams/teams.mock';
-import { resolveTeamHeaderColors } from '@/utils/color';
+import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -31,9 +31,10 @@ export default function TeamDetailScreen() {
   const [viewMode, setViewMode] = useState<TeamDetailViewMode>('list');
 
   const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
-  const { background: bandColor, text: bandTextColor } = resolveTeamHeaderColors(
+  const { backgroundColor: bandColor, textColor: bandTextColor, accentColor: bandAccentColor } = resolveTeamColors(
     team.team_theme_color_primary,
-    team.team_theme_color_secondary
+    team.team_theme_color_secondary,
+    colors.background
   );
   const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
 
@@ -44,7 +45,7 @@ export default function TeamDetailScreen() {
         backgroundColor={colors.background}
         topBandHeight={TOP_BAND_HEIGHT}
         topBandBackgroundColor={bandColor}
-        topBandSvgColor={team.team_theme_color_secondary}
+        topBandSvgColor={bandAccentColor}
       />
 
       <View style={{ marginTop: headerTopOffset, backgroundColor: bandColor }} className="gap-3 pb-3">
@@ -54,6 +55,7 @@ export default function TeamDetailScreen() {
           homeFieldName={team.home_field_name}
           formatName={team.format_name}
           textColor={bandTextColor}
+          accentColor={bandAccentColor}
           onEditPress={() => router.push(`/teams/${team.id}/edit`)}
           onDeletePress={() => {}}
         />
@@ -66,10 +68,11 @@ export default function TeamDetailScreen() {
             pitchers={team.pitchers}
             bandColor={bandColor}
             textColor={bandTextColor}
+            accentColor={bandAccentColor}
           />
-          <TeamDetailPitchersCard pitchers={team.pitchers} bandColor={bandColor} textColor={bandTextColor} />
-          <TeamDetailRecentGamesCard games={team.recent_games} bandColor={bandColor} textColor={bandTextColor} />
-          <TeamDetailStatsCard wins={team.wins} losses={team.losses} gamesPlayed={team.games_played} bandColor={bandColor} textColor={bandTextColor} />
+          <TeamDetailPitchersCard pitchers={team.pitchers} bandColor={bandColor} textColor={bandTextColor} accentColor={bandAccentColor} />
+          <TeamDetailRecentGamesCard games={team.recent_games} bandColor={bandColor} textColor={bandTextColor} accentColor={bandAccentColor} />
+          <TeamDetailStatsCard wins={team.wins} losses={team.losses} gamesPlayed={team.games_played} bandColor={bandColor} textColor={bandTextColor} accentColor={bandAccentColor} />
         </ScrollView>
         <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
       </View>

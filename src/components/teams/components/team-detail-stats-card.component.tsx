@@ -9,12 +9,13 @@ type TeamDetailStatsCardProps = {
   gamesPlayed: number;
   bandColor: string;
   textColor: string;
+  accentColor?: string;
 };
 
-export function TeamDetailStatsCard({ wins, losses, gamesPlayed, bandColor, textColor }: TeamDetailStatsCardProps) {
+export function TeamDetailStatsCard({ wins, losses, gamesPlayed, bandColor, textColor, accentColor }: TeamDetailStatsCardProps) {
   return (
     <Card className="mx-4">
-      <TeamDetailCardHeader label="Stats" bandColor={bandColor} textColor={textColor} />
+      <TeamDetailCardHeader label="Stats" bandColor={bandColor} textColor={textColor} accentColor={accentColor} />
 
       <View className="flex-row justify-around">
         <View className="items-center">

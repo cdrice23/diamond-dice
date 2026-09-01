@@ -3,7 +3,7 @@ import { Text } from '@/components/primitives/text.component';
 import { TeamDetailHeader } from '@/components/teams/components/team-detail-header.component';
 import { TeamDetailPitchersCard } from '@/components/teams/components/team-detail-pitchers-card.component';
 import { TeamDetailPositionPlayersCard } from '@/components/teams/components/team-detail-position-players-card.component';
-import { resolveTeamHeaderColors } from '@/utils/color';
+import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -61,7 +61,11 @@ export function AddTeamReviewStep({
 
   const primaryHex = primaryColor ?? FALLBACK_HEX;
   const secondaryHex = secondaryColor ?? FALLBACK_HEX;
-  const { background: bandColor, text: bandTextColor } = resolveTeamHeaderColors(primaryHex, secondaryHex);
+  const { backgroundColor: bandColor, textColor: bandTextColor, accentColor: bandAccentColor } = resolveTeamColors(
+    primaryHex,
+    secondaryHex,
+    colors.background
+  );
   const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
 
   const teamPositionSlots = toTeamDetailPositionSlots(positionSlots, battingOrder);
@@ -74,14 +78,21 @@ export function AddTeamReviewStep({
         backgroundColor={colors.background}
         topBandHeight={TOP_BAND_HEIGHT}
         topBandBackgroundColor={bandColor}
-        topBandSvgColor={secondaryHex}
+        topBandSvgColor={bandAccentColor}
       />
 
       <View style={{ marginTop: headerTopOffset, backgroundColor: bandColor }} className="gap-2 px-4 pb-3">
         <Text style={{ color: bandTextColor }} className="text-2xl font-bold">
           Review New Team
         </Text>
-        <TeamDetailHeader teamName={teamName} homeFieldName={homeFieldName} formatName={formatName} textColor={bandTextColor} showMenu={false} />
+        <TeamDetailHeader
+          teamName={teamName}
+          homeFieldName={homeFieldName}
+          formatName={formatName}
+          textColor={bandTextColor}
+          accentColor={bandAccentColor}
+          showMenu={false}
+        />
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ gap: 16, paddingTop: 32, paddingBottom: 24 }}>
@@ -90,9 +101,10 @@ export function AddTeamReviewStep({
           pitchers={teamPitcherSlots}
           bandColor={bandColor}
           textColor={bandTextColor}
+          accentColor={bandAccentColor}
           hideViewToggle
         />
-        <TeamDetailPitchersCard pitchers={teamPitcherSlots} bandColor={bandColor} textColor={bandTextColor} />
+        <TeamDetailPitchersCard pitchers={teamPitcherSlots} bandColor={bandColor} textColor={bandTextColor} accentColor={bandAccentColor} />
       </ScrollView>
     </View>
   );

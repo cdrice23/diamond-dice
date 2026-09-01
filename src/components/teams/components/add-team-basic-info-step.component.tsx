@@ -2,6 +2,9 @@ import { Input } from '@/components/primitives/input.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamColorPickerModal } from '@/components/teams/components/add-team-color-picker-modal.component';
 import { AddTeamColorSwatch } from '@/components/teams/components/add-team-color-swatch.component';
+import { areTeamColorsTooSimilar } from '@/utils/color';
+import { useTheme } from '@/utils/theme-provider';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Keyboard, View } from 'react-native';
 
@@ -34,6 +37,7 @@ export function AddTeamBasicInfoStep({
   onAddCustomSwatch,
   onUpdateCustomSwatch,
 }: AddTeamBasicInfoStepProps) {
+  const { colors } = useTheme();
   const [activeSwatch, setActiveSwatch] = useState<'primary' | 'secondary' | null>(null);
 
   function handleSelectColor(color: string) {
@@ -46,6 +50,9 @@ export function AddTeamBasicInfoStep({
     Keyboard.dismiss();
     setActiveSwatch(target);
   }
+
+  const showSimilarColorsWarning =
+    primaryColor !== null && secondaryColor !== null && areTeamColorsTooSimilar(primaryColor, secondaryColor);
 
   return (
     <View className="flex-1 gap-6 px-4">
@@ -73,6 +80,15 @@ export function AddTeamBasicInfoStep({
           <AddTeamColorSwatch label="Primary" color={primaryColor} onPress={() => openColorPicker('primary')} />
           <AddTeamColorSwatch label="Secondary" color={secondaryColor} onPress={() => openColorPicker('secondary')} />
         </View>
+
+        {showSimilarColorsWarning && (
+          <View className="flex-row items-start gap-2 pt-1">
+            <MaterialCommunityIcons name="alert-circle-outline" size={16} color={colors.mutedForeground} style={{ marginTop: 2 }} />
+            <Text variant="muted" className="flex-1 text-sm">
+              These colors are hard to tell apart. Your team will still work fine, but a bit more contrast can help it stand out.
+            </Text>
+          </View>
+        )}
       </View>
 
       <AddTeamColorPickerModal

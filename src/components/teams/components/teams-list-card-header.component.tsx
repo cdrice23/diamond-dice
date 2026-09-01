@@ -1,5 +1,6 @@
 import { Text } from '@/components/primitives/text.component';
-import { resolveTeamHeaderColors } from '@/utils/color';
+import { resolveTeamColors } from '@/utils/color';
+import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
@@ -19,13 +20,18 @@ export function TeamsListCardHeader({
   onEditPress,
   onDeletePress,
 }: TeamsListCardHeaderProps) {
-  const { background, text } = resolveTeamHeaderColors(primaryColor, secondaryColor);
+  const { colors } = useTheme();
+  const { backgroundColor: background, textColor: text, accentColor: accent } = resolveTeamColors(
+    primaryColor,
+    secondaryColor,
+    colors.background
+  );
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <View style={{ backgroundColor: background }} className="flex-row items-center justify-between px-4 py-3.5">
       <View className="flex-1 flex-row items-center gap-2.5">
-        <View style={{ width: 5, height: 24, borderRadius: 2.5, backgroundColor: text }} />
+        <View style={{ width: 5, height: 24, borderRadius: 2.5, backgroundColor: accent }} />
         <Text style={{ color: text }} className="flex-1 text-xl font-bold" numberOfLines={1}>
           {teamName}
         </Text>

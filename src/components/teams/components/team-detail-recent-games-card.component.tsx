@@ -6,16 +6,17 @@ type TeamDetailRecentGamesCardProps = {
   games: RecentGameRow[];
   bandColor: string;
   textColor: string;
+  accentColor?: string;
 };
 
-export function TeamDetailRecentGamesCard({ games, bandColor, textColor }: TeamDetailRecentGamesCardProps) {
+export function TeamDetailRecentGamesCard({ games, bandColor, textColor, accentColor }: TeamDetailRecentGamesCardProps) {
   if (games.length === 0) {
     return null;
   }
 
   return (
     <Card className="mx-4">
-      <TeamDetailCardHeader label="Recent Games" bandColor={bandColor} textColor={textColor} />
+      <TeamDetailCardHeader label="Recent Games" bandColor={bandColor} textColor={textColor} accentColor={accentColor} />
       <RecentGamesList games={games} />
     </Card>
   );

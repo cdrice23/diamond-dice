@@ -46,13 +46,20 @@ export function adjustHslAlpha(hsl: string, alpha: number): string {
   return `hsla(${hue}, ${saturation}%, ${lightness}%, ${clampedAlpha})`;
 }
 
+function relativeLuminanceFromRgb(r: number, g: number, b: number): number {
+  const toLinear = (v: number) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
 function hexRelativeLuminance(hex: string): number {
   const match = hex.match(/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/);
   if (!match) return 0;
 
-  const [r, g, b] = [match[1], match[2], match[3]].map((c) => parseInt(c, 16) / 255);
-  const toLinear = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
-  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+  const [r, g, b] = [match[1], match[2], match[3]].map((c) => parseInt(c, 16));
+  return relativeLuminanceFromRgb(r, g, b);
 }
 
 export function hexContrastRatio(hexA: string, hexB: string): number {
@@ -61,18 +68,92 @@ export function hexContrastRatio(hexA: string, hexB: string): number {
   return lA > lB ? lA / lB : lB / lA;
 }
 
-const WCAG_AA_NORMAL_TEXT_MIN_RATIO = 4.5;
+function hslToRgb(hsl: string): [number, number, number] | null {
+  const match = hsl.match(/hsl\(([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\)/);
+  if (!match) return null;
+
+  const h = parseFloat(match[1]);
+  const s = parseFloat(match[2]) / 100;
+  const l = parseFloat(match[3]) / 100;
+
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let [r, g, b] = [0, 0, 0];
+  if (h < 60) [r, g, b] = [c, x, 0];
+  else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x];
+  else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+
+  return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+}
+
+function relativeLuminance(color: string): number {
+  const hexMatch = color.match(/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/);
+  if (hexMatch) {
+    const [r, g, b] = [hexMatch[1], hexMatch[2], hexMatch[3]].map((c) => parseInt(c, 16));
+    return relativeLuminanceFromRgb(r, g, b);
+  }
+
+  const rgb = hslToRgb(color);
+  if (rgb) return relativeLuminanceFromRgb(...rgb);
+
+  return 0;
+}
+
+export function contrastRatio(colorA: string, colorB: string): number {
+  const lA = relativeLuminance(colorA) + 0.05;
+  const lB = relativeLuminance(colorB) + 0.05;
+  return lA > lB ? lA / lB : lB / lA;
+}
+
+export const READABILITY_MIN_CONTRAST_RATIO = 4.5;
+export const DECORATIVE_MIN_CONTRAST_RATIO = 3;
 
 export function resolveTeamHeaderColors(
   primaryHex: string,
   secondaryHex: string
 ): { background: string; text: string } {
-  if (hexContrastRatio(primaryHex, secondaryHex) >= WCAG_AA_NORMAL_TEXT_MIN_RATIO) {
+  if (hexContrastRatio(primaryHex, secondaryHex) >= READABILITY_MIN_CONTRAST_RATIO) {
     return { background: primaryHex, text: secondaryHex };
   }
   const blackContrast = hexContrastRatio(primaryHex, '#000000');
   const whiteContrast = hexContrastRatio(primaryHex, '#FFFFFF');
   return { background: primaryHex, text: blackContrast > whiteContrast ? '#000000' : '#FFFFFF' };
+}
+
+export type TeamColorResolution = {
+  backgroundColor: string;
+  textColor: string;
+  accentColor: string;
+};
+
+export function resolveTeamColors(primaryHex: string, secondaryHex: string, appBackgroundColor: string): TeamColorResolution {
+  const primaryVsBg = contrastRatio(primaryHex, appBackgroundColor);
+  const secondaryVsBg = contrastRatio(secondaryHex, appBackgroundColor);
+
+  const backgroundColor = primaryVsBg >= secondaryVsBg ? primaryHex : secondaryHex;
+  const remainingAccent = backgroundColor === primaryHex ? secondaryHex : primaryHex;
+  const remainingVsBackground = contrastRatio(remainingAccent, backgroundColor);
+
+  let textColor: string;
+  if (remainingVsBackground >= READABILITY_MIN_CONTRAST_RATIO) {
+    textColor = remainingAccent;
+  } else {
+    const blackContrast = contrastRatio(backgroundColor, '#000000');
+    const whiteContrast = contrastRatio(backgroundColor, '#FFFFFF');
+    textColor = blackContrast > whiteContrast ? '#000000' : '#FFFFFF';
+  }
+
+  const accentColor = remainingVsBackground >= DECORATIVE_MIN_CONTRAST_RATIO ? remainingAccent : textColor;
+
+  return { backgroundColor, textColor, accentColor };
+}
+
+export function areTeamColorsTooSimilar(primaryHex: string, secondaryHex: string): boolean {
+  return contrastRatio(primaryHex, secondaryHex) < DECORATIVE_MIN_CONTRAST_RATIO;
 }
 
 export function blendHsl(base: string, tint: string, tintOpacity: number): string {

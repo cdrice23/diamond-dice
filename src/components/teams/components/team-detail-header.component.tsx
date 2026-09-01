@@ -7,6 +7,7 @@ type TeamDetailHeaderProps = {
   teamName: string;
   homeFieldName: string;
   textColor: string;
+  accentColor?: string;
   formatName?: string | null;
   onEditPress?: () => void;
   onDeletePress?: () => void;
@@ -17,6 +18,7 @@ export function TeamDetailHeader({
   teamName,
   homeFieldName,
   textColor,
+  accentColor,
   formatName,
   onEditPress,
   onDeletePress,
@@ -27,10 +29,14 @@ export function TeamDetailHeader({
   return (
     <View className="flex-row items-start justify-between px-4">
       <View className="flex-1 gap-0.5">
-        <Text style={{ color: textColor }} className="text-3xl font-bold" numberOfLines={1}>
-          {teamName}
-        </Text>
-        <View className="flex-row items-center gap-1.5">
+        <View className="flex-row items-center gap-2.5">
+          {accentColor && <View style={{ width: 5, height: 28, borderRadius: 2.5, backgroundColor: accentColor }} />}
+          <Text style={{ color: textColor }} className="flex-1 text-3xl font-bold" numberOfLines={1}>
+            {teamName}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center gap-1.5" style={accentColor ? { paddingLeft: 15 } : undefined}>
           <MaterialCommunityIcons name="stadium-outline" size={16} color={textColor} style={{ opacity: 0.75 }} />
           <Text style={{ color: textColor, opacity: 0.75 }} className="text-xl" numberOfLines={1}>
             {homeFieldName}
@@ -38,7 +44,7 @@ export function TeamDetailHeader({
         </View>
 
         {formatName && (
-          <View className="flex-row items-center gap-1.5">
+          <View className="flex-row items-center gap-1.5" style={accentColor ? { paddingLeft: 15 } : undefined}>
             <MaterialCommunityIcons name="baseball-bat" size={16} color={textColor} style={{ opacity: 0.75 }} />
             <Text style={{ color: textColor, opacity: 0.75 }} className="text-xl" numberOfLines={1}>
               {formatName}

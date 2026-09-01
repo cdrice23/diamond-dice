@@ -22,6 +22,7 @@ type TeamDetailPositionPlayersCardProps = {
   pitchers: TeamDetailPitcherSlot[];
   bandColor: string;
   textColor: string;
+  accentColor?: string;
   hideViewToggle?: boolean;
 };
 
@@ -105,6 +106,7 @@ export function TeamDetailPositionPlayersCard({
   pitchers,
   bandColor,
   textColor,
+  accentColor,
   hideViewToggle = false,
 }: TeamDetailPositionPlayersCardProps) {
   const { colors } = useTheme();
@@ -128,7 +130,7 @@ export function TeamDetailPositionPlayersCard({
 
   return (
     <Card className="mx-4">
-      <TeamDetailCardHeader label="Position Players" bandColor={bandColor} textColor={textColor} />
+      <TeamDetailCardHeader label="Position Players" bandColor={bandColor} textColor={textColor} accentColor={accentColor} />
 
       {!hideViewToggle && (
         <View className="mb-3 flex-row justify-end">

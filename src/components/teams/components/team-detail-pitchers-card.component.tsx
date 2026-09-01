@@ -17,6 +17,7 @@ type TeamDetailPitchersCardProps = {
   pitchers: TeamDetailPitcherSlot[];
   bandColor: string;
   textColor: string;
+  accentColor?: string;
 };
 
 function PitcherRow({ slot, index }: { slot: TeamDetailPitcherSlot; index: number }) {
@@ -42,14 +43,14 @@ function PitcherRow({ slot, index }: { slot: TeamDetailPitcherSlot; index: numbe
   );
 }
 
-export function TeamDetailPitchersCard({ pitchers, bandColor, textColor }: TeamDetailPitchersCardProps) {
+export function TeamDetailPitchersCard({ pitchers, bandColor, textColor, accentColor }: TeamDetailPitchersCardProps) {
   if (pitchers.length === 0) {
     return null;
   }
 
   return (
     <Card className="mx-4">
-      <TeamDetailCardHeader label="Pitchers" bandColor={bandColor} textColor={textColor} />
+      <TeamDetailCardHeader label="Pitchers" bandColor={bandColor} textColor={textColor} accentColor={accentColor} />
 
       <View className="gap-4">
         {pitchers.map((slot, index) => (
