@@ -6,6 +6,7 @@ import { AddTeamReviewStep } from '@/components/teams/components/add-team-review
 import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-roster-slots-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { useFormatRosterRequirements } from '@/components/teams/hooks/use-format-roster-requirements.hook';
+import { useSaveTeam } from '@/components/teams/hooks/use-save-team.hook';
 import { useTeamWizard } from '@/components/teams/hooks/use-team-wizard.hook';
 import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-team-basic-info.hook';
 import { useValidateTeamRosterDraft } from '@/components/teams/hooks/use-validate-team-roster-draft.hook';
@@ -34,6 +35,7 @@ export default function AddTeamScreen() {
   const { state, dispatch } = useTeamWizard();
   const { validateBasicInfo, errors: basicInfoErrors, checking: checkingBasicInfo } = useValidateTeamBasicInfo();
   const { validateRosterDraft, errors: rosterErrors, checking: checkingRoster, clearErrors: clearRosterErrors } = useValidateTeamRosterDraft();
+  const { saveTeam, saving, error: saveError } = useSaveTeam();
   const { requirements } = useFormatRosterRequirements(state.formatId);
   const pitcherRange = computePitcherSlotRange(requirements);
 
@@ -70,6 +72,26 @@ export default function AddTeamScreen() {
     const isValid = await validateRosterDraft(state.formatId, state.positionSlots, state.pitcherSlots);
     if (isValid) {
       dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' });
+    }
+  }
+
+  async function handleSaveTeam() {
+    if (!state.formatId || !state.primaryColor || !state.secondaryColor) return;
+
+    const teamId = await saveTeam({
+      teamName: state.teamName,
+      homeFieldName: state.homeFieldName,
+      primaryColor: state.primaryColor,
+      secondaryColor: state.secondaryColor,
+      formatId: state.formatId,
+      positionSlots: state.positionSlots,
+      pitcherSlots: state.pitcherSlots,
+      battingOrder: state.battingOrder,
+    });
+
+    if (teamId) {
+      dispatch({ type: 'RESET' });
+      router.replace('/teams');
     }
   }
 
@@ -175,10 +197,9 @@ export default function AddTeamScreen() {
         hideDefaultHeader
         onCancel={() => router.replace('/teams')}
         onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' })}
-        onConfirm={() => {
-          /* upsert-team wiring comes next */
-        }}
-        confirmLabel="Save New Team"
+        onConfirm={handleSaveTeam}
+        confirmDisabled={saving}
+        confirmLabel={saving ? 'Saving...' : 'Save New Team'}
       >
         <AddTeamReviewStep
           teamName={state.teamName}
