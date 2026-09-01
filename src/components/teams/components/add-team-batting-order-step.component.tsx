@@ -1,3 +1,4 @@
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { BattingOrderRow } from '@/components/teams/components/batting-order-row.component';
 import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -70,16 +71,15 @@ export function AddTeamBattingOrderStep({ positionSlots, battingOrder, onChangeB
         onRelease={handleRelease}
         onDragEnd={handleDragEnd}
         animationConfig={{ damping: 24, stiffness: 300 }}
-        renderItem={({ item, drag, isActive }: RenderItemParams<WizardPositionSlot>) => {
-          const order = (orderIndexByPlayerId.get(item.playerId) ?? 0) + 1;
-          return (
-            <ShadowDecorator>
+        renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<WizardPositionSlot>) => (
+          <ShadowDecorator>
+            <AnimatedCascadeItem index={getIndex() ?? 0} staggerDelayMs={30} fadeDurationMs={250} translateYStart={6}>
               <View className="py-0.5">
-                <BattingOrderRow slot={item} order={order} onDragStart={drag} isActive={isActive && !isReleased} />
+                <BattingOrderRow slot={item} order={(getIndex() ?? 0) + 1} onDragStart={drag} isActive={isActive} />
               </View>
-            </ShadowDecorator>
-          );
-        }}
+            </AnimatedCascadeItem>
+          </ShadowDecorator>
+        )}
       />
     </View>
   );

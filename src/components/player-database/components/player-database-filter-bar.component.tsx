@@ -15,7 +15,15 @@ type PlayerDatabaseFilterBarProps = {
   onFiltersChange: (updater: (prev: PlayerDatabaseFilters) => PlayerDatabaseFilters) => void;
   disablePlayerType?: boolean;
   disablePositions?: boolean;
+  disableLevels?: boolean;
+  baseFilters?: PlayerDatabaseFilters;
 };
+
+function arraysHaveSameMembers<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) return false;
+  const setB = new Set(b);
+  return a.every((item) => setB.has(item));
+}
 
 function buildAdvancedFiltersLabel(filters: PlayerDatabaseFilters): string {
   const parts: string[] = [];
@@ -25,19 +33,26 @@ function buildAdvancedFiltersLabel(filters: PlayerDatabaseFilters): string {
   return parts.length === 0 ? 'Advanced Filters' : parts.join(', ');
 }
 
-function isAnyFilterActive(filters: PlayerDatabaseFilters): boolean {
+function isAnyFilterActive(filters: PlayerDatabaseFilters, base: PlayerDatabaseFilters): boolean {
   return (
-    filters.playerType !== DEFAULT_FILTERS.playerType ||
-    filters.ratingLevels.length !== DEFAULT_FILTERS.ratingLevels.length ||
-    filters.positions.length > 0 ||
-    filters.debutYearFrom !== null ||
-    filters.debutYearTo !== null ||
-    filters.teamIds.length > 0 ||
-    filters.awardGroupLabels.length > 0
+    filters.playerType !== base.playerType ||
+    !arraysHaveSameMembers(filters.ratingLevels, base.ratingLevels) ||
+    !arraysHaveSameMembers(filters.positions, base.positions) ||
+    filters.debutYearFrom !== base.debutYearFrom ||
+    filters.debutYearTo !== base.debutYearTo ||
+    !arraysHaveSameMembers(filters.teamIds, base.teamIds) ||
+    !arraysHaveSameMembers(filters.awardGroupLabels, base.awardGroupLabels)
   );
 }
 
-export function PlayerDatabaseFilterBar({ filters, onFiltersChange, disablePlayerType = false, disablePositions = false, }: PlayerDatabaseFilterBarProps) {
+export function PlayerDatabaseFilterBar({
+  filters,
+  onFiltersChange,
+  disablePlayerType = false,
+  disablePositions = false,
+  disableLevels = false,
+  baseFilters = DEFAULT_FILTERS,
+}: PlayerDatabaseFilterBarProps) {
   const { colorScheme } = useTheme();
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
@@ -47,10 +62,10 @@ export function PlayerDatabaseFilterBar({ filters, onFiltersChange, disablePlaye
     filters.teamIds.length > 0 ||
     filters.awardGroupLabels.length > 0;
 
-  const anyFilterActive = isAnyFilterActive(filters);
+  const anyFilterActive = isAnyFilterActive(filters, baseFilters);
 
   function handleClearAll() {
-    onFiltersChange(() => DEFAULT_FILTERS);
+    onFiltersChange(() => baseFilters);
   }
 
   return (
@@ -61,6 +76,7 @@ export function PlayerDatabaseFilterBar({ filters, onFiltersChange, disablePlaye
         ratingLevels={filters.ratingLevels}
         onRatingLevelsChange={(ratingLevels) => onFiltersChange((prev) => ({ ...prev, ratingLevels }))}
         disablePlayerType={disablePlayerType}
+        disableLevels={disableLevels}
       />
 
       <View className="flex-row gap-2 px-4">

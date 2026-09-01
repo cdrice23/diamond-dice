@@ -12,6 +12,7 @@ type PlayerDatabaseLevelFilterGroupProps = {
   ratingLevels: (1 | 2 | 3)[];
   onRatingLevelsChange: (next: (1 | 2 | 3)[]) => void;
   disablePlayerType?: boolean;
+  disableLevels?: boolean;
 };
 
 const LEVELS: (1 | 2 | 3)[] = [1, 2, 3];
@@ -24,10 +25,12 @@ export function PlayerDatabaseLevelFilterGroup({
   ratingLevels,
   onRatingLevelsChange,
   disablePlayerType = false,
+  disableLevels = false,
 }: PlayerDatabaseLevelFilterGroupProps) {
   const { colors } = useTheme();
 
   function toggleLevel(level: 1 | 2 | 3) {
+    if (disableLevels) return;
     onRatingLevelsChange(
       ratingLevels.includes(level) ? ratingLevels.filter((l) => l !== level) : ([...ratingLevels, level].sort() as (1 | 2 | 3)[])
     );
@@ -53,6 +56,7 @@ export function PlayerDatabaseLevelFilterGroup({
               trailing={!isOn ? <Ionicons name="remove-circle" size={14} color={color} /> : undefined}
               inactiveBackgroundColor={adjustHslAlpha(color, MUTED_BACKGROUND_ALPHA)}
               inactiveBorderColor={adjustHslAlpha(color, MUTED_BORDER_ALPHA)}
+              disabled={disableLevels}
               fullWidth
             />
           </View>

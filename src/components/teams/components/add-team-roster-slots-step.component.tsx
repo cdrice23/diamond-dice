@@ -1,5 +1,6 @@
 import type { PlayerDatabaseRow as PlayerDatabaseRowData } from '@/components/player-database/hooks/use-player-database-search.hook';
 import type { Position } from '@/components/player-database/player-database.types';
+import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
@@ -44,6 +45,13 @@ function getExcludedPlayerIds(
     .filter((_, index) => index !== openSlot.slotIndex)
     .map((slot) => slot.playerId)
     .filter((id): id is string => id !== null);
+}
+
+function getSingleActiveLevel(requirements: FormatLevelRequirement[], playerType: 'batter' | 'pitcher'): number | null {
+  const activeLevels = requirements
+    .filter((r) => r.playerType === playerType && r.level !== null && r.minCount > 0)
+    .map((r) => r.level as number);
+  return activeLevels.length === 1 ? activeLevels[0] : null;
 }
 
 function ErrorBanner({ errors }: { errors: string[] }) {
@@ -101,6 +109,8 @@ export function AddTeamRosterSlotsStep({
 }: AddTeamRosterSlotsStepProps) {
   const [openSlot, setOpenSlot] = useState<OpenSlot | null>(null);
   const pitcherRange = computePitcherSlotRange(requirements);
+  const lockedBatterLevel = getSingleActiveLevel(requirements, 'batter');
+  const lockedPitcherLevel = getSingleActiveLevel(requirements, 'pitcher');
 
   const hasAnyPositionPlayer = positionSlots.some((slot) => slot.playerId !== null);
   const hasAnyPitcher = pitcherSlots.some((slot) => slot.playerId !== null);
@@ -150,11 +160,12 @@ export function AddTeamRosterSlotsStep({
           <ErrorBanner errors={positionErrors} />
           <View className="gap-4">
             {positionSlots.map((slot, index) => (
-              <RosterPositionRow
-                key={`${slot.position}-${index}`}
-                slot={slot}
-                onPress={() => setOpenSlot({ slotType: 'position', slotIndex: index, position: slot.position as Position })}
-              />
+              <AnimatedCascadeItem key={`${slot.position}-${index}`} index={index} staggerDelayMs={40} fadeDurationMs={300} translateYStart={6}>
+                <RosterPositionRow
+                  slot={slot}
+                  onPress={() => setOpenSlot({ slotType: 'position', slotIndex: index, position: slot.position as Position })}
+                />
+              </AnimatedCascadeItem>
             ))}
           </View>
           <ClearAllButton onPress={onClearAllPositionPlayers} disabled={!hasAnyPositionPlayer} />
@@ -165,12 +176,13 @@ export function AddTeamRosterSlotsStep({
           <ErrorBanner errors={pitcherErrors} />
           <View className="gap-4">
             {pitcherSlots.map((slot, index) => (
-              <RosterPitcherRow
-                key={index}
-                slot={slot}
-                onPress={() => setOpenSlot({ slotType: 'pitcher', slotIndex: index })}
-                onRemove={index >= pitcherRange.min ? () => onRemovePitcherSlot(index) : undefined}
-              />
+              <AnimatedCascadeItem key={index} index={index} staggerDelayMs={40} fadeDurationMs={300} translateYStart={6}>
+                <RosterPitcherRow
+                  slot={slot}
+                  onPress={() => setOpenSlot({ slotType: 'pitcher', slotIndex: index })}
+                  onRemove={index >= pitcherRange.min ? () => onRemovePitcherSlot(index) : undefined}
+                />
+              </AnimatedCascadeItem>
             ))}
           </View>
           <ClearAllButton onPress={() => onClearAllPitchers(pitcherRange.min)} disabled={!hasAnyPitcher} />
@@ -183,6 +195,7 @@ export function AddTeamRosterSlotsStep({
         slotType={(openSlot?.slotType ?? 'position') as AddPlayerModalSlotType}
         position={openSlot?.slotType === 'position' ? openSlot.position : undefined}
         excludePlayerIds={getExcludedPlayerIds(openSlot, positionSlots, pitcherSlots)}
+        lockedLevel={openSlot?.slotType === 'position' ? lockedBatterLevel : lockedPitcherLevel}
         onDismiss={() => setOpenSlot(null)}
         onSelectPlayer={handleSelectPlayer}
       />

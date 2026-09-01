@@ -20,15 +20,22 @@ type AddPlayerModalProps = {
   slotType: AddPlayerModalSlotType;
   position?: Position;
   excludePlayerIds?: string[];
+  lockedLevel?: number | null;
   onDismiss: () => void;
   onSelectPlayer: (player: PlayerDatabaseRowData) => void;
 };
 
-function buildInitialFilters(slotType: AddPlayerModalSlotType, position?: Position): PlayerDatabaseFilters {
+function buildInitialFilters(
+  slotType: AddPlayerModalSlotType,
+  position: Position | undefined,
+  lockedLevel: number | null | undefined
+): PlayerDatabaseFilters {
+  const ratingLevels = (lockedLevel ? [lockedLevel] : [1, 2, 3]) as (1 | 2 | 3)[];
+
   if (slotType === 'pitcher') {
-    return { ...DEFAULT_FILTERS, playerType: 'pitcher', positions: ['P'] };
+    return { ...DEFAULT_FILTERS, playerType: 'pitcher', positions: ['P'], ratingLevels };
   }
-  return { ...DEFAULT_FILTERS, playerType: 'batter', positions: position === 'DH' ? [] : position ? [position] : [] };
+  return { ...DEFAULT_FILTERS, playerType: 'batter', positions: position === 'DH' ? [] : position ? [position] : [], ratingLevels };
 }
 
 function modalTitle(slotType: AddPlayerModalSlotType, position?: Position): string {
@@ -41,14 +48,18 @@ export function AddPlayerModal({
   slotType,
   position,
   excludePlayerIds = [],
+  lockedLevel,
   onDismiss,
   onSelectPlayer,
 }: AddPlayerModalProps) {
   const { colors } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<PlayerDatabaseFilters>(() => buildInitialFilters(slotType, position));
-  const disablePositions = !(slotType === 'position' && position === 'DH');
+  const [filters, setFilters] = useState<PlayerDatabaseFilters>(() => buildInitialFilters(slotType, position, lockedLevel));
+  const baseFiltersRef = useRef(filters);
   const hasScrolledRef = useRef(false);
+
+  const disablePositions = !(slotType === 'position' && position === 'DH');
+  const disableLevels = lockedLevel !== undefined && lockedLevel !== null;
 
   const { players, loading, loadingMore, hasMore, loadMore } = usePlayerDatabaseSearch(searchTerm, filters);
   const visiblePlayers = players.filter((player) => !excludePlayerIds.includes(player.id));
@@ -75,7 +86,14 @@ export function AddPlayerModal({
         </View>
 
         <PlayerDatabaseSearchInput onSearchTermChange={setSearchTerm} />
-        <PlayerDatabaseFilterBar filters={filters} onFiltersChange={setFilters} disablePlayerType disablePositions={disablePositions} />
+        <PlayerDatabaseFilterBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          disablePlayerType
+          disablePositions={disablePositions}
+          disableLevels={disableLevels}
+          baseFilters={baseFiltersRef.current}
+        />
 
         <FlatList
           data={visiblePlayers}
