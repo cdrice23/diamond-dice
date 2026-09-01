@@ -27,6 +27,7 @@ export function useSaveTeam() {
         home_field_name: params.homeFieldName,
         team_theme_color_primary: params.primaryColor,
         team_theme_color_secondary: params.secondaryColor,
+        format_id: params.formatId,
       },
     });
 
