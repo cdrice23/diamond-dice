@@ -33,11 +33,12 @@ Deno.serve(async (req) => {
     const jwt = authHeader.slice('Bearer '.length);
 
     let body: {
-      team_id?: string; // present on edit, absent on create
+      team_id?: string;
       team_name?: string;
       home_field_name?: string;
       team_theme_color_primary?: string | null;
       team_theme_color_secondary?: string | null;
+      format_id?: string | null;
     };
     try {
       body = await req.json();
@@ -118,6 +119,7 @@ Deno.serve(async (req) => {
       home_field_name: trimmedHomeFieldName,
       team_theme_color_primary: team_theme_color_primary ?? null,
       team_theme_color_secondary: team_theme_color_secondary ?? null,
+      format_id: format_id ?? null,
     };
 
     let result;
