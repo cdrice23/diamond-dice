@@ -1,12 +1,15 @@
 import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-basic-info-step.component';
+import { AddTeamBattingOrderStep } from '@/components/teams/components/add-team-batting-order-step.component';
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
 import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
 import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-roster-slots-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
+import { useFormatRosterRequirements } from '@/components/teams/hooks/use-format-roster-requirements.hook';
 import { useTeamWizard } from '@/components/teams/hooks/use-team-wizard.hook';
 import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-team-basic-info.hook';
 import { useValidateTeamRosterDraft } from '@/components/teams/hooks/use-validate-team-roster-draft.hook';
 import type { TeamWizardState } from '@/components/teams/teams.types';
+import { computePitcherSlotRange } from '@/components/teams/utils/roster-level-counts';
 import { useRouter } from 'expo-router';
 
 function isBasicInfoValid(state: TeamWizardState): boolean {
@@ -19,12 +22,10 @@ function isBasicInfoValid(state: TeamWizardState): boolean {
   );
 }
 
-function isSlotsValid(state: TeamWizardState): boolean {
-  return (
-    state.positionSlots.every((slot) => slot.playerId !== null) &&
-    state.pitcherSlots.length > 0 &&
-    state.pitcherSlots.every((slot) => slot.playerId !== null)
-  );
+function isSlotsValid(state: TeamWizardState, pitcherMin: number): boolean {
+  const allPositionFilled = state.positionSlots.every((slot) => slot.playerId !== null);
+  const filledPitcherCount = state.pitcherSlots.filter((slot) => slot.playerId !== null).length;
+  return allPositionFilled && filledPitcherCount >= pitcherMin;
 }
 
 export default function AddTeamScreen() {
@@ -32,6 +33,8 @@ export default function AddTeamScreen() {
   const { state, dispatch } = useTeamWizard();
   const { validateBasicInfo, errors: basicInfoErrors, checking: checkingBasicInfo } = useValidateTeamBasicInfo();
   const { validateRosterDraft, errors: rosterErrors, checking: checkingRoster, clearErrors: clearRosterErrors } = useValidateTeamRosterDraft();
+  const { requirements } = useFormatRosterRequirements(state.formatId);
+  const pitcherRange = computePitcherSlotRange(requirements);
 
   function handleChoosePath(path: 'scratch' | 'random') {
     dispatch({ type: 'SET_PATH', path });
@@ -128,16 +131,16 @@ export default function AddTeamScreen() {
   if (state.step === 'slots') {
     return (
       <AddTeamWizard
-        subtitle="Build Your Roster"
+        subtitle="Add Players to Roster"
         onCancel={() => router.replace('/teams')}
         onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'format' })}
         onConfirm={handleRosterConfirm}
-        confirmDisabled={!isSlotsValid(state) || checkingRoster}
+        confirmDisabled={!isSlotsValid(state, pitcherRange.min) || checkingRoster}
         confirmLabel={checkingRoster ? 'Checking...' : 'Confirm'}
       >
         <AddTeamRosterSlotsStep
-          formatId={state.formatId}
           formatName={state.formatName}
+          requirements={requirements}
           positionSlots={state.positionSlots}
           pitcherSlots={state.pitcherSlots}
           positionErrors={rosterErrors.position}
@@ -155,12 +158,19 @@ export default function AddTeamScreen() {
 
   if (state.step === 'battingOrder') {
     return (
-      <AddTeamWizard
-        subtitle="Batting Order"
-        onCancel={() => router.replace('/teams')}
-        onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })}
-        onConfirm={null}
-      >
+      <AddTeamWizard subtitle="Set Batting Order" onCancel={() => router.replace('/teams')} onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'slots' })} onConfirm={() => dispatch({ type: 'GO_TO_STEP', step: 'review' })}>
+        <AddTeamBattingOrderStep
+          positionSlots={state.positionSlots}
+          battingOrder={state.battingOrder}
+          onChangeBattingOrder={(order: string[]) => dispatch({ type: 'SET_BATTING_ORDER', order })}
+        />
+      </AddTeamWizard>
+    );
+  }
+
+  if (state.step === 'review') {
+    return (
+      <AddTeamWizard subtitle="Review Team" onCancel={() => router.replace('/teams')} onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' })} onConfirm={null}>
         <></>
       </AddTeamWizard>
     );

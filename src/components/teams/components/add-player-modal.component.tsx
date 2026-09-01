@@ -6,12 +6,12 @@ import { usePlayerDatabaseSearch, type PlayerDatabaseRow as PlayerDatabaseRowDat
 import { DEFAULT_FILTERS } from '@/components/player-database/player-database.constants';
 import type { PlayerDatabaseFilters, Position } from '@/components/player-database/player-database.types';
 import { Text } from '@/components/primitives/text.component';
+import { POSITION_LABELS } from '@/components/teams/teams.constants';
 import { levelColor } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FlatList, Modal, Pressable, View } from 'react-native';
-import { POSITION_LABELS } from '../teams.constants';
 
 export type AddPlayerModalSlotType = 'position' | 'pitcher';
 
@@ -33,8 +33,7 @@ function buildInitialFilters(slotType: AddPlayerModalSlotType, position?: Positi
 
 function modalTitle(slotType: AddPlayerModalSlotType, position?: Position): string {
   if (slotType === 'pitcher') return 'Add Pitcher';
-  if (position === 'DH') return 'Add Designated Hitter';
-  return `Add ${position}`;
+  return `Add ${position ? POSITION_LABELS[position] : ''}`;
 }
 
 export function AddPlayerModal({
@@ -48,19 +47,21 @@ export function AddPlayerModal({
   const { colors } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<PlayerDatabaseFilters>(() => buildInitialFilters(slotType, position));
+  const disablePositions = !(slotType === 'position' && position === 'DH');
+  const hasScrolledRef = useRef(false);
 
   const { players, loading, loadingMore, hasMore, loadMore } = usePlayerDatabaseSearch(searchTerm, filters);
   const visiblePlayers = players.filter((player) => !excludePlayerIds.includes(player.id));
-  const disablePositions = !(slotType === 'position' && position === 'DH');
 
   function handleSelect(player: PlayerDatabaseRowData) {
     onSelectPlayer(player);
     onDismiss();
   }
 
-  function modalTitle(slotType: AddPlayerModalSlotType, position?: Position): string {
-    if (slotType === 'pitcher') return 'Add Pitcher';
-    return `Add ${position ? POSITION_LABELS[position] : ''}`;
+  function handleEndReached() {
+    if (hasMore && hasScrolledRef.current) {
+      loadMore();
+    }
   }
 
   return (
@@ -79,6 +80,9 @@ export function AddPlayerModal({
         <FlatList
           data={visiblePlayers}
           keyExtractor={(item) => item.id}
+          onScrollBeginDrag={() => {
+            hasScrolledRef.current = true;
+          }}
           renderItem={({ item, index }) => (
             <PlayerDatabaseRow
               id={item.id}
@@ -90,17 +94,17 @@ export function AddPlayerModal({
               levelColor={levelColor(slotType === 'pitcher' ? item.pitching_rating_level : item.batting_rating_level, colors)}
               isFirst={index === 0}
               indexInBatch={item.indexInBatch}
-              animate={false}
+              animate
               onPress={() => handleSelect(item)}
             />
           )}
-          onEndReached={hasMore ? loadMore : undefined}
+          onEndReached={handleEndReached}
           onEndReachedThreshold={0.4}
           ListEmptyComponent={
             loading ? (
               <View>
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <PlayerDatabaseRowSkeleton key={i} isFirst={i === 0} animate={false} />
+                  <PlayerDatabaseRowSkeleton key={i} isFirst={i === 0} indexInBatch={i} />
                 ))}
               </View>
             ) : (
@@ -109,7 +113,15 @@ export function AddPlayerModal({
               </View>
             )
           }
-          ListFooterComponent={loadingMore ? <PlayerDatabaseRowSkeleton animate={false} /> : null}
+          ListFooterComponent={
+            loadingMore ? (
+              <View>
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <PlayerDatabaseRowSkeleton key={i} isFirst={false} indexInBatch={i} />
+                ))}
+              </View>
+            ) : null
+          }
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         />
       </View>

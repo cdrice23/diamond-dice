@@ -13,12 +13,12 @@ import { useTheme } from '@/utils/theme-provider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { useFormatRosterRequirements } from '../hooks/use-format-roster-requirements.hook';
+import { FormatLevelRequirement } from '../hooks/use-format-roster-requirements.hook';
 import type { WizardPitcherSlot, WizardPositionSlot } from '../teams.types';
 
 type AddTeamRosterSlotsStepProps = {
-  formatId: string | null;
   formatName: string | null;
+  requirements: FormatLevelRequirement[];
   positionSlots: WizardPositionSlot[];
   pitcherSlots: WizardPitcherSlot[];
   positionErrors?: string[];
@@ -86,8 +86,8 @@ function ClearAllButton({ onPress, disabled }: { onPress: () => void; disabled: 
 }
 
 export function AddTeamRosterSlotsStep({
-  formatId,
   formatName,
+  requirements,
   positionSlots,
   pitcherSlots,
   positionErrors = [],
@@ -100,7 +100,6 @@ export function AddTeamRosterSlotsStep({
   onClearAllPitchers,
 }: AddTeamRosterSlotsStepProps) {
   const [openSlot, setOpenSlot] = useState<OpenSlot | null>(null);
-  const { requirements } = useFormatRosterRequirements(formatId);
   const pitcherRange = computePitcherSlotRange(requirements);
 
   const hasAnyPositionPlayer = positionSlots.some((slot) => slot.playerId !== null);

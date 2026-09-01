@@ -37,7 +37,7 @@ type Action =
   | { type: 'SET_PITCHER_SLOTS'; slots: WizardPitcherSlot[] }
   | { type: 'ASSIGN_PITCHER_PLAYER'; slotIndex: number; player: WizardPitcherSlot }
   | { type: 'REMOVE_PITCHER_PLAYER'; slotIndex: number }
-  | { type: 'SET_BATTING_ORDER'; order: number[] }
+  | { type: 'SET_BATTING_ORDER'; order: string[] }
   | { type: 'SET_VALIDATION_ERRORS'; errors: string[] }
   | { type: 'RESET' }
   | { type: 'ADD_CUSTOM_SWATCH'; hex: string }

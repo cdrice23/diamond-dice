@@ -120,7 +120,7 @@ export type TeamWizardState = {
   };
   positionSlots: WizardPositionSlot[];
   pitcherSlots: WizardPitcherSlot[];
-  battingOrder: number[];
+  battingOrder: string[];
   validationErrors: string[];
   customColorSwatches: string[];
 };
