@@ -1,4 +1,4 @@
-import type { TeamDetail, TeamSummary } from './teams.types';
+import type { TeamSummary } from './teams.types';
 
 const AARON_JUDGE_IMAGE_URL =
   'https://img.mlbstatic.com/mlb-photos/image/upload/w_213,d_people:generic:headshot:67:current.png,q_auto:best,f_auto/v1/people/592450/headshot/67/current';
@@ -110,35 +110,35 @@ export const MOCK_TEAMS: TeamSummary[] = [
   },
 ];
 
-export const MOCK_TEAM_DETAIL: TeamDetail = {
-  id: '1',
-  team_name: 'Riverside Ramblers',
-  home_field_name: 'Elm Street Diamond',
-  team_theme_color_primary: '#C2410C',
-  team_theme_color_secondary: '#FACC15',
-  format_name: 'Standard',
-  wins: 7,
-  losses: 3,
-  games_played: 10,
-  position_players: [
-    { position: 'C', battingOrder: 7, player: { id: 'p1', name: 'Aaron Judge', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['C'], level: 2 },
-    { position: '1B', battingOrder: 4, player: { id: 'p2', name: 'Freddie Freeman', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['1B'], level: 2 },
-    { position: '2B', battingOrder: 8, player: { id: 'p3', name: 'Ozzie Albies', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['2B'], level: 1 },
-    { position: 'SS', battingOrder: 1, player: { id: 'p4', name: 'Bobby Witt Jr.', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['SS', '3B'], level: 3 },
-    { position: '3B', battingOrder: 3, player: { id: 'p5', name: 'Mookie Betts', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['3B', 'SS', '2B'], level: 2 },
-    { position: 'OF', battingOrder: 2, player: { id: 'p6', name: 'Shohei Ohtani', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF', 'P'], level: 3 },
-    { position: 'OF', battingOrder: 5, player: { id: 'p7', name: 'Julio Rodríguez', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF'], level: 1 },
-    { position: 'OF', battingOrder: 6, player: { id: 'p8', name: 'Ronald Acuña Jr.', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF'], level: 2 },
-    { position: 'DH', battingOrder: 9, player: { id: 'p9', name: 'Juan Soto', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF'], level: 1 },
-  ],
-  pitchers: [
-    { player: { id: 'p6', name: 'Shohei Ohtani', image_url: YAMAMOTO_IMAGE_URL }, eligiblePositions: ['OF', 'P'], level: 3 },
-    { player: { id: 'p10', name: 'Yoshinobu Yamamoto', image_url: YAMAMOTO_IMAGE_URL }, eligiblePositions: ['P'], level: 2 },
-    { player: { id: 'p11', name: 'Corbin Burnes', image_url: YAMAMOTO_IMAGE_URL }, eligiblePositions: ['P'], level: 1 },
-  ],
-  recent_games: [
-    { gameId: 'g1', playedAt: '2026-08-20T18:00:00Z', isHome: true, isWin: true, opponentName: 'Bullpen Brigade', teamScore: 6, opponentScore: 3 },
-    { gameId: 'g2', playedAt: '2026-08-15T18:00:00Z', isHome: false, isWin: false, opponentName: 'Sandlot Renegades', teamScore: 2, opponentScore: 5 },
-    { gameId: 'g3', playedAt: '2026-08-08T18:00:00Z', isHome: true, isWin: true, opponentName: 'Bullpen Brigade', teamScore: 8, opponentScore: 4 },
-  ],
-};
+// export const MOCK_TEAM_DETAIL: TeamDetail = {
+//   id: '1',
+//   team_name: 'Riverside Ramblers',
+//   home_field_name: 'Elm Street Diamond',
+//   team_theme_color_primary: '#C2410C',
+//   team_theme_color_secondary: '#FACC15',
+//   format_name: 'Standard',
+//   wins: 7,
+//   losses: 3,
+//   games_played: 10,
+//   position_players: [
+//     { position: 'C', battingOrder: 7, player: { id: 'p1', name: 'Aaron Judge', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['C'], level: 2 },
+//     { position: '1B', battingOrder: 4, player: { id: 'p2', name: 'Freddie Freeman', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['1B'], level: 2 },
+//     { position: '2B', battingOrder: 8, player: { id: 'p3', name: 'Ozzie Albies', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['2B'], level: 1 },
+//     { position: 'SS', battingOrder: 1, player: { id: 'p4', name: 'Bobby Witt Jr.', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['SS', '3B'], level: 3 },
+//     { position: '3B', battingOrder: 3, player: { id: 'p5', name: 'Mookie Betts', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['3B', 'SS', '2B'], level: 2 },
+//     { position: 'OF', battingOrder: 2, player: { id: 'p6', name: 'Shohei Ohtani', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF', 'P'], level: 3 },
+//     { position: 'OF', battingOrder: 5, player: { id: 'p7', name: 'Julio Rodríguez', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF'], level: 1 },
+//     { position: 'OF', battingOrder: 6, player: { id: 'p8', name: 'Ronald Acuña Jr.', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF'], level: 2 },
+//     { position: 'DH', battingOrder: 9, player: { id: 'p9', name: 'Juan Soto', image_url: AARON_JUDGE_IMAGE_URL }, eligiblePositions: ['OF'], level: 1 },
+//   ],
+//   pitchers: [
+//     { player: { id: 'p6', name: 'Shohei Ohtani', image_url: YAMAMOTO_IMAGE_URL }, eligiblePositions: ['OF', 'P'], level: 3 },
+//     { player: { id: 'p10', name: 'Yoshinobu Yamamoto', image_url: YAMAMOTO_IMAGE_URL }, eligiblePositions: ['P'], level: 2 },
+//     { player: { id: 'p11', name: 'Corbin Burnes', image_url: YAMAMOTO_IMAGE_URL }, eligiblePositions: ['P'], level: 1 },
+//   ],
+//   recent_games: [
+//     { gameId: 'g1', playedAt: '2026-08-20T18:00:00Z', isHome: true, isWin: true, opponentName: 'Bullpen Brigade', teamScore: 6, opponentScore: 3 },
+//     { gameId: 'g2', playedAt: '2026-08-15T18:00:00Z', isHome: false, isWin: false, opponentName: 'Sandlot Renegades', teamScore: 2, opponentScore: 5 },
+//     { gameId: 'g3', playedAt: '2026-08-08T18:00:00Z', isHome: true, isWin: true, opponentName: 'Bullpen Brigade', teamScore: 8, opponentScore: 4 },
+//   ],
+// };

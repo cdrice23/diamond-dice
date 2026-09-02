@@ -21,6 +21,7 @@ export function useSaveTeam() {
   const [error, setError] = useState<SaveTeamError | null>(null);
 
   async function saveTeam(params: {
+    teamId?: string;
     teamName: string;
     homeFieldName: string;
     primaryColor: string;
@@ -35,6 +36,7 @@ export function useSaveTeam() {
 
     const { data: teamResult, error: teamError } = await supabase.functions.invoke('upsert-team', {
       body: {
+        team_id: params.teamId,
         team_name: params.teamName,
         home_field_name: params.homeFieldName,
         team_theme_color_primary: params.primaryColor,

@@ -24,6 +24,9 @@ type TeamDetailPositionPlayersCardProps = {
   textColor: string;
   accentColor?: string;
   hideViewToggle?: boolean;
+  hideCardWrapper?: boolean;
+  viewMode?: TeamDetailViewMode;
+  onViewModeChange?: (mode: TeamDetailViewMode) => void;
 };
 
 function BattingOrderBox({ battingOrder }: { battingOrder: number | null }) {
@@ -108,10 +111,16 @@ export function TeamDetailPositionPlayersCard({
   textColor,
   accentColor,
   hideViewToggle = false,
+  hideCardWrapper = false,
+  viewMode: controlledViewMode,
+  onViewModeChange,
 }: TeamDetailPositionPlayersCardProps) {
   const { colors } = useTheme();
-  const [viewMode, setViewMode] = useState<TeamDetailViewMode>('list');
+  const [internalViewMode, setInternalViewMode] = useState<TeamDetailViewMode>('list');
   const [diamondWidth, setDiamondWidth] = useState(0);
+
+  const viewMode = controlledViewMode ?? internalViewMode;
+  const setViewMode = onViewModeChange ?? setInternalViewMode;
 
   if (positionPlayers.length === 0) {
     return null;
@@ -128,19 +137,13 @@ export function TeamDetailPositionPlayersCard({
   const diamondData = buildDiamondData(positionPlayers, pitchers);
   const showList = hideViewToggle || viewMode === 'list';
 
-  return (
-    <Card className="mx-4">
-      <TeamDetailCardHeader label="Position Players" bandColor={bandColor} textColor={textColor} accentColor={accentColor} />
+  const content = (
+    <>
+      {!hideCardWrapper && <TeamDetailCardHeader label="Position Players" bandColor={bandColor} textColor={textColor} accentColor={accentColor} />}
 
       {!hideViewToggle && (
         <View className="mb-3 flex-row justify-end">
-          <TeamDetailViewToggle
-            mode={viewMode}
-            onChange={setViewMode}
-            activeColor={bandColor}
-            activeIconColor={textColor}
-            inactiveColor={colors.mutedForeground}
-          />
+          <TeamDetailViewToggle mode={viewMode} onChange={setViewMode} activeColor={bandColor} activeIconColor={textColor} inactiveColor={colors.mutedForeground} />
         </View>
       )}
 
@@ -154,18 +157,13 @@ export function TeamDetailPositionPlayersCard({
         <View onLayout={handleLayout} className="items-center">
           {diamondWidth > 0 && (
             <AnimatedCascadeItem index={0} staggerDelayMs={0} fadeDurationMs={400} translateYStart={0}>
-              <TeamDiamondPositions
-                positions={diamondData.positions}
-                pitcherLevels={diamondData.pitcherLevels}
-                width={diamondWidth}
-                viewMode="avatar"
-                showPitchers={false}
-                positionPlayerRefs={diamondData.positionPlayerRefs}
-              />
+              <TeamDiamondPositions positions={diamondData.positions} pitcherLevels={diamondData.pitcherLevels} width={diamondWidth} viewMode="avatar" showPitchers={false} positionPlayerRefs={diamondData.positionPlayerRefs} />
             </AnimatedCascadeItem>
           )}
         </View>
       )}
-    </Card>
+    </>
   );
+
+  return hideCardWrapper ? content : <Card className="mx-4">{content}</Card>;
 }

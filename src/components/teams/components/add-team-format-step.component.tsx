@@ -1,9 +1,13 @@
 import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamFormatCard } from '@/components/teams/components/add-team-format-card.component';
+import { useFormatPitcherCounts } from '@/components/teams/hooks/use-format-pitcher-counts.hook';
 import { useFormats } from '@/components/teams/hooks/use-formats.hook';
-import { ScrollView } from 'react-native';
-import { useFormatPitcherCounts } from '../hooks/use-format-pitcher-counts.hook';
+import { Platform, ScrollView, UIManager } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type AddTeamFormatStepProps = {
   formatId: string | null;

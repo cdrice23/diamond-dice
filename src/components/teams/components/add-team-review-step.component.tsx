@@ -7,7 +7,8 @@ import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { TeamDetailPitcherSlot, TeamDetailPositionSlot, WizardPitcherSlot, WizardPositionSlot } from '../teams.types';
+import type { WizardPitcherSlot, WizardPositionSlot } from '../teams.types';
+import { wizardSlotsToTeamDetailSlots } from '../utils/team-slot-map';
 
 const TOP_BAND_HEIGHT = 40;
 const FALLBACK_HEX = '#6B7280';
@@ -22,29 +23,6 @@ type AddTeamReviewStepProps = {
   pitcherSlots: WizardPitcherSlot[];
   battingOrder: string[];
 };
-
-function toTeamDetailPositionSlots(positionSlots: WizardPositionSlot[], battingOrder: string[]): TeamDetailPositionSlot[] {
-  const orderByPlayerId = new Map(battingOrder.map((id, index) => [id, index + 1]));
-  return positionSlots
-    .filter((slot): slot is WizardPositionSlot & { playerId: string; playerName: string } => slot.playerId !== null && slot.playerName !== null)
-    .map((slot) => ({
-      position: slot.position,
-      battingOrder: orderByPlayerId.get(slot.playerId) ?? null,
-      player: { id: slot.playerId, name: slot.playerName, image_url: slot.playerImageUrl },
-      eligiblePositions: slot.eligiblePositions,
-      level: slot.level,
-    }));
-}
-
-function toTeamDetailPitcherSlots(pitcherSlots: WizardPitcherSlot[]): TeamDetailPitcherSlot[] {
-  return pitcherSlots
-    .filter((slot): slot is WizardPitcherSlot & { playerId: string; playerName: string } => slot.playerId !== null && slot.playerName !== null)
-    .map((slot) => ({
-      player: { id: slot.playerId, name: slot.playerName, image_url: slot.playerImageUrl },
-      eligiblePositions: slot.eligiblePositions,
-      level: slot.level,
-    }));
-}
 
 export function AddTeamReviewStep({
   teamName,
@@ -68,8 +46,7 @@ export function AddTeamReviewStep({
   );
   const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
 
-  const teamPositionSlots = toTeamDetailPositionSlots(positionSlots, battingOrder);
-  const teamPitcherSlots = toTeamDetailPitcherSlots(pitcherSlots);
+  const { positionPlayers: teamPositionSlots, pitchers: teamPitcherSlots } = wizardSlotsToTeamDetailSlots(positionSlots, pitcherSlots, battingOrder)
 
   return (
     <View style={{ flex: 1 }}>

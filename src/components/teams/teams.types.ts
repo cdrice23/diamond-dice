@@ -65,7 +65,8 @@ export type TeamDetail = {
   home_field_name: string;
   team_theme_color_primary: string;
   team_theme_color_secondary: string;
-  format_name: string | null;
+  format_id: string;
+  format_name: string;
   wins: number;
   losses: number;
   games_played: number;
@@ -84,7 +85,8 @@ export type TeamWizardStep =
   | 'randomReview'
   | 'slots'
   | 'battingOrder'
-  | 'review';
+  | 'review'
+  | 'overview';
 
 export type WizardPositionSlot = {
   position: string;
@@ -104,6 +106,8 @@ export type WizardPitcherSlot = {
 };
 
 export type TeamWizardState = {
+  mode: 'create' | 'edit';
+  editingTeamId: string | null;
   path: TeamWizardPath | null;
   step: TeamWizardStep;
   teamName: string;

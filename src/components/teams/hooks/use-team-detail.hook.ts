@@ -8,7 +8,8 @@ type TeamDetailRow = {
   home_field_name: string;
   team_theme_color_primary: string;
   team_theme_color_secondary: string;
-  format_name: string | null;
+  format_id: string;
+  format_name: string;
   wins: number;
   losses: number;
   games_played: number;
@@ -46,6 +47,7 @@ export function useTeamDetail(teamId: string | undefined) {
             home_field_name: row.home_field_name,
             team_theme_color_primary: row.team_theme_color_primary,
             team_theme_color_secondary: row.team_theme_color_secondary,
+            format_id: row.format_id,
             format_name: row.format_name,
             wins: row.wins,
             losses: row.losses,

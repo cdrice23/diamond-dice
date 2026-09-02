@@ -2,17 +2,18 @@ import { BandedScreenBackdrop } from '@/components/navigation/components/banded-
 import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { Text } from '@/components/primitives/text.component';
 import { useTheme } from '@/utils/theme-provider';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 
-const NAV_CLEARANCE_EXTRA = 16;
-
 type AddTeamWizardProps = {
+  title?: string;
+  titleIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   subtitle?: string;
   helperText?: string;
   headerAction?: ReactNode;
   footerBanner?: ReactNode;
+  actionsLayout?: 'default' | 'stacked';
   onCancel: () => void;
   onBack: (() => void) | null;
   onConfirm: (() => void) | null;
@@ -23,6 +24,8 @@ type AddTeamWizardProps = {
   children: ReactNode;
 };
 
+const NAV_CLEARANCE_EXTRA = 16;
+
 export function AddTeamWizard({
   onCancel,
   onBack,
@@ -31,10 +34,13 @@ export function AddTeamWizard({
   confirmDisabled = false,
   showBottomBar = true,
   hideDefaultHeader = false,
+  title = 'New Team',
+  titleIcon = 'file-document-plus-outline',
   subtitle,
   helperText,
   headerAction,
   footerBanner,
+  actionsLayout = 'default',
   children,
 }: AddTeamWizardProps) {
   const { colors } = useTheme();
@@ -51,7 +57,10 @@ export function AddTeamWizard({
 
           <View className="gap-1 px-4 pb-2 pt-20">
             <View className="flex-row items-start justify-between">
-              <Text className="text-foreground text-3xl font-bold">New Team</Text>
+              <View className="flex-row items-center gap-2">
+                <MaterialCommunityIcons name={titleIcon} size={24} color={colors.foreground} />
+                <Text className="text-foreground text-3xl font-bold">{title}</Text>
+              </View>
               {headerAction}
             </View>
             {subtitle && <Text className="text-foreground text-lg font-semibold">{subtitle}</Text>}
@@ -70,37 +79,61 @@ export function AddTeamWizard({
         <View style={{ paddingBottom: navClearance }} className="gap-2 px-4 pt-3">
           {footerBanner && <View className="pb-1">{footerBanner}</View>}
 
-          <View className="flex-row gap-3">
-            {onBack ? (
+          {actionsLayout === 'stacked' ? (
+            <>
+              {onConfirm && (
+                <Pressable
+                  onPress={onConfirm}
+                  disabled={confirmDisabled}
+                  className="items-center justify-center rounded-sm py-3 active:opacity-70"
+                  style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1 }}
+                >
+                  <Text className="text-lg font-semibold text-white">{confirmLabel}</Text>
+                </Pressable>
+              )}
               <Pressable
-                onPress={onBack}
-                className="flex-row items-center justify-center gap-1 rounded-sm py-3 active:opacity-60"
-                style={{ backgroundColor: colors.muted, flex: 1 }}
+                onPress={onBack ?? onCancel}
+                className="items-center rounded-sm py-2.5 active:opacity-60"
+                style={{ backgroundColor: colors.muted }}
               >
-                <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
                 <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
                   Back
                 </Text>
               </Pressable>
-            ) : (
-              <View style={{ flex: 1 }} />
-            )}
-            {onConfirm && (
-              <Pressable
-                onPress={onConfirm}
-                disabled={confirmDisabled}
-                className="items-center justify-center rounded-sm py-3 active:opacity-70"
-                style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1, flex: 2 }}
-              >
-                <Text className="text-lg font-semibold text-white">{confirmLabel}</Text>
+            </>
+          ) : (
+            <>
+              <View className="flex-row gap-3">
+                {onBack ? (
+                  <Pressable
+                    onPress={onBack}
+                    className="flex-row items-center justify-center gap-1 rounded-sm py-3 active:opacity-60"
+                    style={{ backgroundColor: colors.muted, flex: 1 }}
+                  >
+                    <Ionicons name="chevron-back" size={18} color={colors.mutedForeground} />
+                    <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+                      Back
+                    </Text>
+                  </Pressable>
+                ) : null}
+                {onConfirm && (
+                  <Pressable
+                    onPress={onConfirm}
+                    disabled={confirmDisabled}
+                    className="items-center justify-center rounded-sm py-3 active:opacity-70"
+                    style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1, flex: onBack ? 2 : 1 }}
+                  >
+                    <Text className="text-lg font-semibold text-white">{confirmLabel}</Text>
+                  </Pressable>
+                )}
+              </View>
+              <Pressable onPress={onCancel} className="items-center rounded-sm py-2.5 active:opacity-60" style={{ backgroundColor: colors.muted }}>
+                <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+                  Cancel
+                </Text>
               </Pressable>
-            )}
-          </View>
-          <Pressable onPress={onCancel} className="items-center rounded-sm py-2.5 active:opacity-60" style={{ backgroundColor: colors.muted }}>
-            <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
-              Cancel
-            </Text>
-          </Pressable>
+            </>
+          )}
         </View>
       )}
     </View>

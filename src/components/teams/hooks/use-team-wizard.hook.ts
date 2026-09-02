@@ -11,6 +11,8 @@ function emptyRandomFilters() {
 
 function initialState(): TeamWizardState {
   return {
+    mode: 'create',
+    editingTeamId: null,
     path: null,
     step: 'entry',
     teamName: '',
@@ -55,7 +57,20 @@ type Action =
   | { type: 'RESET_PITCHER_SLOTS'; count: number }
   | { type: 'SET_RANDOM_FILTERS'; filters: Partial<TeamWizardState['randomFilters']> }
   | { type: 'RESET_RANDOM_FILTERS' }
-  | { type: 'SET_GENERATED_ROSTER'; positionSlots: WizardPositionSlot[]; pitcherSlots: WizardPitcherSlot[] };
+  | { type: 'SET_GENERATED_ROSTER'; positionSlots: WizardPositionSlot[]; pitcherSlots: WizardPitcherSlot[] }
+  | {
+      type: 'INIT_EDIT_TEAM';
+      teamId: string;
+      teamName: string;
+      homeFieldName: string;
+      primaryColor: string;
+      secondaryColor: string;
+      formatId: string;
+      formatName: string | null;
+      positionSlots: WizardPositionSlot[];
+      pitcherSlots: WizardPitcherSlot[];
+      battingOrder: string[];
+    };
 
 function reducer(state: TeamWizardState, action: Action): TeamWizardState {
   switch (action.type) {
@@ -73,13 +88,21 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
       return { ...state, secondaryColor: action.value };
     case 'SET_FORMAT':
       return { ...state, formatId: action.formatId, formatName: action.formatName };
-    case 'ASSIGN_POSITION_PLAYER':
+    case 'ASSIGN_POSITION_PLAYER': {
+      const previousPlayerId = state.positionSlots[action.slotIndex]?.playerId ?? null;
+      const nextPlayerId = action.player.playerId;
+
+      const nextBattingOrder =
+        previousPlayerId && nextPlayerId && state.battingOrder.includes(previousPlayerId)
+          ? state.battingOrder.map((id) => (id === previousPlayerId ? nextPlayerId : id))
+          : state.battingOrder;
+
       return {
         ...state,
-        positionSlots: state.positionSlots.map((slot, i) =>
-          i === action.slotIndex ? { ...slot, ...action.player } : slot
-        ),
+        positionSlots: state.positionSlots.map((slot, i) => (i === action.slotIndex ? { ...slot, ...action.player } : slot)),
+        battingOrder: nextBattingOrder,
       };
+    }
     case 'REMOVE_POSITION_PLAYER':
       return {
         ...state,
@@ -112,27 +135,13 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
     case 'RESET':
       return initialState();
     case 'RESET_BASIC_INFO':
-      return {
-        ...state,
-        teamName: '',
-        homeFieldName: '',
-        primaryColor: null,
-        secondaryColor: null,
-      };
+      return { ...state, teamName: '', homeFieldName: '', primaryColor: null, secondaryColor: null };
     case 'RESET_FORMAT':
-      return {
-        ...state,
-        formatId: null,
-        formatName: null,
-        pitcherSlots: [],
-      };
+      return { ...state, formatId: null, formatName: null, pitcherSlots: [] };
     case 'ADD_CUSTOM_SWATCH':
       return { ...state, customColorSwatches: [...state.customColorSwatches, action.hex] };
     case 'UPDATE_CUSTOM_SWATCH':
-      return {
-        ...state,
-        customColorSwatches: state.customColorSwatches.map((hex, i) => (i === action.index ? action.hex : hex)),
-      };
+      return { ...state, customColorSwatches: state.customColorSwatches.map((hex, i) => (i === action.index ? action.hex : hex)) };
     case 'SET_PITCHER_SLOT_COUNT': {
       const current = state.pitcherSlots;
       if (action.count === current.length) return state;
@@ -141,13 +150,7 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
       return { ...state, pitcherSlots: next };
     }
     case 'ADD_PITCHER_SLOT':
-      return {
-        ...state,
-        pitcherSlots: [
-          ...state.pitcherSlots,
-          { playerId: null, playerName: null, playerImageUrl: null, eligiblePositions: [], level: null },
-        ],
-      };
+      return { ...state, pitcherSlots: [...state.pitcherSlots, { playerId: null, playerName: null, playerImageUrl: null, eligiblePositions: [], level: null }] };
     case 'REMOVE_PITCHER_SLOT':
       return { ...state, pitcherSlots: state.pitcherSlots.filter((_, i) => i !== action.slotIndex) };
     case 'CLEAR_ALL_POSITION_PLAYERS':
@@ -172,6 +175,22 @@ function reducer(state: TeamWizardState, action: Action): TeamWizardState {
       return { ...state, randomFilters: emptyRandomFilters() };
     case 'SET_GENERATED_ROSTER':
       return { ...state, positionSlots: action.positionSlots, pitcherSlots: action.pitcherSlots };
+    case 'INIT_EDIT_TEAM':
+      return {
+        ...state,
+        mode: 'edit',
+        editingTeamId: action.teamId,
+        step: 'overview',
+        teamName: action.teamName,
+        homeFieldName: action.homeFieldName,
+        primaryColor: action.primaryColor,
+        secondaryColor: action.secondaryColor,
+        formatId: action.formatId,
+        formatName: action.formatName,
+        positionSlots: action.positionSlots,
+        pitcherSlots: action.pitcherSlots,
+        battingOrder: action.battingOrder,
+      };
     default:
       return state;
   }
