@@ -142,7 +142,7 @@ export function PlayerDatabaseAdvancedFiltersModal({
               <Text className="text-foreground mb-2 text-base font-semibold">MLB Teams</Text>
               <Pressable
                 onPress={() => setActiveSubModal('teams')}
-                className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5"
+                className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
               >
                 <Text className="text-foreground flex-1 text-sm" numberOfLines={1}>
                   {summaryFor(draft.teamIds, teamLabelById, 'Any team')}
@@ -156,7 +156,7 @@ export function PlayerDatabaseAdvancedFiltersModal({
               <View className="flex-row gap-2">
                 <Pressable
                   onPress={() => setActiveYearField('from')}
-                  className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5"
+                  className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
                 >
                   <Text className="text-foreground text-sm">From: {draft.debutYearFrom ?? '—'}</Text>
                   <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
@@ -164,7 +164,7 @@ export function PlayerDatabaseAdvancedFiltersModal({
 
                 <Pressable
                   onPress={() => setActiveYearField('to')}
-                  className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5"
+                  className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
                 >
                   <Text className="text-foreground text-sm">To: {draft.debutYearTo ?? '—'}</Text>
                   <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
@@ -176,7 +176,7 @@ export function PlayerDatabaseAdvancedFiltersModal({
               <Text className="text-foreground mb-2 text-base font-semibold">Awards</Text>
               <Pressable
                 onPress={() => setActiveSubModal('awards')}
-                className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5"
+                className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
               >
                 <Text className="text-foreground flex-1 text-sm" numberOfLines={1}>
                   {summaryFor(draft.awardGroupLabels, awardLabelById, 'Any award')}
@@ -186,13 +186,21 @@ export function PlayerDatabaseAdvancedFiltersModal({
             </View>
           </View>
 
-          <Pressable onPress={handleClearAll} className="mt-4 items-center rounded-sm py-2.5" style={{ backgroundColor: colors.muted }}>
+          <Pressable
+            onPress={handleClearAll}
+            className="mt-4 items-center rounded-sm py-2.5 active:opacity-60"
+            style={{ backgroundColor: colors.muted }}
+          >
             <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
               Clear Advanced Filters
             </Text>
           </Pressable>
 
-          <Pressable onPress={handleApply} className="mt-2 items-center rounded-sm py-3" style={{ backgroundColor: colors.level2 }}>
+          <Pressable
+            onPress={handleApply}
+            className="mt-2 items-center rounded-sm py-3 active:opacity-70"
+            style={{ backgroundColor: colors.level2 }}
+          >
             <Text className="font-semibold text-white">Apply</Text>
           </Pressable>
         </View>

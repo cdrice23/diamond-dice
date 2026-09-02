@@ -1,4 +1,3 @@
-// src/components/player-database/components/player-database-multi-select-modal.component.tsx
 import { Input } from '@/components/primitives/input.component';
 import { Text } from '@/components/primitives/text.component';
 import { useTheme } from '@/utils/theme-provider';
@@ -63,7 +62,7 @@ export function PlayerDatabaseMultiSelectModal({
         <View className="bg-background rounded-t-2xl p-4 pb-10" style={{ height: '90%' }}>
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-foreground text-lg font-bold">{title}</Text>
-            <Pressable onPress={onDismiss} hitSlop={12}>
+            <Pressable onPress={onDismiss} hitSlop={12} className="active:opacity-60">
               <Ionicons name="close" size={24} color={colors.mutedForeground} />
             </Pressable>
           </View>
@@ -80,7 +79,7 @@ export function PlayerDatabaseMultiSelectModal({
               return (
                 <Pressable
                   onPress={() => toggleOption(item.id)}
-                  className="border-border flex-row items-center justify-between border-b py-3.5"
+                  className="border-border flex-row items-center justify-between border-b py-3.5 active:opacity-60"
                 >
                   <Text className="text-foreground text-base">{item.label}</Text>
                   {isSelected && <Ionicons name="checkmark-circle" size={22} color={colors.level2} />}
@@ -94,7 +93,11 @@ export function PlayerDatabaseMultiSelectModal({
             }
           />
 
-          <Pressable onPress={handleApply} className="mt-3 items-center rounded-sm py-3" style={{ backgroundColor: colors.level2 }}>
+          <Pressable
+            onPress={handleApply}
+            className="mt-3 items-center rounded-sm py-3 active:opacity-70"
+            style={{ backgroundColor: colors.level2 }}
+          >
             <Text className="font-semibold text-white">
               Apply{draft.length > 0 ? ` (${draft.length})` : ''}
             </Text>

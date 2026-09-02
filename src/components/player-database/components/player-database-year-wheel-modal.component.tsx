@@ -56,13 +56,21 @@ export function PlayerDatabaseYearWheelModal({
 
           <View className="flex-1" />
 
-          <Pressable onPress={handleClear} className="mb-2 items-center rounded-sm py-2.5" style={{ backgroundColor: colors.muted }}>
+          <Pressable
+            onPress={handleClear}
+            className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
+            style={{ backgroundColor: colors.muted }}
+          >
             <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
               Clear Filter
             </Text>
           </Pressable>
 
-          <Pressable onPress={handleApply} className="items-center rounded-sm py-3" style={{ backgroundColor: colors.level2 }}>
+          <Pressable
+            onPress={handleApply}
+            className="items-center rounded-sm py-3 active:opacity-70"
+            style={{ backgroundColor: colors.level2 }}
+          >
             <Text className="font-semibold text-white">Apply</Text>
           </Pressable>
         </Pressable>

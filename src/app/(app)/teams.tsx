@@ -1,3 +1,4 @@
+import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
 import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
 import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
@@ -13,7 +14,7 @@ import type { TeamSummary } from '@/components/teams/teams.types';
 import { useTheme } from '@/utils/theme-provider';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 const NAV_CLEARANCE_EXTRA = 16;
@@ -78,7 +79,9 @@ export default function TeamsScreen() {
         />
         <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
           {loading ? (
-            <Text className="text-muted-foreground px-4 pt-8 text-center">Loading teams...</Text>
+            <View className="flex-1 items-center justify-center">
+              <LoadingSpinner size={80} />
+            </View>
           ) : teams.length === 0 ? (
             <TeamsEmptyState />
           ) : (

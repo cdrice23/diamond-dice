@@ -78,24 +78,40 @@ export function AddTeamDebutRangeModal({
 
           <View className="flex-1" />
 
-          <Pressable onPress={handleClear} className="mb-2 items-center rounded-sm py-2.5" style={{ backgroundColor: colors.muted }}>
+          <Pressable
+            onPress={handleClear}
+            className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
+            style={{ backgroundColor: colors.muted }}
+          >
             <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
               Clear Filter
             </Text>
           </Pressable>
 
           {step === 'from' ? (
-            <Pressable onPress={handleNext} className="items-center rounded-sm py-3" style={{ backgroundColor: colors.level2 }}>
+            <Pressable
+              onPress={handleNext}
+              className="items-center rounded-sm py-3 active:opacity-70"
+              style={{ backgroundColor: colors.level2 }}
+            >
               <Text className="text-base font-semibold text-white">Next: To Year</Text>
             </Pressable>
           ) : (
             <View className="flex-row gap-2">
-              <Pressable onPress={() => setStep('from')} className="flex-1 items-center rounded-sm py-3" style={{ backgroundColor: colors.muted }}>
+              <Pressable
+                onPress={() => setStep('from')}
+                className="flex-1 items-center rounded-sm py-3 active:opacity-60"
+                style={{ backgroundColor: colors.muted }}
+              >
                 <Text style={{ color: colors.mutedForeground }} className="text-base font-semibold">
                   Back
                 </Text>
               </Pressable>
-              <Pressable onPress={handleApply} style={{ flex: 2, backgroundColor: colors.level2 }} className="items-center rounded-sm py-3">
+              <Pressable
+                onPress={handleApply}
+                style={{ flex: 2, backgroundColor: colors.level2 }}
+                className="items-center rounded-sm py-3 active:opacity-70"
+              >
                 <Text className="text-base font-semibold text-white">Apply</Text>
               </Pressable>
             </View>

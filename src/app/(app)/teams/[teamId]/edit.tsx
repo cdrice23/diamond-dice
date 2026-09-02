@@ -1,3 +1,4 @@
+import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
 import { AddTeamBattingOrderStep } from '@/components/teams/components/add-team-batting-order-step.component';
 import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
 import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-roster-slots-step.component';
@@ -15,7 +16,7 @@ import { teamDetailToWizardSlots } from '@/components/teams/utils/team-slot-map'
 import { useToast } from '@/utils/toast-provider';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 function isSlotsValid(state: TeamWizardState, pitcherMin: number): boolean {
   const allPositionFilled = state.positionSlots.every((slot) => slot.playerId !== null);
@@ -270,7 +271,7 @@ export default function EditTeamScreen() {
   if (teamLoading || !initialized) {
     return (
       <View className="bg-background flex-1 items-center justify-center">
-        <Text className="text-muted-foreground">Loading team...</Text>
+        <LoadingSpinner size={80} />
       </View>
     );
   }

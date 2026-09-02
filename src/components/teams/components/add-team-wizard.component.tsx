@@ -1,6 +1,7 @@
 import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
 import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { Text } from '@/components/primitives/text.component';
+import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
@@ -86,9 +87,11 @@ export function AddTeamWizard({
                   onPress={onConfirm}
                   disabled={confirmDisabled}
                   className="items-center justify-center rounded-sm py-3 active:opacity-70"
-                  style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1 }}
+                  style={{ backgroundColor: confirmDisabled ? adjustHslAlpha(colors.level2, 0.5) : colors.level2 }}
                 >
-                  <Text className="text-lg font-semibold text-white">{confirmLabel}</Text>
+                  <Text className="text-lg font-semibold" style={{ color: confirmDisabled ? colors.muted : colors.primary }}>
+                    {confirmLabel}
+                  </Text>
                 </Pressable>
               )}
               <Pressable
@@ -121,13 +124,19 @@ export function AddTeamWizard({
                     onPress={onConfirm}
                     disabled={confirmDisabled}
                     className="items-center justify-center rounded-sm py-3 active:opacity-70"
-                    style={{ backgroundColor: colors.level2, opacity: confirmDisabled ? 0.5 : 1, flex: onBack ? 2 : 1 }}
+                    style={{ backgroundColor: confirmDisabled ? adjustHslAlpha(colors.level2, 0.5) : colors.level2, flex: onBack ? 2 : 1 }}
                   >
-                    <Text className="text-lg font-semibold text-white">{confirmLabel}</Text>
+                    <Text className="text-lg font-semibold" style={{ color: confirmDisabled ? colors.muted : colors.primary }}>
+                      {confirmLabel}
+                    </Text>
                   </Pressable>
                 )}
               </View>
-              <Pressable onPress={onCancel} className="items-center rounded-sm py-2.5 active:opacity-60" style={{ backgroundColor: colors.muted }}>
+              <Pressable
+                onPress={onCancel}
+                className="items-center rounded-sm py-2.5 active:opacity-60"
+                style={{ backgroundColor: colors.muted }}
+              >
                 <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
                   Cancel
                 </Text>

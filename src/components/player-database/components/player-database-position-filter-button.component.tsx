@@ -101,13 +101,21 @@ export function PlayerDatabasePositionFilterButton({ value, onChange, disabled =
               })}
             </View>
 
-            <Pressable onPress={handleClear} className="mt-4 items-center rounded-sm py-2.5" style={{ backgroundColor: colors.muted }}>
+            <Pressable
+              onPress={handleClear}
+              className="mt-4 items-center rounded-sm py-2.5 active:opacity-60"
+              style={{ backgroundColor: colors.muted }}
+            >
               <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
                 Clear Position Filters
               </Text>
             </Pressable>
 
-            <Pressable onPress={handleDone} className="mt-2 items-center rounded-sm py-3" style={{ backgroundColor: colors.level2 }}>
+            <Pressable
+              onPress={handleDone}
+              className="mt-2 items-center rounded-sm py-3 active:opacity-70"
+              style={{ backgroundColor: colors.level2 }}
+            >
               <Text className="font-semibold text-white">Done</Text>
             </Pressable>
           </Pressable>

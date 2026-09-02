@@ -1,3 +1,4 @@
+import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
 import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
 import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
@@ -32,7 +33,9 @@ export default function TeamDetailScreen() {
     return (
       <View style={{ flex: 1 }}>
         <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={TOP_BAND_HEIGHT} />
-        <Text className="text-muted-foreground px-4 pt-24 text-center">Loading team...</Text>
+        <View className="flex-1 items-center justify-center">
+          <LoadingSpinner size={80} />
+        </View>
       </View>
     );
   }

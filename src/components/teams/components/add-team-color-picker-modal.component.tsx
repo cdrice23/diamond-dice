@@ -99,7 +99,7 @@ export function AddTeamColorPickerModal({
                   {DEFAULT_SWATCHES.map((hex) => {
                     const isSelected = hex.toLowerCase() === selectedColor?.toLowerCase();
                     return (
-                      <Pressable key={hex} onPress={() => handleSelectDefault(hex)}>
+                      <Pressable key={hex} onPress={() => handleSelectDefault(hex)} className="active:opacity-70">
                         <View
                           className="items-center justify-center rounded-full border-2"
                           style={{
@@ -125,7 +125,7 @@ export function AddTeamColorPickerModal({
                   {customSwatches.map((hex, index) => {
                     const isSelected = hex.toLowerCase() === selectedColor?.toLowerCase();
                     return (
-                      <Pressable key={`${hex}-${index}`} onPress={() => openEditExisting(index)}>
+                      <Pressable key={`${hex}-${index}`} onPress={() => openEditExisting(index)} className="active:opacity-70">
                         <View
                           className="items-center justify-center rounded-full border-2"
                           style={{
@@ -141,7 +141,7 @@ export function AddTeamColorPickerModal({
                     );
                   })}
 
-                  <Pressable onPress={openAddNew} disabled={!canAddMore}>
+                  <Pressable onPress={openAddNew} disabled={!canAddMore} className="active:opacity-70">
                     <View
                       className="items-center justify-center rounded-full border-2 border-dashed"
                       style={{
@@ -160,7 +160,7 @@ export function AddTeamColorPickerModal({
           ) : (
             <>
               <View className="flex-row items-center gap-2">
-                <Pressable onPress={() => setEditTarget(null)} hitSlop={8}>
+                <Pressable onPress={() => setEditTarget(null)} hitSlop={8} className="active:opacity-60">
                   <Ionicons name="chevron-back" size={22} color={colors.foreground} />
                 </Pressable>
                 <Text className="text-foreground text-xl font-bold">
