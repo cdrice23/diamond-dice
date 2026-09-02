@@ -40,11 +40,11 @@ export function useTeamsList(searchTerm: string, formatId: string | null, sortDi
   const fetchPage = useCallback(
     async (offset: number, replace: boolean, token: number) => {
       const { data, error } = await supabase.rpc('get_teams_list', {
-        search_term: searchTerm.trim() === '' ? null : searchTerm.trim(),
-        format_id: formatId,
-        sort_direction: sortDirection,
-        page_limit: PAGE_SIZE,
-        page_offset: offset,
+        p_search_term: searchTerm.trim() === '' ? null : searchTerm.trim(),
+        p_format_id: formatId,
+        p_sort_direction: sortDirection,
+        p_page_limit: PAGE_SIZE,
+        p_page_offset: offset,
       });
 
       if (!isMountedRef.current || token !== searchTokenRef.current) return;
