@@ -15,6 +15,7 @@ export type TeamSummary = {
   home_field_name: string;
   team_theme_color_primary: string;
   team_theme_color_secondary: string;
+  format_id: string;
   format_name: string;
   updated_at: string;
   last_played_at: string | null;
