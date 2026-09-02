@@ -32,7 +32,6 @@ export default function TeamsScreen() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortDirection, setSortDirection] = useState<TeamsSortDirection>('desc');
-  const [formatFilterOpen, setFormatFilterOpen] = useState(false);
   const [teamPendingDeletion, setTeamPendingDeletion] = useState<TeamSummary | null>(null);
 
   const contentFadeStyle = useAnimatedStyle(() => ({
@@ -95,7 +94,7 @@ export default function TeamsScreen() {
           onSortDirectionChange={setSortDirection}
           formatLabel="Any Format"
           formatFilterActive={false}
-          onFormatFilterPress={() => setFormatFilterOpen(true)}
+          onFormatFilterPress={() => {}}
         />
         <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
           {loading ? (

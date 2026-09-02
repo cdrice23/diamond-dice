@@ -53,7 +53,7 @@ export default function AddTeamScreen() {
   const { requirements } = useFormatRosterRequirements(state.formatId);
   const pitcherRange = computePitcherSlotRange(requirements);
   const { saveTeam, saving, error: saveError } = useSaveTeam();
-  const { generateRosterDraft, generating, error: generateError } = useGenerateTeamRosterDraft();
+  const { generateRosterDraft, generating } = useGenerateTeamRosterDraft();
   const [regenerateCount, setRegenerateCount] = useState(0);
   const [generateErrorMessage, setGenerateErrorMessage] = useState<string | null>(null);
   const { expandLabels } = useAwardGroupLookup();
