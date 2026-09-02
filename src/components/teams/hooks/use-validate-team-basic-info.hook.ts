@@ -7,12 +7,12 @@ export function useValidateTeamBasicInfo() {
   const [errors, setErrors] = useState<BasicInfoFieldErrors>({});
   const [checking, setChecking] = useState(false);
 
-  async function validateBasicInfo(teamName: string, homeFieldName: string): Promise<boolean> {
+  async function validateBasicInfo(teamName: string, homeFieldName: string, teamId?: string): Promise<boolean> {
     setErrors({});
     setChecking(true);
 
     const { error } = await supabase.functions.invoke('validate-team-basic-info', {
-      body: { team_name: teamName.trim(), home_field_name: homeFieldName.trim() },
+      body: { team_name: teamName.trim(), home_field_name: homeFieldName.trim(), team_id: teamId },
     });
 
     setChecking(false);

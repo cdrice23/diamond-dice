@@ -242,7 +242,7 @@ export default function EditTeamScreen() {
     try {
       if (!state.editingTeamId || !state.formatId || !state.primaryColor || !state.secondaryColor) return;
 
-      const isBasicInfoOk = await validateBasicInfo(state.teamName, state.homeFieldName);
+      const isBasicInfoOk = await validateBasicInfo(state.teamName, state.homeFieldName, state.editingTeamId ?? undefined);
       if (!isBasicInfoOk) return;
 
       const savedTeamId = await saveTeam({

@@ -31,14 +31,14 @@ Deno.serve(async (req) => {
     }
     const jwt = authHeader.slice('Bearer '.length);
 
-    let body: { team_name?: string; home_field_name?: string };
+    let body: { team_id?: string; team_name?: string; home_field_name?: string };
     try {
       body = await req.json();
     } catch {
       return jsonResponse({ error: { code: 'validation_failed', message: 'Request body must be valid JSON.' } }, 400);
     }
 
-    const { team_name, home_field_name } = body;
+    const { team_id, team_name, home_field_name } = body;
     if (typeof team_name !== 'string' || typeof home_field_name !== 'string') {
       return jsonResponse(
         { error: { code: 'validation_failed', message: 'team_name and home_field_name are required.' } },
@@ -74,12 +74,17 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: { code: 'unauthenticated', message: 'Invalid or expired session.' } }, 401);
     }
 
-    const { data: existing } = await adminClient
+    let existingQuery = adminClient
       .from('teams')
       .select('id')
       .eq('owner_id', userData.user.id)
-      .ilike('team_name', trimmedTeamName)
-      .maybeSingle();
+      .ilike('team_name', trimmedTeamName);
+
+    if (team_id) {
+      existingQuery = existingQuery.neq('id', team_id);
+    }
+
+    const { data: existing } = await existingQuery.maybeSingle();
 
     if (existing) {
       return jsonResponse(
