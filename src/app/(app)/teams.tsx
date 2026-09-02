@@ -4,11 +4,13 @@ import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { usePitchState } from '@/components/navigation/pitch-state.context';
 import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
 import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
+import { DeleteTeamConfirmationModal } from '@/components/teams/components/delete-team-confirmation-modal.component';
 import { TeamsEmptyState } from '@/components/teams/components/teams-empty-state.component';
 import { TeamsFilterBar, type TeamsSortDirection } from '@/components/teams/components/teams-filter-bar.component';
 import { TeamsHeader } from '@/components/teams/components/teams-header.component';
 import { TeamsListCard } from '@/components/teams/components/teams-list-card.component';
 import { TeamsSearchInput } from '@/components/teams/components/teams-search-input.component';
+import { useDeleteTeam } from '@/components/teams/hooks/use-delete-team.hook';
 import { useTeamsList } from '@/components/teams/hooks/use-teams-list.hook';
 import type { TeamSummary } from '@/components/teams/teams.types';
 import { useTheme } from '@/utils/theme-provider';
@@ -25,11 +27,13 @@ export default function TeamsScreen() {
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
   const router = useRouter();
-  const { teams: fetchedTeams, loading } = useTeamsList();
+  const { teams: fetchedTeams, loading, refetch } = useTeamsList();
+  const { deleteTeam, deleting, error: deleteError, clearError } = useDeleteTeam();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortDirection, setSortDirection] = useState<TeamsSortDirection>('desc');
   const [formatFilterOpen, setFormatFilterOpen] = useState(false);
+  const [teamPendingDeletion, setTeamPendingDeletion] = useState<TeamSummary | null>(null);
 
   const contentFadeStyle = useAnimatedStyle(() => ({
     opacity: 1 - pastThreshold.value,
@@ -60,8 +64,24 @@ export default function TeamsScreen() {
     router.push(`/teams/${team.id}/edit`);
   }
 
-  function handleDeleteTeam(team: TeamSummary) {
-    // Delete confirmation modal wiring comes later (Phase 5 per the Epic 7 UI plan).
+  function handleRequestDeleteTeam(team: TeamSummary) {
+    clearError();
+    setTeamPendingDeletion(team);
+  }
+
+  async function handleConfirmDeleteTeam() {
+    if (!teamPendingDeletion) return;
+    const success = await deleteTeam(teamPendingDeletion.id);
+    if (success) {
+      setTeamPendingDeletion(null);
+      refetch();
+    }
+  }
+
+  function handleCancelDeleteTeam() {
+    if (deleting) return;
+    setTeamPendingDeletion(null);
+    clearError();
   }
 
   return (
@@ -94,7 +114,7 @@ export default function TeamsScreen() {
                     team={item}
                     onPress={() => handleTeamPress(item)}
                     onEditPress={() => handleEditTeam(item)}
-                    onDeletePress={() => handleDeleteTeam(item)}
+                    onDeletePress={() => handleRequestDeleteTeam(item)}
                   />
                 </AnimatedCascadeItem>
               )}
@@ -105,6 +125,15 @@ export default function TeamsScreen() {
           <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
         </View>
       </Animated.View>
+
+      <DeleteTeamConfirmationModal
+        visible={teamPendingDeletion !== null}
+        teamName={teamPendingDeletion?.team_name ?? ''}
+        deleting={deleting}
+        errorMessage={deleteError}
+        onConfirm={handleConfirmDeleteTeam}
+        onCancel={handleCancelDeleteTeam}
+      />
     </View>
   );
 }

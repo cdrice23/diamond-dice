@@ -119,7 +119,7 @@ export function computeRosterValidationErrors(
   return errors;
 }
 
-async function fetchRequirements(adminClient: SupabaseClient, formatId: string) {
+export async function fetchRequirements(adminClient: SupabaseClient, formatId: string) {
   const { data: requirements, error: reqError } = await adminClient
     .from('format_roster_requirements')
     .select('player_type, level_id, min_count, max_count, levels(level)')

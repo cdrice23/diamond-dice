@@ -3,15 +3,18 @@ import { BandedScreenBackdrop } from '@/components/navigation/components/banded-
 import { useNavLayout } from '@/components/navigation/nav-layout.context';
 import { PlayerDatabaseFadeList } from '@/components/player-database/components/player-database-fade-list.component';
 import { ScreenDetailBackButton } from '@/components/primitives/screen-detail-back-button.component';
+import { DeleteTeamConfirmationModal } from '@/components/teams/components/delete-team-confirmation-modal.component';
 import { TeamDetailHeader } from '@/components/teams/components/team-detail-header.component';
 import { TeamDetailPitchersCard } from '@/components/teams/components/team-detail-pitchers-card.component';
 import { TeamDetailPositionPlayersCard } from '@/components/teams/components/team-detail-position-players-card.component';
 import { TeamDetailRecentGamesCard } from '@/components/teams/components/team-detail-recent-games-card.component';
 import { TeamDetailStatsCard } from '@/components/teams/components/team-detail-stats-card.component';
+import { useDeleteTeam } from '@/components/teams/hooks/use-delete-team.hook';
 import { useTeamDetail } from '@/components/teams/hooks/use-team-detail.hook';
 import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,8 +29,30 @@ export default function TeamDetailScreen() {
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
   const { team, loading } = useTeamDetail(teamId);
+  const { deleteTeam, deleting, error: deleteError, clearError } = useDeleteTeam();
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
+
+  function handleRequestDelete() {
+    clearError();
+    setDeleteModalOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!team) return;
+    const success = await deleteTeam(team.id);
+    if (success) {
+      router.replace('/teams');
+    }
+  }
+
+  function handleCancelDelete() {
+    if (deleting) return;
+    setDeleteModalOpen(false);
+    clearError();
+  }
 
   if (loading) {
     return (
@@ -75,7 +100,7 @@ export default function TeamDetailScreen() {
           textColor={bandTextColor}
           accentColor={bandAccentColor}
           onEditPress={() => router.push(`/teams/${team.id}/edit`)}
-          onDeletePress={() => {}}
+          onDeletePress={handleRequestDelete}
         />
       </View>
 
@@ -94,6 +119,15 @@ export default function TeamDetailScreen() {
         </ScrollView>
         <PlayerDatabaseFadeList backgroundColor={colors.background} bottomInset={navClearance} />
       </View>
+
+      <DeleteTeamConfirmationModal
+        visible={deleteModalOpen}
+        teamName={team.team_name}
+        deleting={deleting}
+        errorMessage={deleteError}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </View>
   );
 }
