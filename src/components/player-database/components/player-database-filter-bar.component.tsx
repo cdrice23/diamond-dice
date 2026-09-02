@@ -88,7 +88,10 @@ export function PlayerDatabaseFilterBar({
           />
         </View>
         <View style={{ flex: 1 }}>
-          <PlayerDatabaseRosteredFilterButton />
+          <PlayerDatabaseRosteredFilterButton
+            value={filters.isRostered}
+            onChange={(isRostered) => onFiltersChange((prev) => ({ ...prev, isRostered }))}
+          />
         </View>
       </View>
 
