@@ -37,7 +37,7 @@ export default function GameSetupScreen() {
             backgroundColor: colors.level1,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Back to Home</Text>
+          <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Back to Home</Text>
         </Pressable>
       </Animated.View>
     </View>

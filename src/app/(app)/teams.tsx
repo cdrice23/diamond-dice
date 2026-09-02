@@ -98,13 +98,19 @@ export default function TeamsScreen() {
       <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={40} />
       <Animated.View style={[{ flex: 1 }, contentFadeStyle]}>
         <TeamsHeader onAddTeamPress={handleAddNewTeam} />
-        <TeamsSearchInput onSearchTermChange={setSearchTerm} />
+        <TeamsSearchInput value={searchTerm} onChangeText={setSearchTerm} onSearchTermChange={setSearchTerm} />
         <TeamsFilterBar
           sortDirection={sortDirection}
           onSortDirectionChange={setSortDirection}
           formatLabel={formatName ?? 'Any Format'}
           formatFilterActive={formatId !== null}
           onFormatFilterPress={() => setFormatFilterOpen(true)}
+          searchActive={searchTerm.trim() !== ''}
+          onClearAll={() => {
+            setFormatId(null);
+            setFormatName(null);
+            setSearchTerm('');
+          }}
         />
         <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
           {loading ? (
@@ -114,7 +120,7 @@ export default function TeamsScreen() {
               ))}
             </View>
           ) : teams.length === 0 ? (
-            <TeamsEmptyState />
+            <TeamsEmptyState isFiltered={searchTerm.trim() !== '' || formatId !== null} />
           ) : (
             <FlatList
               data={teams}

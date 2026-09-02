@@ -2,24 +2,24 @@ import { PixelIcon } from '@/components/branding/components/pixel-icon.component
 import { Input } from '@/components/primitives/input.component';
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback.hook';
 import { useTheme } from '@/utils/theme-provider';
-import { useState } from 'react';
 import { View } from 'react-native';
 
 const SEARCH_DEBOUNCE_MS = 400;
 const SEARCH_ICON_SIZE = 18;
 
 type TeamsSearchInputProps = {
+  value: string;
+  onChangeText: (text: string) => void;
   onSearchTermChange: (term: string) => void;
 };
 
-export function TeamsSearchInput({ onSearchTermChange }: TeamsSearchInputProps) {
+export function TeamsSearchInput({ value, onChangeText, onSearchTermChange }: TeamsSearchInputProps) {
   const { colors } = useTheme();
-  const [value, setValue] = useState('');
 
   const debouncedOnChange = useDebouncedCallback(onSearchTermChange, SEARCH_DEBOUNCE_MS);
 
   function handleChangeText(text: string) {
-    setValue(text);
+    onChangeText(text);
     debouncedOnChange(text);
   }
 

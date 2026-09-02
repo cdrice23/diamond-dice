@@ -29,7 +29,7 @@ export function PlayerDatabasePlayerTypeFilterButton({ value, onChange, disabled
   }
 
   const isActive = value !== null;
-  const iconColor = isActive ? '#FFFFFF' : colors.foreground;
+  const iconColor = isActive ? '#F7F7F7' : colors.foreground;
 
   const icons =
     value === 'batter' ? (

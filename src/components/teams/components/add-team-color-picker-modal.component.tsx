@@ -109,7 +109,7 @@ export function AddTeamColorPickerModal({
                             borderColor: colors.primary,
                           }}
                         >
-                          {isSelected && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                          {isSelected && <Ionicons name="checkmark" size={16} color='#F7F7F7' />}
                         </View>
                       </Pressable>
                     );
@@ -135,7 +135,7 @@ export function AddTeamColorPickerModal({
                             borderColor: colors.primary,
                           }}
                         >
-                          {isSelected && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                          {isSelected && <Ionicons name="checkmark" size={16} color={colors.primary} />}
                         </View>
                       </Pressable>
                     );

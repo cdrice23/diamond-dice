@@ -30,7 +30,7 @@ export function RosterPositionRow({ slot, onPress }: RosterPositionRowProps) {
         className="items-center justify-center rounded-sm"
         style={{ width: POSITION_BADGE_WIDTH, height: ROW_HEIGHT, backgroundColor: isFilled ? levelColor(slot.level, colors) : colors.muted }}
       >
-        <Text className="text-xl font-bold" style={{ color: isFilled ? '#FFFFFF' : colors.mutedForeground }}>
+        <Text className="text-xl font-bold" style={{ color: isFilled ? '#F7F7F7' : colors.mutedForeground }}>
           {slot.position}
         </Text>
       </View>

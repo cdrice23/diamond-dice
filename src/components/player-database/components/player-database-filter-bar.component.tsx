@@ -105,7 +105,7 @@ export function PlayerDatabaseFilterBar({
             accessibilityLabel="Open advanced filters"
             inactiveBackgroundColor={NEUTRAL_FILTER_COLOR_MUTED[colorScheme]}
             inactiveBorderColor={NEUTRAL_FILTER_COLOR_MUTED[colorScheme]}
-            trailing={<Ionicons name="chevron-down" size={14} color={advancedActive ? '#FFFFFF' : NEUTRAL_FILTER_COLOR[colorScheme]} />}
+            trailing={<Ionicons name="chevron-down" size={14} color={advancedActive ? '#F7F7F7' : NEUTRAL_FILTER_COLOR[colorScheme]} />}
             className="w-full"
           />
         </View>

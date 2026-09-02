@@ -20,7 +20,7 @@ export function TeamsHeader({ onAddTeamPress }: TeamsHeaderProps) {
         activeColor={colors.level2}
         onPress={onAddTeamPress}
         accessibilityLabel="Add team"
-        trailing={<Ionicons name="add" size={16} color="#FFFFFF" />}
+        trailing={<Ionicons name="add" size={16} color='#F7F7F7' />}
       />
     </View>
   );

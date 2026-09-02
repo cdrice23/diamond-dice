@@ -67,7 +67,7 @@ export function PlayerDatabaseFilterChipButton({
             accessibilityLabel={accessibilityLabel}
           >
             {leading}
-            <Text style={{ color: '#FFFFFF' }} className="text-sm font-semibold" numberOfLines={1}>
+            <Text style={{ color: '#F7F7F7' }} className="text-sm font-semibold" numberOfLines={1}>
               {label}
             </Text>
             {trailing}

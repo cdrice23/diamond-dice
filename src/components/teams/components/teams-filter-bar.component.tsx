@@ -12,6 +12,8 @@ type TeamsFilterBarProps = {
   formatLabel: string;
   onFormatFilterPress: () => void;
   formatFilterActive: boolean;
+  searchActive: boolean;
+  onClearAll: () => void;
 };
 
 export function TeamsFilterBar({
@@ -20,8 +22,10 @@ export function TeamsFilterBar({
   formatLabel,
   onFormatFilterPress,
   formatFilterActive,
+  searchActive,
+  onClearAll,
 }: TeamsFilterBarProps) {
-  const { colorScheme } = useTheme();
+  const { colorScheme, colors } = useTheme();
 
   function toggleSort() {
     onSortDirectionChange(sortDirection === 'desc' ? 'asc' : 'desc');
@@ -61,11 +65,24 @@ export function TeamsFilterBar({
             <Ionicons
               name="chevron-down"
               size={14}
-              color={formatFilterActive ? '#FFFFFF' : NEUTRAL_FILTER_COLOR[colorScheme]}
+              color={formatFilterActive ? colors.primary : NEUTRAL_FILTER_COLOR[colorScheme]}
             />
           }
           fullWidth
           className="flex-[1.5]"
+        />
+
+        <PlayerDatabaseFilterChipButton
+          label="Clear All"
+          isActive={false}
+          activeColor={NEUTRAL_FILTER_COLOR[colorScheme]}
+          onPress={onClearAll}
+          accessibilityLabel="Clear all filters"
+          inactiveBackgroundColor={NEUTRAL_FILTER_COLOR_MUTED[colorScheme]}
+          inactiveBorderColor={NEUTRAL_FILTER_COLOR_MUTED[colorScheme]}
+          disabled={!formatFilterActive && !searchActive}
+          fullWidth
+          className="flex-[1]"
         />
       </View>
     </View>

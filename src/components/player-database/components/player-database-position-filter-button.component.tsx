@@ -66,7 +66,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange, disabled =
         activeColor={neutralColor}
         onPress={handleOpen}
         accessibilityLabel={`Position filter, currently ${label}`}
-        trailing={<Ionicons name="chevron-down" size={14} color={value.length > 0 ? '#FFFFFF' : neutralColor} />}
+        trailing={<Ionicons name="chevron-down" size={14} color={value.length > 0 ? '#F7F7F7' : neutralColor} />}
         inactiveBackgroundColor={neutralMuted}
         inactiveBorderColor={neutralMuted}
         disabled={disabled}
@@ -92,7 +92,7 @@ export function PlayerDatabasePositionFilterButton({ value, onChange, disabled =
                       className="h-full w-full items-center justify-center rounded-lg"
                       style={{ backgroundColor: isSelected ? selectedColor : colors.muted }}
                     >
-                      <Text style={{ color: isSelected ? '#FFFFFF' : colors.foreground }} className="text-xl font-bold">
+                      <Text style={{ color: isSelected ? '#F7F7F7' : colors.foreground }} className="text-xl font-bold">
                         {position}
                       </Text>
                     </View>

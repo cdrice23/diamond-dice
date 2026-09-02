@@ -63,7 +63,7 @@ export function HomePlateIcon({
           strokeWidth={strokeWidth}
         />
       ))}
-      <Polygon points={pointsToString(INNER)} fill="#FFFFFF" />
+      <Polygon points={pointsToString(INNER)} fill="#F7F7F7" />
     </Svg>
   );
 }
