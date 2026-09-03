@@ -59,6 +59,7 @@ export function useDragToExpand({
     const awayMag = Math.sqrt(awayDirection.x ** 2 + awayDirection.y ** 2);
 
     const panGesture = Gesture.Pan()
+      .runOnJS(true)
       .minDistance(8)
       .onBegin(() => {
         runOnJS(setIsActive)(true);
@@ -82,6 +83,7 @@ export function useDragToExpand({
       });
 
     const tapGesture = Gesture.Tap()
+      .runOnJS(true)
       .maxDuration(10000)
       .maxDistance(6)
       .onEnd(() => {

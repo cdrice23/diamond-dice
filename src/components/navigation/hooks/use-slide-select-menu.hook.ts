@@ -39,6 +39,7 @@ export function useSlideSelectMenu(itemCount: number, onSelect: (index: number) 
 
   const gesture = useMemo(() => {
     const panGesture = Gesture.Pan()
+      .runOnJS(true)
       .minDistance(8)
       .onUpdate((e) => {
         activeIndex.value = findIndexAtY(e.y);
@@ -48,6 +49,7 @@ export function useSlideSelectMenu(itemCount: number, onSelect: (index: number) 
       });
 
     const tapGesture = Gesture.Tap()
+      .runOnJS(true)
       .maxDuration(10000)
       .maxDistance(6)
       .onEnd((e) => {

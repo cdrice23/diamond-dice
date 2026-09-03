@@ -394,6 +394,7 @@ export function useDragToPitch({
     }
 
     const panGesture = Gesture.Pan()
+      .runOnJS(true)
       .minDistance(8)
       .activeOffsetY([-PITCH_VERTICAL_ACTIVATION_THRESHOLD, PITCH_VERTICAL_ACTIVATION_THRESHOLD])
       .failOffsetX([-EDGE_SWIPE_HORIZONTAL_TOLERANCE, EDGE_SWIPE_HORIZONTAL_TOLERANCE])
@@ -424,6 +425,7 @@ export function useDragToPitch({
       });
 
     const tapGesture = Gesture.Tap()
+      .runOnJS(true)
       .maxDuration(10000)
       .maxDistance(6)
       .onEnd(() => {
