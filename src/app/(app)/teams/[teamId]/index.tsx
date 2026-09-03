@@ -13,8 +13,8 @@ import { useDeleteTeam } from '@/components/teams/hooks/use-delete-team.hook';
 import { useTeamDetail } from '@/components/teams/hooks/use-team-detail.hook';
 import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,12 +28,18 @@ export default function TeamDetailScreen() {
   const insets = useSafeAreaInsets();
   const { navTopY } = useNavLayout();
   const { height: screenHeight } = useWindowDimensions();
-  const { team, loading } = useTeamDetail(teamId);
+  const { team, loading, refetch, fetchCount } = useTeamDetail(teamId);
   const { deleteTeam, deleting, error: deleteError, clearError } = useDeleteTeam();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   function handleRequestDelete() {
     clearError();
@@ -104,7 +110,7 @@ export default function TeamDetailScreen() {
         />
       </View>
 
-      <View style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
+      <View key={fetchCount} style={{ flex: 1, paddingBottom: navClearance, position: 'relative' }}>
         <ScrollView className="flex-1" contentContainerStyle={{ gap: 16, paddingTop: 32, paddingBottom: 24 }}>
           <TeamDetailPositionPlayersCard
             positionPlayers={team.position_players}

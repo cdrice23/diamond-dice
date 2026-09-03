@@ -15,7 +15,7 @@ import { useDeleteTeam } from '@/components/teams/hooks/use-delete-team.hook';
 import { useTeamsList } from '@/components/teams/hooks/use-teams-list.hook';
 import type { TeamSummary } from '@/components/teams/teams.types';
 import { useTheme } from '@/utils/theme-provider';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { FlatList, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
@@ -92,6 +92,12 @@ export default function TeamsScreen() {
     setTeamPendingDeletion(null);
     clearError();
   }
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   return (
     <View style={{ flex: 1 }}>

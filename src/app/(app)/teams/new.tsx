@@ -4,6 +4,7 @@ import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-bas
 import { AddTeamBattingOrderStep } from '@/components/teams/components/add-team-batting-order-step.component';
 import { AddTeamEntryStep } from '@/components/teams/components/add-team-entry-step.component';
 import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
+import { AddTeamLoadingScreen } from '@/components/teams/components/add-team-loading-screen.component';
 import { AddTeamRandomFiltersStep } from '@/components/teams/components/add-team-random-filters-step.component';
 import { AddTeamRandomReviewStep, RegenerateHeaderButton } from '@/components/teams/components/add-team-random-review-step.component';
 import { AddTeamReviewStep } from '@/components/teams/components/add-team-review-step.component';
@@ -17,6 +18,7 @@ import { useValidateTeamBasicInfo } from '@/components/teams/hooks/use-validate-
 import { useValidateTeamRosterDraft } from '@/components/teams/hooks/use-validate-team-roster-draft.hook';
 import type { TeamWizardState } from '@/components/teams/teams.types';
 import { computePitcherSlotRange } from '@/components/teams/utils/roster-level-counts';
+import { areColorsExactlySame } from '@/components/teams/utils/team-theme-color';
 import { useToast } from '@/utils/toast-provider';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -29,7 +31,7 @@ function isBasicInfoValid(state: TeamWizardState): boolean {
     state.homeFieldName.trim().length > 0 &&
     state.primaryColor !== null &&
     state.secondaryColor !== null &&
-    state.primaryColor.toLowerCase() !== state.secondaryColor.toLowerCase()
+    !areColorsExactlySame(state.primaryColor, state.secondaryColor)
   );
 }
 
@@ -56,6 +58,7 @@ export default function AddTeamScreen() {
   const { generateRosterDraft, generating } = useGenerateTeamRosterDraft();
   const [regenerateCount, setRegenerateCount] = useState(0);
   const [generateErrorMessage, setGenerateErrorMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const { expandLabels } = useAwardGroupLookup();
 
 
@@ -143,6 +146,7 @@ export default function AddTeamScreen() {
 
   async function handleSaveTeam() {
     if (!state.formatId || !state.primaryColor || !state.secondaryColor) return;
+    setIsSaving(true);
 
     const teamId = await saveTeam({
       teamName: state.teamName,
@@ -154,6 +158,8 @@ export default function AddTeamScreen() {
       pitcherSlots: state.pitcherSlots,
       battingOrder: state.battingOrder,
     });
+
+    setIsSaving(false);
 
     if (teamId) {
       dispatch({ type: 'RESET' });
@@ -219,6 +225,10 @@ export default function AddTeamScreen() {
     );
   }
 
+  if (state.step === 'randomFilters' && generating) {
+    return <AddTeamLoadingScreen />;
+  }
+
   if (state.step === 'randomFilters') {
     return (
       <AddTeamWizard
@@ -232,7 +242,7 @@ export default function AddTeamScreen() {
         }}
         onConfirm={handleGenerateAndContinue}
         confirmDisabled={generating || !!generateErrorMessage}
-        confirmLabel={generating ? 'Generating...' : 'Generate My Team'}
+        confirmLabel="Generate My Team"
       >
         <AddTeamRandomFiltersStep
           formatName={state.formatName}
@@ -313,6 +323,10 @@ export default function AddTeamScreen() {
     );
   }
 
+  if (state.step === 'review' && isSaving) {
+    return <AddTeamLoadingScreen />;
+  }
+
   if (state.step === 'review') {
     return (
       <AddTeamWizard
@@ -321,7 +335,7 @@ export default function AddTeamScreen() {
         onBack={() => dispatch({ type: 'GO_TO_STEP', step: 'battingOrder' })}
         onConfirm={handleSaveTeam}
         confirmDisabled={saving}
-        confirmLabel={saving ? 'Saving...' : 'Save New Team'}
+        confirmLabel="Save New Team"
       >
         <AddTeamReviewStep
           teamName={state.teamName}

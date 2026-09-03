@@ -11,6 +11,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Keyboard, View } from 'react-native';
+import { areColorsExactlySame } from '../utils/team-theme-color';
 
 type TeamCardTheme = {
   bandColor: string;
@@ -81,6 +82,7 @@ export function AddTeamBasicInfoStep({
     setActiveSwatch(target);
   }
 
+  const isExactMatch = areColorsExactlySame(primaryColor, secondaryColor);
   const showSimilarColorsWarning =
     primaryColor !== null && secondaryColor !== null && areTeamColorsTooSimilar(primaryColor, secondaryColor);
 
@@ -138,11 +140,24 @@ export function AddTeamBasicInfoStep({
         {showSimilarColorsWarning && (
           <View
             className="mt-2 flex-row items-start gap-2 rounded-md p-2.5"
-            style={{ backgroundColor: adjustHslAlpha(colors.level2, 0.1) }}
+            style={{
+              backgroundColor: isExactMatch ? adjustHslAlpha(colors.destructive, 0.1) : adjustHslAlpha(colors.level2, 0.1),
+            }}
           >
-            <MaterialCommunityIcons name="alert-circle-outline" size={16} color={colors.mutedForeground} style={{ marginTop: 2 }} />
-            <Text variant="muted" className="flex-1 text-sm">
-              These colors are hard to tell apart. Your team will work fine, but you may want to consider team colors with more contrast.
+            <MaterialCommunityIcons
+              name={isExactMatch ? 'alert-outline' : 'alert-circle-outline'}
+              size={16}
+              color={isExactMatch ? colors.destructive : colors.mutedForeground}
+              style={{ marginTop: 2 }}
+            />
+            <Text
+              className="flex-1 text-sm"
+              style={{ color: isExactMatch ? colors.destructive : undefined }}
+              variant={isExactMatch ? undefined : 'muted'}
+            >
+              {isExactMatch
+                ? 'These colors are identical. Choose two different colors to save your team.'
+                : 'These colors are hard to tell apart. Your team will work fine, but you may want to consider team colors with more contrast.'}
             </Text>
           </View>
         )}

@@ -1,6 +1,7 @@
 import { LoadingSpinner } from '@/components/branding/components/loading-spinner.component';
 import { AddTeamBattingOrderStep } from '@/components/teams/components/add-team-batting-order-step.component';
 import { AddTeamFormatStep } from '@/components/teams/components/add-team-format-step.component';
+import { AddTeamLoadingScreen } from '@/components/teams/components/add-team-loading-screen.component';
 import { AddTeamRosterSlotsStep } from '@/components/teams/components/add-team-roster-slots-step.component';
 import { AddTeamWizard } from '@/components/teams/components/add-team-wizard.component';
 import { EditTeamOverviewStep } from '@/components/teams/components/edit-team-overview-step.component';
@@ -13,6 +14,9 @@ import { useValidateTeamRosterDraft } from '@/components/teams/hooks/use-validat
 import type { TeamWizardState, WizardPitcherSlot, WizardPositionSlot } from '@/components/teams/teams.types';
 import { computePitcherSlotRange } from '@/components/teams/utils/roster-level-counts';
 import { teamDetailToWizardSlots } from '@/components/teams/utils/team-slot-map';
+import { areColorsExactlySame } from '@/components/teams/utils/team-theme-color';
+import { resolveTeamColors } from '@/utils/color';
+import { useTheme } from '@/utils/theme-provider';
 import { useToast } from '@/utils/toast-provider';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -81,6 +85,7 @@ type PreFormatStepSnapshot = { formatId: string; formatName: string | null };
 type PreSlotsSnapshot = { positionSlots: WizardPositionSlot[]; pitcherSlots: WizardPitcherSlot[] };
 
 export default function EditTeamScreen() {
+  const { colors } = useTheme();
   const { teamId } = useLocalSearchParams<{ teamId: string }>();
   const router = useRouter();
   const { showToast } = useToast();
@@ -98,8 +103,14 @@ export default function EditTeamScreen() {
   const [preFormatStepSnapshot, setPreFormatStepSnapshot] = useState<PreFormatStepSnapshot | null>(null);
   const [preSlotsSnapshot, setPreSlotsSnapshot] = useState<PreSlotsSnapshot | null>(null);
   const [preBattingOrderSnapshot, setPreBattingOrderSnapshot] = useState<string[] | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isSavingRef = useRef(false);
   const formatCacheRef = useRef<Record<string, FormatRosterSnapshot>>({});
+
+  const FALLBACK_HEX = '#6B7280';
+  const primaryHex = state.primaryColor ?? FALLBACK_HEX;
+  const secondaryHex = state.secondaryColor ?? FALLBACK_HEX;
+  const { backgroundColor: bandColor, accentColor: bandAccentColor } = resolveTeamColors(primaryHex, secondaryHex, colors.background);
 
   useEffect(() => {
     if (team && !initialized) {
@@ -239,6 +250,7 @@ export default function EditTeamScreen() {
   async function handleSave() {
     if (isSavingRef.current) return;
     isSavingRef.current = true;
+    setIsSubmitting(true);
 
     try {
       if (!state.editingTeamId || !state.formatId || !state.primaryColor || !state.secondaryColor) return;
@@ -265,6 +277,7 @@ export default function EditTeamScreen() {
       }
     } finally {
       isSavingRef.current = false;
+      setIsSubmitting(false);
     }
   }
 
@@ -345,14 +358,20 @@ export default function EditTeamScreen() {
     );
   }
 
+  if (isSubmitting) {
+    return <AddTeamLoadingScreen bandColor={bandColor} svgColor={bandAccentColor} />;
+  }
+
   return (
     <AddTeamWizard
       hideDefaultHeader
       onCancel={() => router.back()}
       onBack={null}
       onConfirm={handleSave}
-      confirmDisabled={saving || !!rosterErrorMessage || !isDirty(state, initialSnapshot)}
-      confirmLabel={saving ? 'Saving...' : 'Save Team'}
+      confirmDisabled={
+        saving || !!rosterErrorMessage || !isDirty(state, initialSnapshot) || areColorsExactlySame(state.primaryColor, state.secondaryColor)
+      }
+      confirmLabel="Save Team"
     >
       <EditTeamOverviewStep
         state={state}
