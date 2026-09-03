@@ -44,11 +44,11 @@ export function PlayerDatabaseYearWheelModal({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss} onShow={handleShow}>
       <Pressable className="flex-1 justify-end bg-black/40" onPress={onDismiss}>
         <Pressable
-          className="bg-background rounded-t-2xl p-4 pb-10"
+          className="bg-background rounded-t-2xl pt-4 pb-10"
           style={{ height: WHEEL_HEIGHT + HEADER_AND_BUTTONS_HEIGHT }}
           onPress={(e) => e.stopPropagation()}
         >
-          <Text className="text-foreground mb-8 text-lg font-bold">{title}</Text>
+          <Text className="text-foreground mb-8 px-4 text-2xl font-bold">{title}</Text>
 
           <View style={{ height: WHEEL_HEIGHT }} className="items-center justify-center">
             <PlayerDatabaseWheelPicker values={years} selectedIndex={draftIndex} onIndexChange={setDraftIndex} />
@@ -56,23 +56,27 @@ export function PlayerDatabaseYearWheelModal({
 
           <View className="flex-1" />
 
-          <Pressable
-            onPress={handleClear}
-            className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
-            style={{ backgroundColor: colors.muted }}
-          >
-            <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
-              Clear Filter
-            </Text>
-          </Pressable>
+          <View className="px-4">
+            <Pressable
+              onPress={handleClear}
+              className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
+              style={{ backgroundColor: colors.muted }}
+            >
+              <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+                Clear Filter
+              </Text>
+            </Pressable>
 
-          <Pressable
-            onPress={handleApply}
-            className="items-center rounded-sm py-3 active:opacity-70"
-            style={{ backgroundColor: colors.level2 }}
-          >
-            <Text className="font-semibold text-white">Apply</Text>
-          </Pressable>
+            <Pressable
+              onPress={handleApply}
+              className="items-center rounded-sm py-3 active:opacity-70"
+              style={{ backgroundColor: colors.level2 }}
+            >
+              <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
+                Apply
+              </Text>
+            </Pressable>
+          </View>
         </Pressable>
       </Pressable>
     </Modal>

@@ -1,7 +1,9 @@
 import { BandedScreenBackdrop } from '@/components/navigation/components/banded-screen-backdrop.component';
+import { Card } from '@/components/primitives/card.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamBasicInfoStep } from '@/components/teams/components/add-team-basic-info-step.component';
 import { EditTeamPlayersCard } from '@/components/teams/components/edit-team-players-card.component';
+import { TeamDetailCardHeader } from '@/components/teams/components/team-detail-card-header.component';
 import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import MaterialCommunityIcons from '@expo/vector-icons/build/MaterialCommunityIcons';
@@ -48,14 +50,23 @@ export function EditTeamOverviewStep({
 
   const primaryHex = state.primaryColor ?? FALLBACK_HEX;
   const secondaryHex = state.secondaryColor ?? FALLBACK_HEX;
-  const { backgroundColor: bandColor, textColor: bandTextColor, accentColor: bandAccentColor } = resolveTeamColors(primaryHex, secondaryHex, colors.background);
+  const { backgroundColor: bandColor, textColor: bandTextColor, accentColor: bandAccentColor } = resolveTeamColors(
+    primaryHex,
+    secondaryHex,
+    colors.background
+  );
   const headerTopOffset = insets.top + TOP_BAND_HEIGHT;
-
   const { positionPlayers, pitchers } = wizardSlotsToTeamDetailSlots(state.positionSlots, state.pitcherSlots, state.battingOrder);
 
   return (
     <View style={{ flex: 1 }}>
-      <BandedScreenBackdrop svgColor={colors.primary} backgroundColor={colors.background} topBandHeight={TOP_BAND_HEIGHT} topBandBackgroundColor={bandColor} topBandSvgColor={bandAccentColor} />
+      <BandedScreenBackdrop
+        svgColor={colors.primary}
+        backgroundColor={colors.background}
+        topBandHeight={TOP_BAND_HEIGHT}
+        topBandBackgroundColor={bandColor}
+        topBandSvgColor={bandAccentColor}
+      />
 
       <View style={{ marginTop: headerTopOffset, backgroundColor: bandColor }} className="px-4 pb-3">
         <View className="flex-row items-center gap-2">
@@ -65,7 +76,7 @@ export function EditTeamOverviewStep({
           </Text>
           {rosterErrorMessage && (
             <View
-              className="flex-row items-center gap-1 self-center rounded-md px-2 py-1 ml-1"
+              className="ml-1 flex-row items-center gap-1 self-center rounded-md px-2 py-1"
               style={{ borderWidth: 1, borderColor: bandTextColor }}
             >
               <MaterialCommunityIcons name="alert-outline" size={14} color={bandTextColor} />
@@ -77,7 +88,7 @@ export function EditTeamOverviewStep({
         </View>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ gap: 24, paddingTop: 24, paddingBottom: 24 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ gap: 16, paddingTop: 12, paddingBottom: 24 }}>
         <AddTeamBasicInfoStep
           teamName={state.teamName}
           homeFieldName={state.homeFieldName}
@@ -91,10 +102,11 @@ export function EditTeamOverviewStep({
           onSecondaryColorChange={onSecondaryColorChange}
           onAddCustomSwatch={onAddCustomSwatch}
           onUpdateCustomSwatch={onUpdateCustomSwatch}
+          cardTheme={{ bandColor, textColor: bandTextColor, accentColor: bandAccentColor }}
         />
 
-        <View className="gap-3 px-4">
-          <Text className="text-foreground text-xl font-bold">Format</Text>
+        <Card className="mx-4 gap-3 py-5">
+          <TeamDetailCardHeader label="Format" bandColor={bandColor} textColor={bandTextColor} accentColor={bandAccentColor} />
           <View className="flex-row items-center justify-between">
             {state.formatName && <TeamsListCardFormatChip formatName={state.formatName} size="lg" />}
             <Pressable onPress={onChangeFormat} className="rounded-md px-3 py-2 active:opacity-70" style={{ backgroundColor: colors.muted }}>
@@ -103,7 +115,7 @@ export function EditTeamOverviewStep({
               </Text>
             </Pressable>
           </View>
-        </View>
+        </Card>
 
         <EditTeamPlayersCard
           positionPlayers={positionPlayers}

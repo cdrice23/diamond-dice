@@ -126,7 +126,7 @@ export function AddTeamWizard({
                     className="items-center justify-center rounded-sm py-3 active:opacity-70"
                     style={{ backgroundColor: confirmDisabled ? adjustHslAlpha(colors.level2, 0.5) : colors.level2, flex: onBack ? 2 : 1 }}
                   >
-                    <Text className="text-lg font-semibold" style={{ color: confirmDisabled ? colors.muted : colors.primary }}>
+                    <Text className="text-lg font-semibold" style={{ color: confirmDisabled ? colors.muted : '#F7F7F7' }}>
                       {confirmLabel}
                     </Text>
                   </Pressable>

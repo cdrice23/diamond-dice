@@ -1,12 +1,22 @@
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
+import { Card } from '@/components/primitives/card.component';
 import { Input } from '@/components/primitives/input.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamColorPickerModal } from '@/components/teams/components/add-team-color-picker-modal.component';
-import { AddTeamColorSwatch } from '@/components/teams/components/add-team-color-swatch.component';
+import { AddTeamColorSplitCard } from '@/components/teams/components/add-team-color-split-card.component';
+import { TeamDetailCardHeader } from '@/components/teams/components/team-detail-card-header.component';
 import { adjustHslAlpha, areTeamColorsTooSimilar } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Keyboard, View } from 'react-native';
+
+type TeamCardTheme = {
+  bandColor: string;
+  textColor: string;
+  accentColor?: string;
+};
 
 type AddTeamBasicInfoStepProps = {
   teamName: string;
@@ -21,7 +31,26 @@ type AddTeamBasicInfoStepProps = {
   onSecondaryColorChange: (value: string) => void;
   onAddCustomSwatch: (hex: string) => void;
   onUpdateCustomSwatch: (index: number, hex: string) => void;
+  cardTheme?: TeamCardTheme;
 };
+
+function Section({ label, cardTheme, children }: { label: string; cardTheme?: TeamCardTheme; children: ReactNode }) {
+  if (!cardTheme) {
+    return (
+      <View>
+        <CardSectionHeader label={label} />
+        {children}
+      </View>
+    );
+  }
+
+  return (
+    <Card className="mx-4 gap-1 py-5">
+      <TeamDetailCardHeader label={label} bandColor={cardTheme.bandColor} textColor={cardTheme.textColor} accentColor={cardTheme.accentColor} />
+      {children}
+    </Card>
+  );
+}
 
 export function AddTeamBasicInfoStep({
   teamName,
@@ -36,6 +65,7 @@ export function AddTeamBasicInfoStep({
   onSecondaryColorChange,
   onAddCustomSwatch,
   onUpdateCustomSwatch,
+  cardTheme,
 }: AddTeamBasicInfoStepProps) {
   const { colors } = useTheme();
   const [activeSwatch, setActiveSwatch] = useState<'primary' | 'secondary' | null>(null);
@@ -54,16 +84,26 @@ export function AddTeamBasicInfoStep({
   const showSimilarColorsWarning =
     primaryColor !== null && secondaryColor !== null && areTeamColorsTooSimilar(primaryColor, secondaryColor);
 
-  return (
-    <View className="flex-1 gap-6 px-4">
-      <View className="gap-2">
-        <Text className="text-foreground text-base font-semibold">Team Name</Text>
+  const outerClassName = cardTheme ? 'flex-1 justify-center gap-4' : 'flex-1 justify-center items-between gap-8 px-4';
+
+  const teamNameAndFieldSection = (
+    <>
+      <View className="gap-1">
+        {cardTheme ? (
+          <Text className="text-foreground text-xl font-bold">Team Name</Text>
+        ) : (
+          <CardSectionHeader label="Team Name" />
+        )}
         <Input value={teamName} onChangeText={onTeamNameChange} placeholder="e.g. Riverside Ramblers" maxLength={30} error={!!fieldErrors.team_name} />
         {fieldErrors.team_name && <Text className="text-destructive text-sm">{fieldErrors.team_name}</Text>}
       </View>
 
-      <View className="gap-2">
-        <Text className="text-foreground text-base font-semibold">Home Field</Text>
+      <View className="gap-1">
+        {cardTheme ? (
+          <Text className="text-foreground text-xl font-bold">Home Field</Text>
+        ) : (
+          <CardSectionHeader label="Home Field" />
+        )}
         <Input
           value={homeFieldName}
           onChangeText={onHomeFieldNameChange}
@@ -73,14 +113,28 @@ export function AddTeamBasicInfoStep({
         />
         {fieldErrors.home_field_name && <Text className="text-destructive text-sm">{fieldErrors.home_field_name}</Text>}
       </View>
+    </>
+  );
 
-      <View className="gap-2">
-        <Text className="text-foreground text-base font-semibold">Team Colors</Text>
-        <View className="flex-row">
-          <AddTeamColorSwatch label="Primary" color={primaryColor} onPress={() => openColorPicker('primary')} />
-          <AddTeamColorSwatch label="Secondary" color={secondaryColor} onPress={() => openColorPicker('secondary')} />
-        </View>
+  return (
+    <View className={outerClassName}>
+      {cardTheme ? (
+        <>
+          <Section label="Team Details" cardTheme={cardTheme}>
+            <View className="gap-4">{teamNameAndFieldSection}</View>
+          </Section>
+        </>
+      ) : (
+        teamNameAndFieldSection
+      )}
 
+      <Section label="Team Colors" cardTheme={cardTheme}>
+        <AddTeamColorSplitCard
+          primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
+          onPressPrimary={() => openColorPicker('primary')}
+          onPressSecondary={() => openColorPicker('secondary')}
+        />
         {showSimilarColorsWarning && (
           <View
             className="mt-2 flex-row items-start gap-2 rounded-md p-2.5"
@@ -92,7 +146,7 @@ export function AddTeamBasicInfoStep({
             </Text>
           </View>
         )}
-      </View>
+      </Section>
 
       <AddTeamColorPickerModal
         visible={activeSwatch !== null}

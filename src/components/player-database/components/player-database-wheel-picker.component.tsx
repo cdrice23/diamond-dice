@@ -1,3 +1,4 @@
+import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -58,27 +59,41 @@ export function PlayerDatabaseWheelPicker({ values, selectedIndex, onIndexChange
   const { gesture, translateY, containerStyle } = useWheelPicker(values.length, ITEM_HEIGHT, selectedIndex, onIndexChange);
 
   return (
-    <View style={{ height: WHEEL_HEIGHT, width: '100%', overflow: 'hidden' }}>
-      <GestureDetector gesture={gesture}>
-        <Animated.View
-          collapsable={false}
-          style={[
-            { paddingTop: CENTER_OFFSET * ITEM_HEIGHT, paddingBottom: CENTER_OFFSET * ITEM_HEIGHT, width: '100%' },
-            containerStyle,
-          ]}
-        >
-          {values.map((value, index) => (
-            <WheelItem
-              key={value}
-              label={String(value)}
-              index={index}
-              translateY={translateY}
-              foregroundColor={colors.foreground}
-              selectedColor={colors.level2}
-            />
-          ))}
-        </Animated.View>
-      </GestureDetector>
+    <View style={{ height: WHEEL_HEIGHT, width: '100%' }}>
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: CENTER_OFFSET * ITEM_HEIGHT,
+          left: 0,
+          right: 0,
+          height: ITEM_HEIGHT,
+          backgroundColor: adjustHslAlpha(colors.level2, 0.14),
+        }}
+      />
+
+      <View style={{ height: WHEEL_HEIGHT, width: '100%', overflow: 'hidden' }}>
+        <GestureDetector gesture={gesture}>
+          <Animated.View
+            collapsable={false}
+            style={[
+              { paddingTop: CENTER_OFFSET * ITEM_HEIGHT, paddingBottom: CENTER_OFFSET * ITEM_HEIGHT, width: '100%' },
+              containerStyle,
+            ]}
+          >
+            {values.map((value, index) => (
+              <WheelItem
+                key={value}
+                label={String(value)}
+                index={index}
+                translateY={translateY}
+                foregroundColor={colors.foreground}
+                selectedColor={colors.level2}
+              />
+            ))}
+          </Animated.View>
+        </GestureDetector>
+      </View>
     </View>
   );
 }

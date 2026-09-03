@@ -15,7 +15,7 @@ type AddTeamDebutRangeModalProps = {
   onDismiss: () => void;
 };
 
-const HEADER_AND_BUTTONS_HEIGHT = 220;
+const HEADER_AND_BUTTONS_HEIGHT = 260;
 
 export function AddTeamDebutRangeModal({
   visible,
@@ -59,14 +59,16 @@ export function AddTeamDebutRangeModal({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss} onShow={handleShow}>
       <Pressable className="flex-1 justify-end bg-black/40" onPress={onDismiss}>
         <Pressable
-          className="bg-background rounded-t-2xl p-4 pb-10"
+          className="bg-background rounded-t-2xl pt-4 pb-14"
           style={{ height: WHEEL_HEIGHT + HEADER_AND_BUTTONS_HEIGHT }}
           onPress={(e) => e.stopPropagation()}
         >
-          <Text className="text-foreground mb-2 text-lg font-bold">{step === 'from' ? 'Debut Year — From' : 'Debut Year — To'}</Text>
-          <Text variant="muted" className="mb-6 text-sm">
-            Step {step === 'from' ? '1' : '2'} of 2
-          </Text>
+          <View className="px-4">
+            <Text className="text-foreground mb-2 text-2xl font-bold">{step === 'from' ? 'Debut Year — From' : 'Debut Year — To'}</Text>
+            <Text variant="muted" className="mb-6 text-lg">
+              Step {step === 'from' ? '1' : '2'} of 2
+            </Text>
+          </View>
 
           <View style={{ height: WHEEL_HEIGHT }} className="items-center justify-center">
             <PlayerDatabaseWheelPicker
@@ -78,44 +80,50 @@ export function AddTeamDebutRangeModal({
 
           <View className="flex-1" />
 
-          <Pressable
-            onPress={handleClear}
-            className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
-            style={{ backgroundColor: colors.muted }}
-          >
-            <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
-              Clear Filter
-            </Text>
-          </Pressable>
-
-          {step === 'from' ? (
+          <View className="px-4">
             <Pressable
-              onPress={handleNext}
-              className="items-center rounded-sm py-3 active:opacity-70"
-              style={{ backgroundColor: colors.level2 }}
+              onPress={handleClear}
+              className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
+              style={{ backgroundColor: colors.muted }}
             >
-              <Text className="text-base font-semibold text-white">Next: To Year</Text>
+              <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+                Clear Filter
+              </Text>
             </Pressable>
-          ) : (
-            <View className="flex-row gap-2">
+
+            {step === 'from' ? (
               <Pressable
-                onPress={() => setStep('from')}
-                className="flex-1 items-center rounded-sm py-3 active:opacity-60"
-                style={{ backgroundColor: colors.muted }}
+                onPress={handleNext}
+                className="items-center rounded-sm py-3 active:opacity-70"
+                style={{ backgroundColor: colors.level2 }}
               >
-                <Text style={{ color: colors.mutedForeground }} className="text-base font-semibold">
-                  Back
+                <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
+                  Next: To Year
                 </Text>
               </Pressable>
-              <Pressable
-                onPress={handleApply}
-                style={{ flex: 2, backgroundColor: colors.level2 }}
-                className="items-center rounded-sm py-3 active:opacity-70"
-              >
-                <Text className="text-base font-semibold text-white">Apply</Text>
-              </Pressable>
-            </View>
-          )}
+            ) : (
+              <View className="flex-row gap-2">
+                <Pressable
+                  onPress={() => setStep('from')}
+                  className="flex-1 items-center rounded-sm py-3 active:opacity-60"
+                  style={{ backgroundColor: colors.muted }}
+                >
+                  <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+                    Back
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleApply}
+                  style={{ flex: 2, backgroundColor: colors.level2 }}
+                  className="items-center rounded-sm py-3 active:opacity-70"
+                >
+                  <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
+                    Apply
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
         </Pressable>
       </Pressable>
     </Modal>

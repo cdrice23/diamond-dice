@@ -1,23 +1,14 @@
 import { PlayerDatabaseMultiSelectModal } from '@/components/player-database/components/player-database-multi-select-modal.component';
 import { useMlbTeams } from '@/components/player-database/hooks/use-mlb-teams.hook';
 import { AWARD_GROUPS, DEBUT_YEAR_CEILING, DEBUT_YEAR_FLOOR } from '@/components/player-database/player-database.constants';
-import { AnimatedCascadeItem } from '@/components/primitives/animated-cascade-item.component';
-import { ErrorBanner } from '@/components/primitives/error-banner.component';
+import { CardSectionHeader } from '@/components/primitives/card-section-header.component';
 import { Text } from '@/components/primitives/text.component';
 import { AddTeamDebutRangeModal } from '@/components/teams/components/add-team-debut-range-modal.component';
 import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import type { TeamWizardState } from '../teams.types';
 import { TeamsListCardFormatChip } from './teams-list-format-chip.component';
 
@@ -25,12 +16,9 @@ type AddTeamRandomFiltersStepProps = {
   formatName: string | null;
   filters: TeamWizardState['randomFilters'];
   onChangeFilters: (partial: Partial<TeamWizardState['randomFilters']>) => void;
-  generateErrorMessage?: string | null;
 };
 
 const MAX_SHOWN_ITEMS = 2;
-const CHEVRON_ANIM_DURATION = 300;
-const CONTENT_ANIM_DURATION = 320;
 
 function summaryFor(ids: string[], labelMap: Map<string, string>): string | null {
   if (ids.length === 0) return null;
@@ -73,12 +61,10 @@ type FilterRowDescriptor = {
   onPress: () => void;
 };
 
-export function AddTeamRandomFiltersStep({ formatName, filters, onChangeFilters, generateErrorMessage }: AddTeamRandomFiltersStepProps) {
+export function AddTeamRandomFiltersStep({ formatName, filters, onChangeFilters }: AddTeamRandomFiltersStepProps) {
   const { colors } = useTheme();
   const { options: teamOptions } = useMlbTeams();
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [activeSubModal, setActiveSubModal] = useState<'teams' | 'awards' | 'dates' | null>(null);
-  const chevronProgress = useSharedValue(0);
 
   const awardOptions = useMemo(() => AWARD_GROUPS.map((group) => ({ id: group.label, label: group.label })), []);
   const years = useMemo(() => {
@@ -129,68 +115,38 @@ export function AddTeamRandomFiltersStep({ formatName, filters, onChangeFilters,
     onChangeFilters({ mlbTeamIds: [], awardGroupLabels: [], debutYearFrom: null, debutYearTo: null });
   }
 
-  function toggleFilters() {
-    const next = !filtersExpanded;
-    setFiltersExpanded(next);
-    chevronProgress.value = withTiming(next ? 1 : 0, { duration: CHEVRON_ANIM_DURATION });
-  }
-
-  const chevronStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${chevronProgress.value * 180}deg` }],
-  }));
-
   return (
-    <ScrollView className="flex-1 px-4" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-      {generateErrorMessage && <ErrorBanner message={generateErrorMessage} />}
-      
-      <Animated.View layout={LinearTransition.duration(CONTENT_ANIM_DURATION)} style={{ gap: 28 }}>
-        <View className="gap-3">
-          <Text className="text-foreground text-2xl font-bold">Format</Text>
-          {formatName && (
-            <View className="self-start">
-              <TeamsListCardFormatChip formatName={formatName} size="lg" />
-            </View>
-          )}
-        </View>
+    <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingTop: 8, gap: 40, paddingBottom: 24 }}>
+      <View className="gap-1">
+        <CardSectionHeader label="Selected Format" />
+        {formatName && (
+          <View className="self-start">
+            <TeamsListCardFormatChip formatName={formatName} size="lg" />
+          </View>
+        )}
+      </View>
+
+      <View>
+        <CardSectionHeader label="Optional Filters" />
 
         <View>
-          <Pressable onPress={toggleFilters} className="flex-row items-center justify-between py-2 active:opacity-60">
-            <Text className="text-foreground text-2xl font-bold">Optional Filters</Text>
-            <Animated.View style={chevronStyle}>
-              <Ionicons name="chevron-down" size={22} color={colors.mutedForeground} />
-            </Animated.View>
-          </Pressable>
-
-          {filtersExpanded && (
-            <Animated.View
-              entering={FadeIn.duration(CONTENT_ANIM_DURATION)}
-              exiting={FadeOut.duration(CONTENT_ANIM_DURATION)}
-              className="mt-3 gap-0.5"
-            >
-              <Pressable
-                onPress={handleClearAll}
-                disabled={!anyFilterActive}
-                className="mb-3 self-end rounded-md px-4 py-2"
-                style={
-                  anyFilterActive
-                    ? { backgroundColor: adjustHslAlpha(colors.destructive, 0.12), borderWidth: 1, borderColor: adjustHslAlpha(colors.destructive, 0.45) }
-                    : { backgroundColor: colors.muted, borderWidth: 1, borderColor: colors.muted }
-                }
-              >
-                <Text style={{ color: anyFilterActive ? colors.destructive : colors.mutedForeground }} className="text-base font-semibold">
-                  Clear All Filters
-                </Text>
-              </Pressable>
-
-              {rows.map((row, index) => (
-                <AnimatedCascadeItem key={row.key} index={index} staggerDelayMs={50} fadeDurationMs={250} translateYStart={8}>
-                  <AddFilterButton icon={row.icon} label={row.label} value={row.value} onPress={row.onPress} />
-                </AnimatedCascadeItem>
-              ))}
-            </Animated.View>
-          )}
+          {rows.map((row) => (
+            <AddFilterButton key={row.key} icon={row.icon} label={row.label} value={row.value} onPress={row.onPress} />
+          ))}
         </View>
-      </Animated.View>
+
+        {anyFilterActive && (
+          <Pressable
+            onPress={handleClearAll}
+            className="mt-3 self-center rounded-md px-4 py-2"
+            style={{ backgroundColor: adjustHslAlpha(colors.destructive, 0.12), borderWidth: 1, borderColor: adjustHslAlpha(colors.destructive, 0.45) }}
+          >
+            <Text style={{ color: colors.destructive }} className="text-base font-semibold">
+              Clear All Filters
+            </Text>
+          </Pressable>
+        )}
+      </View>
 
       <PlayerDatabaseMultiSelectModal
         visible={activeSubModal === 'teams'}

@@ -4,7 +4,7 @@ import { Text } from '@/components/primitives/text.component';
 import { TeamDetailCardHeader } from '@/components/teams/components/team-detail-card-header.component';
 import { TeamDetailPitchersCard } from '@/components/teams/components/team-detail-pitchers-card.component';
 import { TeamDetailPositionPlayersCard } from '@/components/teams/components/team-detail-position-players-card.component';
-import { TeamDetailViewToggle, type TeamDetailViewMode } from '@/components/teams/components/team-detail-view-toggle.component';
+import { type TeamDetailViewMode } from '@/components/teams/components/team-detail-view-toggle.component';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -90,7 +90,6 @@ export function EditTeamPlayersCard({
       <View className="gap-3">
         <View className="flex-row items-center justify-between">
           <Text className="text-foreground text-xl font-bold">Position Players</Text>
-          <TeamDetailViewToggle mode={viewMode} onChange={setViewMode} activeColor={bandColor} activeIconColor={textColor} inactiveColor={colors.mutedForeground} />
         </View>
         <TeamDetailPositionPlayersCard
           positionPlayers={positionPlayers}
