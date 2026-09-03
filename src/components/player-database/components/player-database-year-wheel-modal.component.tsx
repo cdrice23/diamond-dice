@@ -1,8 +1,9 @@
 import { PlayerDatabaseWheelPicker, WHEEL_HEIGHT } from '@/components/player-database/components/player-database-wheel-picker.component';
+import { BottomSheetModal } from '@/components/primitives/bottom-sheet-modal.component';
 import { Text } from '@/components/primitives/text.component';
 import { useTheme } from '@/utils/theme-provider';
-import { useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 type PlayerDatabaseYearWheelModalProps = {
   visible: boolean;
@@ -25,10 +26,12 @@ export function PlayerDatabaseYearWheelModal({
 }: PlayerDatabaseYearWheelModalProps) {
   const { colors } = useTheme();
   const [draftIndex, setDraftIndex] = useState(() => Math.max(0, years.indexOf(selectedYear)));
+  const wasVisibleRef = useRef(visible);
 
-  function handleShow() {
+  if (visible && !wasVisibleRef.current) {
     setDraftIndex(Math.max(0, years.indexOf(selectedYear)));
   }
+  wasVisibleRef.current = visible;
 
   function handleApply() {
     onApply(years[draftIndex]);
@@ -41,44 +44,38 @@ export function PlayerDatabaseYearWheelModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss} onShow={handleShow}>
-      <Pressable className="flex-1 justify-end bg-black/40" onPress={onDismiss}>
-        <Pressable
-          className="bg-background rounded-t-2xl pt-4 pb-10"
-          style={{ height: WHEEL_HEIGHT + HEADER_AND_BUTTONS_HEIGHT }}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <Text className="text-foreground mb-8 px-4 text-2xl font-bold">{title}</Text>
+    <BottomSheetModal visible={visible} onDismiss={onDismiss} contentStyle={{ height: WHEEL_HEIGHT + HEADER_AND_BUTTONS_HEIGHT }}>
+      <Pressable className="bg-background rounded-t-2xl pt-4 pb-10" style={{ flex: 1 }} onPress={(e) => e.stopPropagation()}>
+        <Text className="text-foreground mb-8 px-4 text-2xl font-bold">{title}</Text>
 
-          <View style={{ height: WHEEL_HEIGHT }} className="items-center justify-center">
-            <PlayerDatabaseWheelPicker values={years} selectedIndex={draftIndex} onIndexChange={setDraftIndex} />
-          </View>
+        <View style={{ height: WHEEL_HEIGHT }} className="items-center justify-center">
+          <PlayerDatabaseWheelPicker values={years} selectedIndex={draftIndex} onIndexChange={setDraftIndex} />
+        </View>
 
-          <View className="flex-1" />
+        <View className="flex-1" />
 
-          <View className="px-4">
-            <Pressable
-              onPress={handleClear}
-              className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
-              style={{ backgroundColor: colors.muted }}
-            >
-              <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
-                Clear Filter
-              </Text>
-            </Pressable>
+        <View className="px-4">
+          <Pressable
+            onPress={handleClear}
+            className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
+            style={{ backgroundColor: colors.muted }}
+          >
+            <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+              Clear Filter
+            </Text>
+          </Pressable>
 
-            <Pressable
-              onPress={handleApply}
-              className="items-center rounded-sm py-3 active:opacity-70"
-              style={{ backgroundColor: colors.level2 }}
-            >
-              <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
-                Apply
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
+          <Pressable
+            onPress={handleApply}
+            className="items-center rounded-sm py-3 active:opacity-70"
+            style={{ backgroundColor: colors.level2 }}
+          >
+            <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
+              Apply
+            </Text>
+          </Pressable>
+        </View>
       </Pressable>
-    </Modal>
+    </BottomSheetModal>
   );
 }

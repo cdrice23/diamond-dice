@@ -1,8 +1,9 @@
 import { PlayerDatabaseWheelPicker, WHEEL_HEIGHT } from '@/components/player-database/components/player-database-wheel-picker.component';
+import { BottomSheetModal } from '@/components/primitives/bottom-sheet-modal.component';
 import { Text } from '@/components/primitives/text.component';
 import { useTheme } from '@/utils/theme-provider';
-import { useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 type AddTeamDebutRangeModalProps = {
   visible: boolean;
@@ -31,12 +32,14 @@ export function AddTeamDebutRangeModal({
   const [step, setStep] = useState<'from' | 'to'>('from');
   const [fromIndex, setFromIndex] = useState(() => Math.max(0, years.indexOf(initialFrom ?? yearFloor)));
   const [toIndex, setToIndex] = useState(() => Math.max(0, years.indexOf(initialTo ?? yearCeiling)));
+  const wasVisibleRef = useRef(visible);
 
-  function handleShow() {
+  if (visible && !wasVisibleRef.current) {
     setStep('from');
     setFromIndex(Math.max(0, years.indexOf(initialFrom ?? yearFloor)));
     setToIndex(Math.max(0, years.indexOf(initialTo ?? yearCeiling)));
   }
+  wasVisibleRef.current = visible;
 
   function handleNext() {
     if (years[toIndex] < years[fromIndex]) {
@@ -56,76 +59,70 @@ export function AddTeamDebutRangeModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss} onShow={handleShow}>
-      <Pressable className="flex-1 justify-end bg-black/40" onPress={onDismiss}>
-        <Pressable
-          className="bg-background rounded-t-2xl pt-4 pb-14"
-          style={{ height: WHEEL_HEIGHT + HEADER_AND_BUTTONS_HEIGHT }}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <View className="px-4">
-            <Text className="text-foreground mb-2 text-2xl font-bold">{step === 'from' ? 'Debut Year — From' : 'Debut Year — To'}</Text>
-            <Text variant="muted" className="mb-6 text-lg">
-              Step {step === 'from' ? '1' : '2'} of 2
+    <BottomSheetModal visible={visible} onDismiss={onDismiss} contentStyle={{ height: WHEEL_HEIGHT + HEADER_AND_BUTTONS_HEIGHT }}>
+      <Pressable className="bg-background rounded-t-2xl pt-4 pb-14" style={{ flex: 1 }} onPress={(e) => e.stopPropagation()}>
+        <View className="px-4">
+          <Text className="text-foreground mb-2 text-2xl font-bold">{step === 'from' ? 'Debut Year — From' : 'Debut Year — To'}</Text>
+          <Text variant="muted" className="mb-6 text-lg">
+            Step {step === 'from' ? '1' : '2'} of 2
+          </Text>
+        </View>
+
+        <View style={{ height: WHEEL_HEIGHT }} className="items-center justify-center">
+          <PlayerDatabaseWheelPicker
+            values={years}
+            selectedIndex={step === 'from' ? fromIndex : toIndex}
+            onIndexChange={step === 'from' ? setFromIndex : setToIndex}
+          />
+        </View>
+
+        <View className="flex-1" />
+
+        <View className="px-4">
+          <Pressable
+            onPress={handleClear}
+            className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
+            style={{ backgroundColor: colors.muted }}
+          >
+            <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+              Clear Filter
             </Text>
-          </View>
+          </Pressable>
 
-          <View style={{ height: WHEEL_HEIGHT }} className="items-center justify-center">
-            <PlayerDatabaseWheelPicker
-              values={years}
-              selectedIndex={step === 'from' ? fromIndex : toIndex}
-              onIndexChange={step === 'from' ? setFromIndex : setToIndex}
-            />
-          </View>
-
-          <View className="flex-1" />
-
-          <View className="px-4">
+          {step === 'from' ? (
             <Pressable
-              onPress={handleClear}
-              className="mb-2 items-center rounded-sm py-2.5 active:opacity-60"
-              style={{ backgroundColor: colors.muted }}
+              onPress={handleNext}
+              className="items-center rounded-sm py-3 active:opacity-70"
+              style={{ backgroundColor: colors.level2 }}
             >
-              <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
-                Clear Filter
+              <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
+                Next: To Year
               </Text>
             </Pressable>
-
-            {step === 'from' ? (
+          ) : (
+            <View className="flex-row gap-2">
               <Pressable
-                onPress={handleNext}
-                className="items-center rounded-sm py-3 active:opacity-70"
-                style={{ backgroundColor: colors.level2 }}
+                onPress={() => setStep('from')}
+                className="flex-1 items-center rounded-sm py-3 active:opacity-60"
+                style={{ backgroundColor: colors.muted }}
               >
-                <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
-                  Next: To Year
+                <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
+                  Back
                 </Text>
               </Pressable>
-            ) : (
-              <View className="flex-row gap-2">
-                <Pressable
-                  onPress={() => setStep('from')}
-                  className="flex-1 items-center rounded-sm py-3 active:opacity-60"
-                  style={{ backgroundColor: colors.muted }}
-                >
-                  <Text style={{ color: colors.mutedForeground }} className="text-lg font-semibold">
-                    Back
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleApply}
-                  style={{ flex: 2, backgroundColor: colors.level2 }}
-                  className="items-center rounded-sm py-3 active:opacity-70"
-                >
-                  <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
-                    Apply
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        </Pressable>
+              <Pressable
+                onPress={handleApply}
+                style={{ flex: 2, backgroundColor: colors.level2 }}
+                className="items-center rounded-sm py-3 active:opacity-70"
+              >
+                <Text className="text-lg font-semibold" style={{ color: '#F7F7F7' }}>
+                  Apply
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
       </Pressable>
-    </Modal>
+    </BottomSheetModal>
   );
 }

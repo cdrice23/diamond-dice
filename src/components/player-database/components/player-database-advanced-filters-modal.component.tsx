@@ -2,11 +2,12 @@ import { PlayerDatabaseYearWheelModal } from '@/components/player-database/compo
 import { useMlbTeams } from '@/components/player-database/hooks/use-mlb-teams.hook';
 import { AWARD_GROUPS, DEBUT_YEAR_CEILING, DEBUT_YEAR_FLOOR } from '@/components/player-database/player-database.constants';
 import type { PlayerDatabaseFilters } from '@/components/player-database/player-database.types';
+import { BottomSheetModal } from '@/components/primitives/bottom-sheet-modal.component';
 import { Text } from '@/components/primitives/text.component';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { PlayerDatabaseMultiSelectModal } from './player-database-multi-select-modal.component';
 
 type AdvancedFiltersDraft = {
@@ -63,6 +64,12 @@ export function PlayerDatabaseAdvancedFiltersModal({
   const [draft, setDraft] = useState<AdvancedFiltersDraft>(() => draftFromFilters(filters));
   const [activeSubModal, setActiveSubModal] = useState<'teams' | 'awards' | null>(null);
   const [activeYearField, setActiveYearField] = useState<'from' | 'to' | null>(null);
+  const wasVisibleRef = useRef(visible);
+
+  if (visible && !wasVisibleRef.current) {
+    setDraft(draftFromFilters(filters));
+  }
+  wasVisibleRef.current = visible;
 
   const awardOptions = useMemo(
     () => AWARD_GROUPS.map((group) => ({ id: group.label, label: group.label })),
@@ -79,12 +86,6 @@ export function PlayerDatabaseAdvancedFiltersModal({
 
   const teamLabelById = useMemo(() => new Map(teamOptions.map((o) => [o.id, o.label])), [teamOptions]);
   const awardLabelById = useMemo(() => new Map(awardOptions.map((o) => [o.id, o.label])), [awardOptions]);
-
-  useEffect(() => {
-    if (visible) {
-      setDraft(draftFromFilters(filters));
-    }
-  }, [visible, filters]);
 
   function handleApply() {
     if (!draftEqualsCommitted(draft, filters)) {
@@ -107,7 +108,6 @@ export function PlayerDatabaseAdvancedFiltersModal({
       setDraft((prev) => ({ ...prev, debutYearFrom: null }));
       return;
     }
-
     setDraft((prev) => {
       if (prev.debutYearTo !== null && year > prev.debutYearTo) {
         return { ...prev, debutYearFrom: prev.debutYearTo, debutYearTo: year };
@@ -121,7 +121,6 @@ export function PlayerDatabaseAdvancedFiltersModal({
       setDraft((prev) => ({ ...prev, debutYearTo: null }));
       return;
     }
-
     setDraft((prev) => {
       if (prev.debutYearFrom !== null && year < prev.debutYearFrom) {
         return { ...prev, debutYearTo: prev.debutYearFrom, debutYearFrom: year };
@@ -131,80 +130,78 @@ export function PlayerDatabaseAdvancedFiltersModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
-      <View className="flex-1 justify-end">
-        <Pressable className="absolute inset-0 bg-black/40" onPress={onDismiss} />
-        <View className="bg-background rounded-t-2xl p-4 pb-10" style={{ maxHeight: '85%' }}>
-          <Text className="text-foreground mb-4 text-lg font-bold">Advanced Filters</Text>
+    <BottomSheetModal visible={visible} onDismiss={onDismiss} contentStyle={{ maxHeight: '85%' }}>
+      <Pressable className="bg-background rounded-t-2xl p-4 pb-10" onPress={(e) => e.stopPropagation()}>
+        <Text className="text-foreground mb-4 text-lg font-bold">Advanced Filters</Text>
 
-          <View className="gap-6">
-            <View>
-              <Text className="text-foreground mb-2 text-base font-semibold">MLB Teams</Text>
+        <View className="gap-6">
+          <View>
+            <Text className="text-foreground mb-2 text-base font-semibold">MLB Teams</Text>
+            <Pressable
+              onPress={() => setActiveSubModal('teams')}
+              className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
+            >
+              <Text className="text-foreground flex-1 text-sm" numberOfLines={1}>
+                {summaryFor(draft.teamIds, teamLabelById, 'Any team')}
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </Pressable>
+          </View>
+
+          <View>
+            <Text className="text-foreground mb-2 text-base font-semibold">Debut Year</Text>
+            <View className="flex-row gap-2">
               <Pressable
-                onPress={() => setActiveSubModal('teams')}
-                className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
+                onPress={() => setActiveYearField('from')}
+                className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
               >
-                <Text className="text-foreground flex-1 text-sm" numberOfLines={1}>
-                  {summaryFor(draft.teamIds, teamLabelById, 'Any team')}
-                </Text>
+                <Text className="text-foreground text-sm">From: {draft.debutYearFrom ?? '—'}</Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
               </Pressable>
-            </View>
-
-            <View>
-              <Text className="text-foreground mb-2 text-base font-semibold">Debut Year</Text>
-              <View className="flex-row gap-2">
-                <Pressable
-                  onPress={() => setActiveYearField('from')}
-                  className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
-                >
-                  <Text className="text-foreground text-sm">From: {draft.debutYearFrom ?? '—'}</Text>
-                  <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
-                </Pressable>
-
-                <Pressable
-                  onPress={() => setActiveYearField('to')}
-                  className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
-                >
-                  <Text className="text-foreground text-sm">To: {draft.debutYearTo ?? '—'}</Text>
-                  <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
-                </Pressable>
-              </View>
-            </View>
-
-            <View>
-              <Text className="text-foreground mb-2 text-base font-semibold">Awards</Text>
               <Pressable
-                onPress={() => setActiveSubModal('awards')}
-                className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
+                onPress={() => setActiveYearField('to')}
+                className="border-border flex-1 flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
               >
-                <Text className="text-foreground flex-1 text-sm" numberOfLines={1}>
-                  {summaryFor(draft.awardGroupLabels, awardLabelById, 'Any award')}
-                </Text>
+                <Text className="text-foreground text-sm">To: {draft.debutYearTo ?? '—'}</Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
               </Pressable>
             </View>
           </View>
 
-          <Pressable
-            onPress={handleClearAll}
-            className="mt-4 items-center rounded-sm py-2.5 active:opacity-60"
-            style={{ backgroundColor: colors.muted }}
-          >
-            <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
-              Clear Advanced Filters
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={handleApply}
-            className="mt-2 items-center rounded-sm py-3 active:opacity-70"
-            style={{ backgroundColor: colors.level2 }}
-          >
-            <Text className="font-semibold text-white">Apply</Text>
-          </Pressable>
+          <View>
+            <Text className="text-foreground mb-2 text-base font-semibold">Awards</Text>
+            <Pressable
+              onPress={() => setActiveSubModal('awards')}
+              className="border-border flex-row items-center justify-between rounded-sm border px-3 py-2.5 active:opacity-60"
+            >
+              <Text className="text-foreground flex-1 text-sm" numberOfLines={1}>
+                {summaryFor(draft.awardGroupLabels, awardLabelById, 'Any award')}
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </Pressable>
+          </View>
         </View>
-      </View>
+
+        <Pressable
+          onPress={handleClearAll}
+          className="mt-4 items-center rounded-sm py-2.5 active:opacity-60"
+          style={{ backgroundColor: colors.muted }}
+        >
+          <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
+            Clear Advanced Filters
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={handleApply}
+          className="mt-2 items-center rounded-sm py-3 active:opacity-70"
+          style={{ backgroundColor: colors.level2 }}
+        >
+          <Text className="text-base font-semibold" style={{ color: '#F7F7F7' }}>
+            Apply
+          </Text>
+        </Pressable>
+      </Pressable>
 
       <PlayerDatabaseMultiSelectModal
         visible={activeSubModal === 'teams'}
@@ -215,7 +212,6 @@ export function PlayerDatabaseAdvancedFiltersModal({
         onDismiss={() => setActiveSubModal(null)}
         searchPlaceholder="Search teams..."
       />
-
       <PlayerDatabaseMultiSelectModal
         visible={activeSubModal === 'awards'}
         title="Awards"
@@ -225,7 +221,6 @@ export function PlayerDatabaseAdvancedFiltersModal({
         onDismiss={() => setActiveSubModal(null)}
         searchPlaceholder="Search awards..."
       />
-
       <PlayerDatabaseYearWheelModal
         visible={activeYearField === 'from'}
         title="Debut Year — From"
@@ -234,7 +229,6 @@ export function PlayerDatabaseAdvancedFiltersModal({
         onApply={handleApplyFromYear}
         onDismiss={() => setActiveYearField(null)}
       />
-
       <PlayerDatabaseYearWheelModal
         visible={activeYearField === 'to'}
         title="Debut Year — To"
@@ -243,6 +237,6 @@ export function PlayerDatabaseAdvancedFiltersModal({
         onApply={handleApplyToYear}
         onDismiss={() => setActiveYearField(null)}
       />
-    </Modal>
+    </BottomSheetModal>
   );
 }

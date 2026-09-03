@@ -1,11 +1,12 @@
 import { NEUTRAL_FILTER_COLOR, NEUTRAL_FILTER_COLOR_MUTED } from '@/components/player-database/player-database.constants';
 import type { Position } from '@/components/player-database/player-database.types';
 import { POSITIONS } from '@/components/player-database/player-database.types';
+import { BottomSheetModal } from '@/components/primitives/bottom-sheet-modal.component';
 import { Text } from '@/components/primitives/text.component';
 import { useTheme } from '@/utils/theme-provider';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { PlayerDatabaseFilterChipButton } from './player-database-filter-chip-button.component';
 
 type PlayerDatabasePositionFilterButtonProps = {
@@ -18,6 +19,12 @@ export function PlayerDatabasePositionFilterButton({ value, onChange, disabled =
   const { colors, colorScheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState<Position[]>(value);
+  const wasOpenRef = useRef(isOpen);
+
+  if (isOpen && !wasOpenRef.current) {
+    setDraft(value);
+  }
+  wasOpenRef.current = isOpen;
 
   const neutralColor = NEUTRAL_FILTER_COLOR[colorScheme];
   const neutralMuted = NEUTRAL_FILTER_COLOR_MUTED[colorScheme];
@@ -25,7 +32,6 @@ export function PlayerDatabasePositionFilterButton({ value, onChange, disabled =
 
   function handleOpen() {
     if (disabled) return;
-    setDraft(value);
     setIsOpen(true);
   }
 
@@ -73,54 +79,54 @@ export function PlayerDatabasePositionFilterButton({ value, onChange, disabled =
         fullWidth
       />
 
-      <Modal visible={isOpen} transparent animationType="slide" onRequestClose={handleDismiss}>
-        <Pressable className="flex-1 justify-end bg-black/40" onPress={handleDismiss}>
-          <Pressable className="bg-background rounded-t-2xl p-4 pb-10" onPress={(e) => e.stopPropagation()}>
-            <Text className="text-foreground mb-3 text-lg font-bold">Filter by Position</Text>
-            <View className="flex-row flex-wrap justify-between gap-y-3">
-              {POSITIONS.map((position) => {
-                const isSelected = draft.includes(position);
-                const selectedColor = selectedColorFor(position);
-                return (
-                  <Pressable
-                    key={position}
-                    onPress={() => toggleDraftPosition(position)}
-                    style={{ width: '23%' }}
-                    className="aspect-square items-center justify-center rounded-lg"
+      <BottomSheetModal visible={isOpen} onDismiss={handleDismiss}>
+        <Pressable className="bg-background rounded-t-2xl p-4 pb-10" onPress={(e) => e.stopPropagation()}>
+          <Text className="text-foreground mb-3 text-lg font-bold">Filter by Position</Text>
+          <View className="flex-row flex-wrap justify-between gap-y-3">
+            {POSITIONS.map((position) => {
+              const isSelected = draft.includes(position);
+              const selectedColor = selectedColorFor(position);
+              return (
+                <Pressable
+                  key={position}
+                  onPress={() => toggleDraftPosition(position)}
+                  style={{ width: '23%' }}
+                  className="aspect-square items-center justify-center rounded-lg"
+                >
+                  <View
+                    className="h-full w-full items-center justify-center rounded-lg"
+                    style={{ backgroundColor: isSelected ? selectedColor : colors.muted }}
                   >
-                    <View
-                      className="h-full w-full items-center justify-center rounded-lg"
-                      style={{ backgroundColor: isSelected ? selectedColor : colors.muted }}
-                    >
-                      <Text style={{ color: isSelected ? '#F7F7F7' : colors.foreground }} className="text-xl font-bold">
-                        {position}
-                      </Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
+                    <Text style={{ color: isSelected ? '#F7F7F7' : colors.foreground }} className="text-xl font-bold">
+                      {position}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
 
-            <Pressable
-              onPress={handleClear}
-              className="mt-4 items-center rounded-sm py-2.5 active:opacity-60"
-              style={{ backgroundColor: colors.muted }}
-            >
-              <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
-                Clear Position Filters
-              </Text>
-            </Pressable>
+          <Pressable
+            onPress={handleClear}
+            className="mt-4 items-center rounded-sm py-2.5 active:opacity-60"
+            style={{ backgroundColor: colors.muted }}
+          >
+            <Text style={{ color: colors.mutedForeground }} className="text-sm font-semibold">
+              Clear Position Filters
+            </Text>
+          </Pressable>
 
-            <Pressable
-              onPress={handleDone}
-              className="mt-2 items-center rounded-sm py-3 active:opacity-70"
-              style={{ backgroundColor: colors.level2 }}
-            >
-              <Text className="font-semibold text-white">Done</Text>
-            </Pressable>
+          <Pressable
+            onPress={handleDone}
+            className="mt-2 items-center rounded-sm py-3 active:opacity-70"
+            style={{ backgroundColor: colors.level2 }}
+          >
+            <Text className="font-semibold" style={{ color: '#F7F7F7' }}>
+              Done
+            </Text>
           </Pressable>
         </Pressable>
-      </Modal>
+      </BottomSheetModal>
     </View>
   );
 }
