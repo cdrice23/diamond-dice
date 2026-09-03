@@ -7,7 +7,7 @@ import { ToastProvider } from '@/utils/toast-provider';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins';
 import { Silkscreen_400Regular } from '@expo-google-fonts/silkscreen';
 import { VT323_400Regular } from '@expo-google-fonts/vt323';
-import { ThemeProvider as NavThemeProvider } from '@react-navigation/native';
+import { ThemeProvider as NavThemeProvider } from "expo-router/react-navigation";
 import { PortalHost } from '@rn-primitives/portal';
 import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';

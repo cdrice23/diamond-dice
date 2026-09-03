@@ -15,7 +15,7 @@ import {
 import { useCurrentProfile } from '@/hooks/use-current-profile.hook';
 import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
