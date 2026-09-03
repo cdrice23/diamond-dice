@@ -7,13 +7,20 @@ import { ToastProvider } from '@/utils/toast-provider';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins';
 import { Silkscreen_400Regular } from '@expo-google-fonts/silkscreen';
 import { VT323_400Regular } from '@expo-google-fonts/vt323';
-import { ThemeProvider as NavThemeProvider } from "expo-router/react-navigation";
 import { PortalHost } from '@rn-primitives/portal';
+import * as Sentry from '@sentry/react-native';
 import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
+import { ThemeProvider as NavThemeProvider } from "expo-router/react-navigation";
 import { Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  debug: __DEV__,
+  environment: __DEV__ ? 'development' : 'production',
+});
 
 function LoadingScreen() {
   const { colors } = useTheme();
@@ -48,7 +55,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useFonts({ VT323_400Regular, Silkscreen_400Regular, Poppins_200ExtraLight });
 
   return (
@@ -94,3 +101,5 @@ function RootLayoutNav() {
     </NavThemeProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

@@ -49,3 +49,6 @@ scratch
 etl/__pycache__/
 etl/*.pycCLAUDE.md
 supabase/functions/.env
+
+.env
+.env*.local

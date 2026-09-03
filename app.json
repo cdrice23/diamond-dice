@@ -43,7 +43,16 @@
       "expo-font",
       "expo-image",
       "expo-web-browser",
-      "expo-status-bar"
+      "expo-status-bar",
+      "@sentry/react-native",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "diamond-dice",
+          "organization": "cdrice23-bxm"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
