@@ -1,4 +1,5 @@
-import type { MvpBatterStats, MvpPitcherStats, OverviewStats, RecentGameSummary } from './profile.types';
+import { RecentGameRow } from '../primitives/recent-games-list.component';
+import type { MvpBatterStats, MvpPitcherStats, OverviewStats } from './profile.types';
 
 export const MOCK_OVERVIEW_STATS: OverviewStats = {
   wins: 14,
@@ -7,12 +8,12 @@ export const MOCK_OVERVIEW_STATS: OverviewStats = {
   friendCount: 7,
 };
 
-export const MOCK_RECENT_GAMES: RecentGameSummary[] = [
-  { gameId: 'mock-game-1', playedAt: '2026-08-12', isHome: true, isWin: true, opponentName: 'diamonddave', profileScore: 6, opponentScore: 4 },
-  { gameId: 'mock-game-2', playedAt: '2026-08-09', isHome: false, isWin: false, opponentName: 'Computer', profileScore: 2, opponentScore: 5 },
-  { gameId: 'mock-game-3', playedAt: '2026-08-05', isHome: true, isWin: false, opponentName: 'benchcoach22', profileScore: 5, opponentScore: 6 },
-  { gameId: 'mock-game-4', playedAt: '2025-11-14', isHome: false, isWin: true, opponentName: 'slugger_sam', profileScore: 8, opponentScore: 1 },
-  { gameId: 'mock-game-5', playedAt: '2025-07-29', isHome: true, isWin: true, opponentName: 'Computer', profileScore: 4, opponentScore: 2 },
+export const MOCK_RECENT_GAMES: RecentGameRow[] = [
+  { gameId: 'mock-game-1', playedAt: '2026-08-12', isHome: true, isWin: true, opponentName: 'diamonddave', teamScore: 6, opponentScore: 4 },
+  { gameId: 'mock-game-2', playedAt: '2026-08-09', isHome: false, isWin: false, opponentName: 'Computer', teamScore: 2, opponentScore: 5 },
+  { gameId: 'mock-game-3', playedAt: '2026-08-05', isHome: true, isWin: false, opponentName: 'benchcoach22', teamScore: 5, opponentScore: 6 },
+  { gameId: 'mock-game-4', playedAt: '2025-11-14', isHome: false, isWin: true, opponentName: 'slugger_sam', teamScore: 8, opponentScore: 1 },
+  { gameId: 'mock-game-5', playedAt: '2025-07-29', isHome: true, isWin: true, opponentName: 'Computer', teamScore: 4, opponentScore: 2 },
 ];
 
 export const MOCK_MVP_BATTER_STATS: MvpBatterStats = {

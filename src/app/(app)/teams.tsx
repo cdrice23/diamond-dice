@@ -93,8 +93,14 @@ export default function TeamsScreen() {
     clearError();
   }
 
+  const hasFocusedOnceRef = useRef(false);
+
   useFocusEffect(
     useCallback(() => {
+      if (!hasFocusedOnceRef.current) {
+        hasFocusedOnceRef.current = true;
+        return;
+      }
       refetch();
     }, [refetch])
   );

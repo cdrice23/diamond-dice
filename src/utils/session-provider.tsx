@@ -1,3 +1,4 @@
+import { clearCachedTeamsList, prefetchTeamsList } from '@/components/teams/hooks/use-teams-list.hook';
 import { clearCachedProfile, prefetchCurrentProfile } from '@/hooks/use-current-profile.hook';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
@@ -34,6 +35,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setIsLoading(false);
         if (session) {
           prefetchCurrentProfile();
+          prefetchTeamsList();
         }
       })
       .catch((error) => {
@@ -48,10 +50,12 @@ export function SessionProvider({ children }: PropsWithChildren) {
       } else if (event === 'SIGNED_OUT') {
         setIsPasswordRecovery(false);
         clearCachedProfile();
+        clearCachedTeamsList();
       }
       setSession(session);
       if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
         prefetchCurrentProfile();
+        prefetchTeamsList();
       }
     });
 
