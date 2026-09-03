@@ -18,8 +18,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  debug: __DEV__,
+  debug: false,
   environment: __DEV__ ? 'development' : 'production',
+  beforeSend(event) {
+    if (__DEV__) {
+      console.log('[Sentry] captured event:', event.exception?.values?.[0]?.value ?? event.message);
+    }
+    return event;
+  },
 });
 
 function LoadingScreen() {
