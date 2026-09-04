@@ -1,10 +1,12 @@
 import json
 import sys
+import time
 from config import (
     BOOTSTRAP_END_DATE,
     BOOTSTRAP_START_SEASON,
     ERA_FLOOR_SEASON,
-    TEAM_BATCH_SIZE,
+    MAX_TEAM_PAIRS_PER_RUN,
+    TIME_BUDGET_SECONDS,
 )
 from db import get_config_value, get_existing_external_ids, get_levels, set_config
 from mlb_client import CircuitBreakerAbort, get_all_team_ids, get_historical_roster
@@ -12,6 +14,7 @@ from pipeline import process_roster, write_run_summary
 
 
 def run_bootstrap_batch() -> None:
+    start_time = time.monotonic()
     levels = get_levels()
     existing_ids = get_existing_external_ids()
     team_ids = sorted(get_all_team_ids())
@@ -29,7 +32,11 @@ def run_bootstrap_batch() -> None:
             return
 
         pairs_processed = 0
-        while pairs_processed < TEAM_BATCH_SIZE and season >= ERA_FLOOR_SEASON:
+        while (
+            time.monotonic() - start_time < TIME_BUDGET_SECONDS
+            and pairs_processed < MAX_TEAM_PAIRS_PER_RUN
+            and season >= ERA_FLOOR_SEASON
+        ):
             remaining_teams = [t for t in team_ids if str(t) not in completed_teams]
 
             if not remaining_teams:
@@ -60,8 +67,10 @@ def run_bootstrap_batch() -> None:
             )
             pairs_processed += 1
 
+        elapsed_minutes = (time.monotonic() - start_time) / 60
         print(
-            f"Batch complete. Currently at season {season}, {len(completed_teams)}/{len(team_ids)} teams done."
+            f"Batch complete after {elapsed_minutes:.1f}m ({pairs_processed} team-pairs). "
+            f"Currently at season {season}, {len(completed_teams)}/{len(team_ids)} teams done."
         )
     finally:
         write_run_summary(existing_ids, season)

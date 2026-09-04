@@ -1,7 +1,8 @@
 import json
 import sys
+import time
 from datetime import datetime, timezone
-from config import TEAM_BATCH_SIZE
+from config import REFRESH_MAX_TEAM_PAIRS_PER_RUN, REFRESH_TIME_BUDGET_SECONDS
 from db import (
     get_config_value,
     get_existing_external_ids,
@@ -33,6 +34,7 @@ def get_target_season_for_refresh() -> int | None:
 
 
 def run_annual_refresh_batch() -> None:
+    start_time = time.monotonic()
     seed_mlb_teams(get_all_teams())
     seed_award_types(get_all_awards())
 
@@ -45,7 +47,9 @@ def run_annual_refresh_batch() -> None:
     existing_ids = get_existing_external_ids()
     team_ids = sorted(get_all_team_ids())
 
-    stored_season = int(get_config_value("etl_refresh_target_season", default=str(expected_season)))
+    stored_season = int(
+        get_config_value("etl_refresh_target_season", default=str(expected_season))
+    )
 
     if stored_season < expected_season:
         stored_season = expected_season
@@ -53,7 +57,9 @@ def run_annual_refresh_batch() -> None:
         set_config("etl_refresh_completed_teams", json.dumps([]))
         set_config("etl_refresh_awards_seeded", "false")
 
-    completed_teams = set(json.loads(get_config_value("etl_refresh_completed_teams", default="[]")))
+    completed_teams = set(
+        json.loads(get_config_value("etl_refresh_completed_teams", default="[]"))
+    )
     remaining_teams = [t for t in team_ids if str(t) not in completed_teams]
 
     if not remaining_teams:
@@ -64,16 +70,34 @@ def run_annual_refresh_batch() -> None:
     end_date = get_refresh_end_date(stored_season)
 
     try:
-        batch = remaining_teams[:TEAM_BATCH_SIZE]
-        for team_id in batch:
+        pairs_processed = 0
+        while (
+            remaining_teams
+            and time.monotonic() - start_time < REFRESH_TIME_BUDGET_SECONDS
+            and pairs_processed < REFRESH_MAX_TEAM_PAIRS_PER_RUN
+        ):
+            team_id = remaining_teams.pop(0)
             print(f"--- Refresh season {stored_season}, team {team_id} ---")
             roster = get_historical_roster(team_id, stored_season)
-            process_roster(roster, levels, existing_ids, end_date=end_date, skip_existing=False)
+            process_roster(
+                roster, levels, existing_ids, end_date=end_date, skip_existing=False
+            )
             completed_teams.add(str(team_id))
-            set_config("etl_refresh_completed_teams", json.dumps(sorted(completed_teams)))
+            set_config(
+                "etl_refresh_completed_teams", json.dumps(sorted(completed_teams))
+            )
+            pairs_processed += 1
 
+        elapsed_minutes = (time.monotonic() - start_time) / 60
         if len(completed_teams) >= len(team_ids):
-            print(f"Annual refresh for season {stored_season} complete.")
+            print(
+                f"Annual refresh for season {stored_season} complete after {elapsed_minutes:.1f}m."
+            )
+        else:
+            print(
+                f"Batch complete after {elapsed_minutes:.1f}m ({pairs_processed} team-pairs). "
+                f"{len(completed_teams)}/{len(team_ids)} teams done for season {stored_season}."
+            )
     finally:
         write_run_summary(existing_ids, stored_season)
 
