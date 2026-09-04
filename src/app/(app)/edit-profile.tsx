@@ -8,7 +8,7 @@ import { updateCachedProfile, useCurrentProfile } from '@/hooks/use-current-prof
 import { supabase } from '@/utils/supabase';
 import { useTheme } from '@/utils/theme-provider';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
@@ -28,13 +28,11 @@ export default function EditProfileScreen() {
   const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (profile && !initialValues) {
-      setDisplayName(profile.displayName);
-      setAutoRollEnabled(profile.autoRollEnabled);
-      setInitialValues({ displayName: profile.displayName, autoRollEnabled: profile.autoRollEnabled });
-    }
-  }, [profile, initialValues]);
+  if (profile && !initialValues) {
+    setDisplayName(profile.displayName);
+    setAutoRollEnabled(profile.autoRollEnabled);
+    setInitialValues({ displayName: profile.displayName, autoRollEnabled: profile.autoRollEnabled });
+  }
 
   const hasChanges =
     !!initialValues &&

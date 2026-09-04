@@ -1,34 +1,28 @@
-import { supabase } from '@/utils/supabase';
-import { RealtimeChannel } from '@supabase/supabase-js';
-import { useEffect, useRef } from 'react';
+import { acquirePresenceChannel, releasePresenceChannel, whenPresenceSubscribed } from '@/utils/presence-channel';
+import { useEffect } from 'react';
 
 export function usePresence(profileId: string | null) {
-  const channelRef = useRef<RealtimeChannel | null>(null);
-
   useEffect(() => {
     if (!profileId) {
       return;
     }
 
-    const channel = supabase.channel('online-users', {
-      config: { presence: { key: profileId } },
-    });
+    const channel = acquirePresenceChannel();
+    let cancelled = false;
 
-    channel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        await channel.track({
+    whenPresenceSubscribed(() => {
+      if (!cancelled) {
+        channel.track({
           profile_id: profileId,
           online_at: new Date().toISOString(),
         });
       }
     });
 
-    channelRef.current = channel;
-
     return () => {
+      cancelled = true;
       channel.untrack();
-      supabase.removeChannel(channel);
-      channelRef.current = null;
+      releasePresenceChannel();
     };
   }, [profileId]);
 }

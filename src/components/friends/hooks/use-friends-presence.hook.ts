@@ -1,21 +1,24 @@
-import { supabase } from '@/utils/supabase';
+import { acquirePresenceChannel, addPresenceSyncListener, getPresenceState, releasePresenceChannel } from '@/utils/presence-channel';
 import { useEffect, useState } from 'react';
+import { MOCK_ONLINE_PROFILE_IDS, USE_MOCK_FRIENDS_DATA } from '../friends.mock';
 
 export function useFriendsPresence() {
-  const [onlineProfileIds, setOnlineProfileIds] = useState<Set<string>>(new Set());
+  const [onlineProfileIds, setOnlineProfileIds] = useState<Set<string>>(() =>
+    USE_MOCK_FRIENDS_DATA ? MOCK_ONLINE_PROFILE_IDS : new Set(Object.keys(getPresenceState()))
+  );
 
   useEffect(() => {
-    const channel = supabase.channel('online-users');
+    if (USE_MOCK_FRIENDS_DATA) return;
 
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        setOnlineProfileIds(new Set(Object.keys(state)));
-      })
-      .subscribe();
+    acquirePresenceChannel();
+
+    const removeListener = addPresenceSyncListener(() => {
+      setOnlineProfileIds(new Set(Object.keys(getPresenceState())));
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      removeListener();
+      releasePresenceChannel();
     };
   }, []);
 

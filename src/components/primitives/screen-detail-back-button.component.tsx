@@ -7,15 +7,16 @@ import { Pressable } from 'react-native';
 type ScreenDetailBackButtonProps = {
   flat?: boolean;
   textColor?: string;
+  onPress?: () => void;
 };
 
-export function ScreenDetailBackButton({ flat = false, textColor }: ScreenDetailBackButtonProps) {
+export function ScreenDetailBackButton({ flat = false, textColor, onPress }: ScreenDetailBackButtonProps) {
   const { colors } = useTheme();
   const resolvedColor = textColor ?? colors.foreground;
 
   return (
     <Pressable
-      onPress={() => router.back()}
+      onPress={onPress ?? (() => router.back())}
       accessibilityRole="button"
       accessibilityLabel="Go back"
       hitSlop={12}

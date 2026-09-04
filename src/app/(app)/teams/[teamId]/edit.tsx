@@ -112,40 +112,38 @@ export default function EditTeamScreen() {
   const secondaryHex = state.secondaryColor ?? FALLBACK_HEX;
   const { backgroundColor: bandColor, accentColor: bandAccentColor } = resolveTeamColors(primaryHex, secondaryHex, colors.background);
 
-  useEffect(() => {
-    if (team && !initialized) {
-      const { positionSlots, pitcherSlots, battingOrder } = teamDetailToWizardSlots(team.position_players, team.pitchers);
+  if (team && !initialized) {
+    const { positionSlots, pitcherSlots, battingOrder } = teamDetailToWizardSlots(team.position_players, team.pitchers);
 
-      dispatch({
-        type: 'INIT_EDIT_TEAM',
-        teamId: team.id,
+    dispatch({
+      type: 'INIT_EDIT_TEAM',
+      teamId: team.id,
+      teamName: team.team_name,
+      homeFieldName: team.home_field_name,
+      primaryColor: team.team_theme_color_primary,
+      secondaryColor: team.team_theme_color_secondary,
+      formatId: team.format_id,
+      formatName: team.format_name,
+      positionSlots,
+      pitcherSlots,
+      battingOrder,
+    });
+
+    setInitialSnapshot(
+      buildSnapshot({
         teamName: team.team_name,
         homeFieldName: team.home_field_name,
         primaryColor: team.team_theme_color_primary,
         secondaryColor: team.team_theme_color_secondary,
         formatId: team.format_id,
-        formatName: team.format_name,
         positionSlots,
         pitcherSlots,
         battingOrder,
-      });
+      })
+    );
 
-      setInitialSnapshot(
-        buildSnapshot({
-          teamName: team.team_name,
-          homeFieldName: team.home_field_name,
-          primaryColor: team.team_theme_color_primary,
-          secondaryColor: team.team_theme_color_secondary,
-          formatId: team.format_id,
-          positionSlots,
-          pitcherSlots,
-          battingOrder,
-        })
-      );
-
-      setInitialized(true);
-    }
-  }, [team, initialized, dispatch]);
+    setInitialized(true);
+  }
 
   useEffect(() => {
     if (!state.formatId) return;
