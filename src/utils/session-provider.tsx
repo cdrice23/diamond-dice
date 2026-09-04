@@ -1,5 +1,6 @@
 import { clearCachedTeamsList, prefetchTeamsList } from '@/components/teams/hooks/use-teams-list.hook';
 import { clearCachedProfile, prefetchCurrentProfile } from '@/hooks/use-current-profile.hook';
+import { usePresence } from '@/hooks/use-presence.hook';
 import { PREFETCH_AVATARS_ENABLED } from '@/utils/prefetch-queue';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
@@ -74,6 +75,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
     return () => subscription.remove();
   }, []);
+
+  usePresence(session && !isPasswordRecovery ? session.user.id : null);
 
   function markPasswordRecovery() {
     setIsPasswordRecovery(true);
