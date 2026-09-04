@@ -1,5 +1,8 @@
+import { runWithConcurrencyLimit } from '@/utils/prefetch-queue';
 import { supabase } from '@/utils/supabase';
+import { Image as ExpoImage } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Image as RNImage } from 'react-native';
 import type { TeamDetail, TeamDetailPitcherSlot, TeamDetailPositionSlot, TeamDetailRecentGame } from '../teams.types';
 
 type TeamDetailRow = {
@@ -17,6 +20,21 @@ type TeamDetailRow = {
   pitchers: unknown;
   recent_games: unknown;
 };
+
+function prefetchTeamDetailAvatars(positionPlayers: TeamDetailPositionSlot[], pitchers: TeamDetailPitcherSlot[]): void {
+  const urls = [
+    ...positionPlayers.map((slot) => slot.player.image_url),
+    ...pitchers.map((slot) => slot.player.image_url),
+  ].filter((url): url is string => Boolean(url));
+
+  if (urls.length === 0) return;
+
+  runWithConcurrencyLimit(urls, urls.length, async (url) => {
+    await Promise.all([ExpoImage.prefetch(url), RNImage.prefetch(url)]);
+  }).catch((error) => {
+    console.warn('prefetchTeamDetailAvatars: batch failed', error);
+  });
+}
 
 export function useTeamDetail(teamId: string | undefined) {
   const [team, setTeam] = useState<TeamDetail | null>(null);
@@ -41,6 +59,9 @@ export function useTeamDetail(teamId: string | undefined) {
       setTeam(null);
     } else if (data) {
       const row = data as TeamDetailRow;
+      const positionPlayers = row.position_players as TeamDetailPositionSlot[];
+      const pitchers = row.pitchers as TeamDetailPitcherSlot[];
+
       setTeam({
         id: row.id,
         team_name: row.team_name,
@@ -52,10 +73,12 @@ export function useTeamDetail(teamId: string | undefined) {
         wins: row.wins,
         losses: row.losses,
         games_played: row.games_played,
-        position_players: row.position_players as TeamDetailPositionSlot[],
-        pitchers: row.pitchers as TeamDetailPitcherSlot[],
+        position_players: positionPlayers,
+        pitchers,
         recent_games: row.recent_games as TeamDetailRecentGame[],
       });
+
+      prefetchTeamDetailAvatars(positionPlayers, pitchers);
     } else {
       setTeam(null);
     }

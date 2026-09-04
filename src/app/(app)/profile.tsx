@@ -15,9 +15,9 @@ import {
 import { useCurrentProfile } from '@/hooks/use-current-profile.hook';
 import { adjustHslAlpha } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
-import { useFocusEffect } from "expo-router/react-navigation";
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useState } from 'react';
+import { useFocusEffect } from "expo-router/react-navigation";
+import { useCallback, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -42,8 +42,14 @@ export default function ProfileScreen() {
   const scrollY = useSharedValue(0);
   const [headerHeight, setHeaderHeight] = useState(0);
 
+  const hasFocusedOnceRef = useRef(false);
+  
   useFocusEffect(
     useCallback(() => {
+      if (!hasFocusedOnceRef.current) {
+        hasFocusedOnceRef.current = true;
+        return;
+      }
       refetch();
     }, [refetch])
   );

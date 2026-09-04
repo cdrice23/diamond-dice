@@ -12,7 +12,7 @@ import * as Sentry from '@sentry/react-native';
 import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { ThemeProvider as NavThemeProvider } from "expo-router/react-navigation";
-import { Pressable, Text, View } from 'react-native';
+import { LogBox, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -27,6 +27,8 @@ Sentry.init({
     return event;
   },
 });
+
+LogBox.ignoreLogs(['[Worklets] Tried to modify key']);
 
 function LoadingScreen() {
   const { colors } = useTheme();

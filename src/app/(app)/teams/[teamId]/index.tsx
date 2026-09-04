@@ -14,7 +14,7 @@ import { useTeamDetail } from '@/components/teams/hooks/use-team-detail.hook';
 import { resolveTeamColors } from '@/utils/color';
 import { useTheme } from '@/utils/theme-provider';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -35,8 +35,14 @@ export default function TeamDetailScreen() {
 
   const navClearance = (navTopY !== null ? screenHeight - navTopY : 116) + NAV_CLEARANCE_EXTRA;
 
+  const hasFocusedOnceRef = useRef(false);
+  
   useFocusEffect(
     useCallback(() => {
+      if (!hasFocusedOnceRef.current) {
+        hasFocusedOnceRef.current = true;
+        return;
+      }
       refetch();
     }, [refetch])
   );
