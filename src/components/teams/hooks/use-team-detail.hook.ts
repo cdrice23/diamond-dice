@@ -1,4 +1,4 @@
-import { runWithConcurrencyLimit } from '@/utils/prefetch-queue';
+import { PREFETCH_AVATARS_ENABLED, runWithConcurrencyLimit } from '@/utils/prefetch-queue';
 import { supabase } from '@/utils/supabase';
 import { Image as ExpoImage } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -21,7 +21,13 @@ type TeamDetailRow = {
   recent_games: unknown;
 };
 
-function prefetchTeamDetailAvatars(positionPlayers: TeamDetailPositionSlot[], pitchers: TeamDetailPitcherSlot[]): void {
+const prefetchedTeamIds = new Set<string>();
+
+function prefetchTeamDetailAvatars(teamId: string, positionPlayers: TeamDetailPositionSlot[], pitchers: TeamDetailPitcherSlot[]): void {
+  if (!PREFETCH_AVATARS_ENABLED) return;
+  if (prefetchedTeamIds.has(teamId)) return;
+  prefetchedTeamIds.add(teamId);
+
   const urls = [
     ...positionPlayers.map((slot) => slot.player.image_url),
     ...pitchers.map((slot) => slot.player.image_url),
@@ -34,6 +40,10 @@ function prefetchTeamDetailAvatars(positionPlayers: TeamDetailPositionSlot[], pi
   }).catch((error) => {
     console.warn('prefetchTeamDetailAvatars: batch failed', error);
   });
+}
+
+export function clearPrefetchedTeamDetailAvatars(): void {
+  prefetchedTeamIds.clear();
 }
 
 export function useTeamDetail(teamId: string | undefined) {
@@ -78,7 +88,7 @@ export function useTeamDetail(teamId: string | undefined) {
         recent_games: row.recent_games as TeamDetailRecentGame[],
       });
 
-      prefetchTeamDetailAvatars(positionPlayers, pitchers);
+      prefetchTeamDetailAvatars(row.id, positionPlayers, pitchers);
     } else {
       setTeam(null);
     }

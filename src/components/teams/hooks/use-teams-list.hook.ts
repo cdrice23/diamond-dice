@@ -1,4 +1,4 @@
-import { runWithConcurrencyLimit } from '@/utils/prefetch-queue';
+import { PREFETCH_AVATARS_ENABLED, runWithConcurrencyLimit } from '@/utils/prefetch-queue';
 import { supabase } from '@/utils/supabase';
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -73,6 +73,8 @@ async function fetchAndCacheDefaultTeamsPage(): Promise<TeamsListCacheEntry | nu
 }
 
 function prefetchRosterAvatars(teams: TeamSummary[]): void {
+  if (!PREFETCH_AVATARS_ENABLED) return;
+
   const urls = teams.flatMap((team) =>
     team.roster_preview
       .slice(0, AVATAR_PREFETCH_CAP_PER_TEAM)

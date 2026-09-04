@@ -1,3 +1,5 @@
+export const PREFETCH_AVATARS_ENABLED = false;
+
 export async function runWithConcurrencyLimit<T>(
   items: T[],
   concurrency: number,

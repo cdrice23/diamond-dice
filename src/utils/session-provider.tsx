@@ -1,5 +1,6 @@
 import { clearCachedTeamsList, prefetchTeamsList } from '@/components/teams/hooks/use-teams-list.hook';
 import { clearCachedProfile, prefetchCurrentProfile } from '@/hooks/use-current-profile.hook';
+import { PREFETCH_AVATARS_ENABLED } from '@/utils/prefetch-queue';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
@@ -35,7 +36,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setIsLoading(false);
         if (session) {
           prefetchCurrentProfile();
-          prefetchTeamsList();
+          if (PREFETCH_AVATARS_ENABLED) prefetchTeamsList();
         }
       })
       .catch((error) => {
@@ -55,7 +56,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       setSession(session);
       if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
         prefetchCurrentProfile();
-        prefetchTeamsList();
+        if (PREFETCH_AVATARS_ENABLED) prefetchTeamsList();
       }
     });
 
