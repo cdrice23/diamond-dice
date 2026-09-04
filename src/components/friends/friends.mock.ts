@@ -112,3 +112,13 @@ export const MOCK_ONLINE_PROFILE_IDS = new Set<string>([
   'mock-friend-4',
   'mock-friend-7',
 ]);
+
+export function filterMockFriends(trimmed: string): FriendSummary[] {
+  if (trimmed === '') return MOCK_FRIENDS;
+  const lowered = trimmed.toLowerCase();
+  return MOCK_FRIENDS.filter(
+    (friend) => friend.username.toLowerCase().includes(lowered) || friend.displayName.toLowerCase().includes(lowered)
+  );
+}
+
+export const MOCK_HAS_PENDING_REQUESTS = MOCK_PENDING_INCOMING.length > 0;

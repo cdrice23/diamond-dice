@@ -58,11 +58,11 @@ export function PlayerDatabaseFilterChipButton({
       style={{ borderColor: isActive ? activeColor : resolvedInactiveBorder }}
     >
       {isActive ? (
-        <LinearGradient colors={[lightStop, darkStop]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}>
+        <LinearGradient colors={[lightStop, darkStop]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ flex: 1 }}>
           <Pressable
             onPress={onPress}
             disabled={disabled}
-            className="flex-row items-center justify-center gap-1.5 px-2.5 py-1.5 active:opacity-70"
+            className="flex-1 flex-row items-center justify-center gap-1.5 px-2.5 py-1.5 active:opacity-70"
             accessibilityRole="button"
             accessibilityLabel={accessibilityLabel}
           >
@@ -77,7 +77,7 @@ export function PlayerDatabaseFilterChipButton({
         <Pressable
           onPress={onPress}
           disabled={disabled}
-          className="flex-row items-center justify-center gap-1.5 px-2.5 py-1.5 active:opacity-70"
+          className="flex-1 flex-row items-center justify-center gap-1.5 px-2.5 py-1.5 active:opacity-70"
           style={{ backgroundColor: inactiveBackgroundColor }}
           accessibilityRole="button"
           accessibilityLabel={accessibilityLabel}
