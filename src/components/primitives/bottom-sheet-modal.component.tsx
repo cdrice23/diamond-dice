@@ -15,12 +15,19 @@ type BottomSheetModalProps = {
 
 export function BottomSheetModal({ visible, onDismiss, children, contentStyle }: BottomSheetModalProps) {
   const [isMounted, setIsMounted] = useState(visible);
+  const [prevVisible, setPrevVisible] = useState(visible);
   const backdropOpacity = useSharedValue(0);
   const sheetTranslateY = useSharedValue(OFFSCREEN_Y);
 
-  useEffect(() => {
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
     if (visible) {
       setIsMounted(true);
+    }
+  }
+
+  useEffect(() => {
+    if (visible) {
       backdropOpacity.value = withTiming(1, { duration: BACKDROP_DURATION });
       sheetTranslateY.value = withTiming(0, { duration: SHEET_DURATION, easing: Easing.out(Easing.cubic) });
     } else {
