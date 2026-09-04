@@ -1,9 +1,13 @@
-import { useRef } from 'react';
+import { useState } from 'react';
 import type { FormStep } from '../steps.config';
 
 export function useFormStep(step: FormStep | 'checkEmail'): FormStep {
-  const lastFormStepRef = useRef<FormStep>('initial');
-  const formStep: FormStep = step === 'checkEmail' ? lastFormStepRef.current : step;
-  lastFormStepRef.current = formStep;
+  const [lastFormStep, setLastFormStep] = useState<FormStep>('initial');
+  const formStep: FormStep = step === 'checkEmail' ? lastFormStep : step;
+
+  if (formStep !== lastFormStep) {
+    setLastFormStep(formStep);
+  }
+
   return formStep;
 }

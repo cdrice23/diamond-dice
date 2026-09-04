@@ -13,20 +13,26 @@ export function useTypewriterReveal({
   charDurationMs?: number;
   onDone?: () => void;
 }) {
+  const [prevPhase, setPrevPhase] = useState(phase);
+  const [prevText, setPrevText] = useState(text);
   const [charCount, setCharCount] = useState(phase === 'shown' ? text.length : 0);
 
-  useEffect(() => {
+  if (phase !== prevPhase || text !== prevText) {
+    setPrevPhase(phase);
+    setPrevText(text);
+
     if (phase === 'hidden') {
       setCharCount(0);
-      return;
-    }
-
-    if (phase === 'shown') {
+    } else if (phase === 'shown') {
       setCharCount(text.length);
-      return;
+    } else {
+      setCharCount(0);
     }
+  }
 
-    setCharCount(0);
+  useEffect(() => {
+    if (phase !== 'typing') return;
+
     const interval = setInterval(() => {
       setCharCount((prev) => {
         const next = prev + 1;

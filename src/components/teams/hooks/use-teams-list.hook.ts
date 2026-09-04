@@ -51,6 +51,10 @@ function isDefaultParams(searchTerm: string, formatId: string | null, sortDirect
   );
 }
 
+function getParamsKey(searchTerm: string, formatId: string | null, sortDirection: TeamsSortDirection) {
+  return `${searchTerm.trim()}\u0000${formatId ?? ''}\u0000${sortDirection}`;
+}
+
 async function fetchAndCacheDefaultTeamsPage(): Promise<TeamsListCacheEntry | null> {
   const { data, error } = await supabase.rpc('get_teams_list', {
     p_search_term: null,
@@ -110,15 +114,33 @@ export function clearCachedTeamsList(): void {
 }
 
 export function useTeamsList(searchTerm: string, formatId: string | null, sortDirection: TeamsSortDirection) {
-  const [teams, setTeams] = useState<TeamSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const paramsKey = getParamsKey(searchTerm, formatId, sortDirection);
+  const useCache = isDefaultParams(searchTerm, formatId, sortDirection);
+  const cacheEntry = useCache ? cachedFirstPage : null;
+
+  const [prevParamsKey, setPrevParamsKey] = useState(paramsKey);
+  const [teams, setTeams] = useState<TeamSummary[]>(() => cacheEntry?.teams ?? []);
+  const [loading, setLoading] = useState(() => !cacheEntry);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(() => cacheEntry?.hasMore ?? true);
 
   const isMountedRef = useRef(true);
-  const offsetRef = useRef(0);
+  const offsetRef = useRef(cacheEntry?.teams.length ?? 0);
   const isFetchingMoreRef = useRef(false);
   const searchTokenRef = useRef(0);
+
+  if (paramsKey !== prevParamsKey) {
+    setPrevParamsKey(paramsKey);
+    if (cacheEntry) {
+      setTeams(cacheEntry.teams);
+      setHasMore(cacheEntry.hasMore);
+      setLoading(false);
+    } else {
+      setTeams([]);
+      setHasMore(true);
+      setLoading(true);
+    }
+  }
 
   const fetchPage = useCallback(
     async (offset: number, replace: boolean, token: number) => {
@@ -149,22 +171,24 @@ export function useTeamsList(searchTerm: string, formatId: string | null, sortDi
 
   useEffect(() => {
     isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     searchTokenRef.current += 1;
     const token = searchTokenRef.current;
+    isFetchingMoreRef.current = false;
+
+    if (cacheEntry) {
+      offsetRef.current = cacheEntry.teams.length;
+      return;
+    }
 
     offsetRef.current = 0;
-    isFetchingMoreRef.current = false;
-    setHasMore(true);
 
-    const useCache = isDefaultParams(searchTerm, formatId, sortDirection);
-
-    if (useCache && cachedFirstPage) {
-      setTeams(cachedFirstPage.teams);
-      setHasMore(cachedFirstPage.hasMore);
-      offsetRef.current = cachedFirstPage.teams.length;
-      setLoading(false);
-    } else if (useCache && inFlightFetch) {
-      setLoading(true);
+    if (useCache && inFlightFetch) {
       inFlightFetch.then((entry) => {
         if (!isMountedRef.current || token !== searchTokenRef.current) return;
         if (entry) {
@@ -177,19 +201,15 @@ export function useTeamsList(searchTerm: string, formatId: string | null, sortDi
         }
         setLoading(false);
       });
-    } else {
-      setLoading(true);
-      fetchPage(0, true, token).finally(() => {
-        if (isMountedRef.current && token === searchTokenRef.current) {
-          setLoading(false);
-        }
-      });
+      return;
     }
 
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [fetchPage, searchTerm, formatId, sortDirection]);
+    fetchPage(0, true, token).finally(() => {
+      if (isMountedRef.current && token === searchTokenRef.current) {
+        setLoading(false);
+      }
+    });
+  }, [paramsKey, cacheEntry, useCache, fetchPage]);
 
   const loadMore = useCallback(async () => {
     if (isFetchingMoreRef.current || !hasMore) return;

@@ -30,7 +30,15 @@ export function useDragToExpand({
   maxRelevantVelocity = 3000,
 }: UseDragToExpandOptions) {
   const scale = useSharedValue(1);
+  const [prevCloseSignal, setPrevCloseSignal] = useState(closeSignal);
   const [isActive, setIsActive] = useState(false);
+
+  if (closeSignal !== prevCloseSignal) {
+    setPrevCloseSignal(closeSignal);
+    if (closeSignal > 0) {
+      setIsActive(false);
+    }
+  }
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -38,8 +46,8 @@ export function useDragToExpand({
 
   useEffect(() => {
     if (closeSignal > 0) {
+      // eslint-disable-next-line react-hooks/immutability
       scale.value = withTiming(1, { duration: closeDuration });
-      setIsActive(false);
     }
   }, [closeSignal, scale, closeDuration]);
 
@@ -51,6 +59,7 @@ export function useDragToExpand({
         const t = Math.min(1, (velocity - velocityThreshold) / (maxRelevantVelocity - velocityThreshold));
         duration = openDuration - t * (openDuration - minOpenDuration);
       }
+      // eslint-disable-next-line react-hooks/immutability
       scale.value = withTiming(maxScale, { duration }, (finished) => {
         if (finished) runOnJS(onOpen)();
       });
@@ -67,6 +76,7 @@ export function useDragToExpand({
       .onUpdate((e) => {
         const projected = (e.translationX * awayDirection.x + e.translationY * awayDirection.y) / awayMag;
         const progress = Math.min(1, Math.max(0, projected / maxDragDistance));
+        // eslint-disable-next-line react-hooks/immutability
         scale.value = 1 + progress * (maxScale - 1);
       })
       .onEnd((e) => {
@@ -77,6 +87,7 @@ export function useDragToExpand({
         if (progress >= completionThreshold || velocityProjected >= velocityThreshold) {
           triggerOpen(velocityProjected);
         } else {
+          // eslint-disable-next-line react-hooks/immutability
           scale.value = withSpring(1, { dampingRatio: 0.9, duration: 600 });
           runOnJS(setIsActive)(false);
         }

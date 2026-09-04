@@ -60,21 +60,21 @@ export function prefetchStatDistributions() {
 }
 
 export function useStatDistributions() {
+  const [prevRetryToken, setPrevRetryToken] = useState(0);
   const [distributions, setDistributions] = useState<StatDistributionsMap | null>(cache);
   const [loading, setLoading] = useState(!cache);
   const [error, setError] = useState<Error | null>(null);
   const [retryToken, setRetryToken] = useState(0);
 
-  useEffect(() => {
-    if (cache) {
-      setDistributions(cache);
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoading(true);
+  if (retryToken !== prevRetryToken) {
+    setPrevRetryToken(retryToken);
+    setDistributions(cache);
+    setLoading(!cache);
     setError(null);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
 
     requestDistributions()
       .then((result) => {
@@ -93,7 +93,6 @@ export function useStatDistributions() {
     return () => {
       cancelled = true;
     };
-     
   }, [retryToken]);
 
   const retry = () => {

@@ -1,7 +1,7 @@
 import { PREFETCH_AVATARS_ENABLED, runWithConcurrencyLimit } from '@/utils/prefetch-queue';
 import { supabase } from '@/utils/supabase';
 import { Image as ExpoImage } from 'expo-image';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image as RNImage } from 'react-native';
 import type { TeamDetail, TeamDetailPitcherSlot, TeamDetailPositionSlot, TeamDetailRecentGame } from '../teams.types';
 
@@ -46,63 +46,71 @@ export function clearPrefetchedTeamDetailAvatars(): void {
   prefetchedTeamIds.clear();
 }
 
+function mapRow(row: TeamDetailRow): TeamDetail {
+  return {
+    id: row.id,
+    team_name: row.team_name,
+    home_field_name: row.home_field_name,
+    team_theme_color_primary: row.team_theme_color_primary,
+    team_theme_color_secondary: row.team_theme_color_secondary,
+    format_id: row.format_id,
+    format_name: row.format_name,
+    wins: row.wins,
+    losses: row.losses,
+    games_played: row.games_played,
+    position_players: row.position_players as TeamDetailPositionSlot[],
+    pitchers: row.pitchers as TeamDetailPitcherSlot[],
+    recent_games: row.recent_games as TeamDetailRecentGame[],
+  };
+}
+
 export function useTeamDetail(teamId: string | undefined) {
+  const [prevTeamId, setPrevTeamId] = useState(teamId);
   const [team, setTeam] = useState<TeamDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(teamId));
   const [fetchCount, setFetchCount] = useState(0);
-  const isMountedRef = useRef(true);
+  const [refetchNonce, setRefetchNonce] = useState(0);
 
-  const fetchTeam = useCallback(async () => {
-    if (!teamId) {
-      setTeam(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    const { data, error } = await supabase.rpc('get_team_detail', { p_team_id: teamId }).maybeSingle();
-
-    if (!isMountedRef.current) return;
-
-    if (error) {
-      console.error('get_team_detail failed:', error);
-      setTeam(null);
-    } else if (data) {
-      const row = data as TeamDetailRow;
-      const positionPlayers = row.position_players as TeamDetailPositionSlot[];
-      const pitchers = row.pitchers as TeamDetailPitcherSlot[];
-
-      setTeam({
-        id: row.id,
-        team_name: row.team_name,
-        home_field_name: row.home_field_name,
-        team_theme_color_primary: row.team_theme_color_primary,
-        team_theme_color_secondary: row.team_theme_color_secondary,
-        format_id: row.format_id,
-        format_name: row.format_name,
-        wins: row.wins,
-        losses: row.losses,
-        games_played: row.games_played,
-        position_players: positionPlayers,
-        pitchers,
-        recent_games: row.recent_games as TeamDetailRecentGame[],
-      });
-
-      prefetchTeamDetailAvatars(row.id, positionPlayers, pitchers);
-    } else {
-      setTeam(null);
-    }
-    setLoading(false);
-    setFetchCount((prev) => prev + 1);
-  }, [teamId]);
+  if (teamId !== prevTeamId) {
+    setPrevTeamId(teamId);
+    setTeam(null);
+    setLoading(Boolean(teamId));
+  }
 
   useEffect(() => {
-    isMountedRef.current = true;
-    fetchTeam();
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [fetchTeam]);
+    if (!teamId) return;
 
-  return { team, loading, refetch: fetchTeam, fetchCount };
+    let ignore = false;
+
+    (async () => {
+      const { data, error } = await supabase.rpc('get_team_detail', { p_team_id: teamId }).maybeSingle();
+
+      if (ignore) return;
+
+      if (error) {
+        console.error('get_team_detail failed:', error);
+        setTeam(null);
+      } else if (data) {
+        const detail = mapRow(data as TeamDetailRow);
+        setTeam(detail);
+        prefetchTeamDetailAvatars(detail.id, detail.position_players, detail.pitchers);
+      } else {
+        setTeam(null);
+      }
+      setLoading(false);
+      setFetchCount((prev) => prev + 1);
+    })();
+
+    return () => {
+      ignore = true;
+    };
+  }, [teamId, refetchNonce]);
+
+  const refetch = useCallback(() => {
+    if (!teamId) return;
+    setLoading(true);
+    setRefetchNonce((prev) => prev + 1);
+  }, [teamId]);
+
+  return { team, loading, refetch, fetchCount };
 }

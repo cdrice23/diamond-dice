@@ -10,21 +10,26 @@ type PlayerSummary = {
 const playerSummaryCache = new Map<string, PlayerSummary>();
 
 export function usePlayerSummary(playerId: string) {
+  const [prevPlayerId, setPrevPlayerId] = useState(playerId);
   const cached = playerSummaryCache.get(playerId);
   const [player, setPlayer] = useState<PlayerSummary | null>(cached ?? null);
   const [loading, setLoading] = useState(!cached);
 
+  if (playerId !== prevPlayerId) {
+    setPrevPlayerId(playerId);
+    const existing = playerSummaryCache.get(playerId);
+    setPlayer(existing ?? null);
+    setLoading(!existing);
+  }
+
   useEffect(() => {
     const existing = playerSummaryCache.get(playerId);
     if (existing) {
-      setPlayer(existing);
-      setLoading(false);
       prefetchImage(existing.imageUrl);
       return;
     }
 
     let isMounted = true;
-    setLoading(true);
 
     async function fetchPlayer() {
       const { data, error } = await supabase

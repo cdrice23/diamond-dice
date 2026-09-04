@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { CASCADE_STAGGER, FADE_TRANSITION_DURATION, LEAD_DURATION, SLOT_TRANSITION_DURATION } from '../auth.constants';
 import type { FieldKey, StepDefinition } from '../steps.config';
 import { getTimingRole } from '../transitions.config';
@@ -7,10 +7,15 @@ type EffectiveSlotState = { position: number; visible: boolean; moveDelay: numbe
 export type EffectiveStepDefinition = Record<FieldKey, EffectiveSlotState>;
 
 export function useStepTransition(fromStep: string, toStep: string, targetSlots: StepDefinition): EffectiveStepDefinition {
-  const prevRef = useRef(targetSlots);
+  const [trackedTargetSlots, setTrackedTargetSlots] = useState(targetSlots);
+  const [prevSlots, setPrevSlots] = useState(targetSlots);
+
+  if (targetSlots !== trackedTargetSlots) {
+    setPrevSlots(trackedTargetSlots);
+    setTrackedTargetSlots(targetSlots);
+  }
 
   return useMemo(() => {
-    const prevSlots = prevRef.current;
     const keys = Object.keys(targetSlots) as FieldKey[];
 
     const hasLeadOut = keys.some(
@@ -60,7 +65,6 @@ export function useStepTransition(fromStep: string, toStep: string, targetSlots:
       result[key] = { position: targetSlots[key].position, visible: willBeVisible, moveDelay, fadeDelay, fadeDuration };
     });
 
-    prevRef.current = targetSlots;
     return result;
-  }, [fromStep, toStep, targetSlots]);
+  }, [fromStep, toStep, targetSlots, prevSlots]);
 }

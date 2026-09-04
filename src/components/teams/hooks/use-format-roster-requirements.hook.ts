@@ -22,42 +22,45 @@ function resolveLevel(levels: LevelEmbed): number | null {
   return Array.isArray(levels) ? (levels[0]?.level ?? null) : levels.level;
 }
 
+function mapRequirementRow(row: RequirementRow): FormatLevelRequirement {
+  return {
+    playerType: row.player_type,
+    level: resolveLevel(row.levels),
+    minCount: row.min_count,
+    maxCount: row.max_count,
+  };
+}
+
 export function useFormatRosterRequirements(formatId: string | null) {
+  const [prevFormatId, setPrevFormatId] = useState(formatId);
   const [requirements, setRequirements] = useState<FormatLevelRequirement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(formatId));
+
+  if (formatId !== prevFormatId) {
+    setPrevFormatId(formatId);
+    setRequirements([]);
+    setLoading(Boolean(formatId));
+  }
 
   useEffect(() => {
-    if (!formatId) {
-      setRequirements([]);
-      setLoading(false);
-      return;
-    }
+    if (!formatId) return;
 
-    let isMounted = true;
+    let ignore = false;
 
-    async function fetchRequirements() {
-      setLoading(true);
+    (async () => {
       const { data } = await supabase
         .from('format_roster_requirements')
         .select('player_type, min_count, max_count, levels(level)')
         .eq('format_id', formatId);
 
-      if (isMounted) {
-        setRequirements(
-          (data as RequirementRow[] | null ?? []).map((row) => ({
-            playerType: row.player_type,
-            level: resolveLevel(row.levels),
-            minCount: row.min_count,
-            maxCount: row.max_count,
-          }))
-        );
-        setLoading(false);
-      }
-    }
+      if (ignore) return;
 
-    fetchRequirements();
+      setRequirements((data as RequirementRow[] | null ?? []).map(mapRequirementRow));
+      setLoading(false);
+    })();
+
     return () => {
-      isMounted = false;
+      ignore = true;
     };
   }, [formatId]);
 

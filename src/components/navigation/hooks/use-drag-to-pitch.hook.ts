@@ -44,17 +44,20 @@ const PITCH_VERTICAL_ACTIVATION_THRESHOLD = 10;
 
 function randomInRange([min, max]: readonly [number, number]) {
   'worklet';
+   
   return min + Math.random() * (max - min);
 }
 
 function pickPitchType() {
   'worklet';
+   
   const index = Math.floor(Math.random() * PITCH_TYPES.length);
   return PITCH_TYPES[index];
 }
 
 function randomSettleOffset(bounds: Bounds, buttonAnchor: { x: number; y: number }, outerPadding: number) {
   'worklet';
+   
   const sampleFromTightRange = Math.random() < 0.7;
   const pad = sampleFromTightRange ? 0 : outerPadding;
 
@@ -63,7 +66,9 @@ function randomSettleOffset(bounds: Bounds, buttonAnchor: { x: number; y: number
   const minY = bounds.y - pad;
   const maxY = bounds.y + bounds.height + pad;
 
+   
   const targetX = minX + Math.random() * (maxX - minX);
+   
   const targetY = minY + Math.random() * (maxY - minY);
 
   const isStrike =
@@ -102,6 +107,7 @@ export function useDragToPitch({
   trailDissipateDurationRatio = 0.4,
 }: UseDragToPitchOptions) {
   const scale = useSharedValue(1);
+  const [prevCloseSignal, setPrevCloseSignal] = useState(closeSignal);
   const [isActive, setIsActive] = useState(false);
   const [pitchPhase, setPitchPhase] = useState<'rest' | 'pitching' | 'strike' | 'ball'>('rest');
   const [isHit, setIsHit] = useState(false);
@@ -132,6 +138,17 @@ export function useDragToPitch({
   const controlOffsetY = useSharedValue(0);
   const settlePauseTimer = useSharedValue(0);
 
+  if (closeSignal !== prevCloseSignal) {
+    setPrevCloseSignal(closeSignal);
+    if (closeSignal > 0) {
+      setIsActive(false);
+      setPitchPhase('rest');
+      setIsHit(false);
+      setHitAngles(null);
+      setHitLineDistances({ topMinus: 0, topPlus: 0, bottomMinus: 0, bottomPlus: 0 });
+    }
+  }
+
   const animatedStyle = useAnimatedStyle(() => {
     const t = arcProgress.value;
     const oneMinusT = 1 - t;
@@ -154,22 +171,26 @@ export function useDragToPitch({
 
   useEffect(() => {
     if (closeSignal > 0) {
+      // eslint-disable-next-line react-hooks/immutability
       scale.value = withTiming(1, { duration: closeDuration });
+      // eslint-disable-next-line react-hooks/immutability
       arcProgress.value = withTiming(0, { duration: closeDuration });
+      // eslint-disable-next-line react-hooks/immutability
       dragX.value = withTiming(0, { duration: closeDuration });
+      // eslint-disable-next-line react-hooks/immutability
       dragY.value = withTiming(0, { duration: closeDuration });
+       
       lineDrawProgress.value = 0;
+       
       hitWipeProgress.value = 0;
+       
       trailDissipateProgress.value = 0;
-      setIsActive(false);
-      setPitchPhase('rest');
-      setIsHit(false);
-      setHitAngles(null);
-      setHitLineDistances({ topMinus: 0, topPlus: 0, bottomMinus: 0, bottomPlus: 0 });
+       
       pastThreshold.value = 0;
+       
       strikeZoneVisibility.value = 0;
     }
-  }, [closeSignal, closeDuration, scale, arcProgress, dragX, dragY, setIsActive, pastThreshold, strikeZoneVisibility, lineDrawProgress, hitWipeProgress, trailDissipateProgress]);
+  }, [closeSignal, closeDuration, scale, arcProgress, dragX, dragY, pastThreshold, strikeZoneVisibility, lineDrawProgress, hitWipeProgress, trailDissipateProgress]);
 
   function applyResetState() {
     setIsActive(false);
@@ -188,22 +209,33 @@ export function useDragToPitch({
   const gesture = useMemo(() => {
     function resetAfterTransition() {
       'worklet';
+      // eslint-disable-next-line react-hooks/immutability
       pastThreshold.value = withDelay(100, withTiming(0, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       strikeZoneVisibility.value = withDelay(100, withTiming(0, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       arcProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       scale.value = withDelay(100, withTiming(1, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       dragX.value = withDelay(100, withTiming(0, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       dragY.value = withDelay(100, withTiming(0, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       lineDrawProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       hitWipeProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
+      // eslint-disable-next-line react-hooks/immutability
       trailDissipateProgress.value = withDelay(100, withTiming(0, { duration: 0 }));
       runOnJS(applyResetState)();
     }
 
     function runExpand() {
       'worklet';
+      // eslint-disable-next-line react-hooks/immutability
       pastThreshold.value = withTiming(1, { duration: siblingFadeDuration });
 
+      // eslint-disable-next-line react-hooks/immutability
       scale.value = withTiming(maxScale, { duration: openDuration }, (finished) => {
         if (finished) {
           runOnJS(onOpen)();
@@ -214,6 +246,7 @@ export function useDragToPitch({
 
     function runHitWipe(topAngle: number, bottomAngle: number, margin: number, isRightHanded: boolean) {
       'worklet';
+      // eslint-disable-next-line react-hooks/immutability
       strikeZoneVisibility.value = withTiming(0, { duration: hitStrikeZoneFadeDuration });
 
       const ballX = buttonAnchor.x + settleOffsetX.value;
@@ -246,8 +279,10 @@ export function useDragToPitch({
       const speedPxPerMs = fullLineLength / referenceDuration;
       const hitLineDrawDuration = distToEdge / speedPxPerMs;
 
+      // eslint-disable-next-line react-hooks/immutability
       lineDrawProgress.value = withTiming(1, { duration: hitLineDrawDuration }, (drawFinished) => {
         if (drawFinished) {
+           
           hitWipeProgress.value = withTiming(1, { duration: hitFillDuration }, (fillFinished) => {
             if (fillFinished) {
               runOnJS(onOpen)();
@@ -261,8 +296,10 @@ export function useDragToPitch({
     function triggerExpand(delayMs: number = 0) {
       'worklet';
       if (delayMs > 0) {
+         
         settlePauseTimer.value = withTiming(1, { duration: delayMs }, (finished) => {
           if (finished) {
+             
             settlePauseTimer.value = 0;
             runExpand();
           }
@@ -274,19 +311,26 @@ export function useDragToPitch({
 
     function triggerPitch(releaseX: number, releaseY: number, velocityX: number, velocityY: number, velocityMagnitude: number) {
       'worklet';
+      // eslint-disable-next-line react-hooks/immutability
       pastThreshold.value = withTiming(1, { duration: siblingFadeDuration });
+      // eslint-disable-next-line react-hooks/immutability
       strikeZoneVisibility.value = withDelay(siblingFadeDuration, withTiming(1, { duration: siblingFadeDuration }));
+      // eslint-disable-next-line react-hooks/immutability
       startOffsetX.value = releaseX;
+      // eslint-disable-next-line react-hooks/immutability
       startOffsetY.value = releaseY;
       runOnJS(setPitchPhase)('pitching');
 
       const bounds = strikeZoneBounds ?? { x: buttonAnchor.x + 100, y: buttonAnchor.y - 300, width: 80, height: 110 };
       const settle = randomSettleOffset(bounds, buttonAnchor, outerPadding);
+      // eslint-disable-next-line react-hooks/immutability
       settleOffsetX.value = settle.x;
+      // eslint-disable-next-line react-hooks/immutability
       settleOffsetY.value = settle.y;
       const isStrike = settle.isStrike;
 
       const hitChance = isStrike ? HIT_CHANCE_ON_STRIKE : HIT_CHANCE_ON_BALL;
+      // eslint-disable-next-line react-hooks/purity
       const initialDidHit = Math.random() < hitChance;
 
       let finalDidHit = false;
@@ -303,8 +347,10 @@ export function useDragToPitch({
         const ballX = buttonAnchor.x + settle.x;
         const ballY = buttonAnchor.y + settle.y;
 
+        // eslint-disable-next-line react-hooks/purity
         const isRightHanded = Math.random() < hitRightHandedChance;
         const handednessCenter = isRightHanded ? 0 : 180;
+        // eslint-disable-next-line react-hooks/purity
         const margin = 16 + Math.random() * (32 - 16);
         const bottomLineY = ballY + margin;
 
@@ -368,8 +414,10 @@ export function useDragToPitch({
       const dySettle = settle.y - releaseY;
       const straightLineDistance = Math.sqrt(dxSettle ** 2 + dySettle ** 2);
 
+      // eslint-disable-next-line react-hooks/immutability
       controlOffsetX.value =
         releaseX + dx * straightLineDistance * arcStrength + perpDx * perpendicularOffset;
+      // eslint-disable-next-line react-hooks/immutability
       controlOffsetY.value =
         releaseY + dy * straightLineDistance * arcStrength + perpDy * perpendicularOffset;
 
@@ -377,12 +425,15 @@ export function useDragToPitch({
       const vt = (clampedVelocity - velocityThreshold) / (maxRelevantVelocity - velocityThreshold);
       const duration = maxArcDuration - vt * (maxArcDuration - minArcDuration);
 
+      // eslint-disable-next-line react-hooks/immutability
       scale.value = withTiming(flightScale, { duration });
 
+      // eslint-disable-next-line react-hooks/immutability
       arcProgress.value = withTiming(1, { duration, easing: Easing.in(Easing.quad) }, (finished) => {
         if (finished) {
           runOnJS(setPitchPhase)(isStrike ? 'strike' : 'ball');
           runOnJS(setIsHit)(finalDidHit);
+           
           trailDissipateProgress.value = withTiming(1, { duration: duration * trailDissipateDurationRatio });
           if (finalDidHit) {
             runHitWipe(chosenTopAngle, chosenBottomAngle, chosenMargin, chosenIsRightHanded);
@@ -402,7 +453,9 @@ export function useDragToPitch({
         runOnJS(setIsActive)(true);
       })
       .onUpdate((e) => {
+        // eslint-disable-next-line react-hooks/immutability
         dragX.value = e.translationX;
+        // eslint-disable-next-line react-hooks/immutability
         dragY.value = Math.max(e.translationY, stoppingLineY);
       })
       .onEnd((e) => {
@@ -414,11 +467,15 @@ export function useDragToPitch({
         if (!fingerPastLine && meetsVelocityThreshold && isThrownAwayFromUser) {
           const releaseX = dragX.value;
           const releaseY = dragY.value;
+          // eslint-disable-next-line react-hooks/immutability
           scale.value = 1;
           triggerPitch(releaseX, releaseY, e.velocityX, e.velocityY, velocityMagnitude);
         } else {
+          // eslint-disable-next-line react-hooks/immutability
           dragX.value = withSpring(0, { dampingRatio: 0.9, duration: 600 });
+          // eslint-disable-next-line react-hooks/immutability
           dragY.value = withSpring(0, { dampingRatio: 0.9, duration: 600 });
+           
           scale.value = withSpring(1, { dampingRatio: 0.9, duration: 600 });
           runOnJS(setIsActive)(false);
         }

@@ -16,6 +16,7 @@ export function useSlideSelectMenu(itemCount: number, onSelect: (index: number) 
 
   const reportBounds = useCallback((index: number, top: number, height: number) => {
     boundsRef.current[index] = { top, bottom: top + height };
+    // eslint-disable-next-line react-hooks/immutability
     boundsShared.value = [...boundsRef.current];
   }, [boundsShared]);
 
@@ -34,6 +35,7 @@ export function useSlideSelectMenu(itemCount: number, onSelect: (index: number) 
     if (finalIndex >= 0) {
       runOnJS(onSelect)(finalIndex);
     }
+     
     activeIndex.value = -1;
   }
 
@@ -42,6 +44,7 @@ export function useSlideSelectMenu(itemCount: number, onSelect: (index: number) 
       .runOnJS(true)
       .minDistance(8)
       .onUpdate((e) => {
+         
         activeIndex.value = findIndexAtY(e.y);
       })
       .onEnd((e) => {
@@ -53,6 +56,7 @@ export function useSlideSelectMenu(itemCount: number, onSelect: (index: number) 
       .maxDuration(10000)
       .maxDistance(6)
       .onEnd((e) => {
+         
         activeIndex.value = findIndexAtY(e.y);
         selectAtY(e.y);
       });

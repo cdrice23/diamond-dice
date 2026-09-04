@@ -62,27 +62,35 @@ export function clearCachedProfile(): void {
 export function useCurrentProfile() {
   const [profile, setProfile] = useState<CurrentProfile | null>(cachedProfile);
   const [loading, setLoading] = useState(!cachedProfile);
-
-  const fetchProfile = useCallback(async () => {
-    if (inFlightFetch) {
-      const result = await inFlightFetch;
-      setProfile(result);
-      setLoading(false);
-      return;
-    }
-
-    if (!cachedProfile) {
-      setLoading(true);
-    }
-
-    const result = await fetchAndCacheProfile();
-    setProfile(result);
-    setLoading(false);
-  }, []);
+  const [refetchNonce, setRefetchNonce] = useState(0);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    let ignore = false;
 
-  return { profile, loading, refetch: fetchProfile };
+    (async () => {
+      if (inFlightFetch) {
+        const result = await inFlightFetch;
+        if (ignore) return;
+        setProfile(result);
+        setLoading(false);
+        return;
+      }
+
+      const result = await fetchAndCacheProfile();
+      if (ignore) return;
+      setProfile(result);
+      setLoading(false);
+    })();
+
+    return () => {
+      ignore = true;
+    };
+  }, [refetchNonce]);
+
+  const refetch = useCallback(() => {
+    setLoading(true);
+    setRefetchNonce((prev) => prev + 1);
+  }, []);
+
+  return { profile, loading, refetch };
 }

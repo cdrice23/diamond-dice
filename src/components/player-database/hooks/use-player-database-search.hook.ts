@@ -52,6 +52,12 @@ function buildQueryParams(
 }
 
 export function usePlayerDatabaseSearch(searchTerm: string, filters: PlayerDatabaseFilters) {
+  const { expandLabels, isReady: awardLookupReady } = useAwardGroupLookup();
+
+  const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+  const [prevFilters, setPrevFilters] = useState(filters);
+  const [prevAwardLookupReady, setPrevAwardLookupReady] = useState(awardLookupReady);
+
   const [players, setPlayers] = useState<PlayerDatabaseRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -60,8 +66,6 @@ export function usePlayerDatabaseSearch(searchTerm: string, filters: PlayerDatab
   const [hasPrevious, setHasPrevious] = useState(false);
   const [latestBatch, setLatestBatch] = useState<{ id: number; direction: 'forward' | 'backward' } | null>(null);
 
-  const { expandLabels, isReady: awardLookupReady } = useAwardGroupLookup();
-
   const offsetRef = useRef(0);
   const earliestOffsetRef = useRef(0);
   const isFetchingForwardRef = useRef(false);
@@ -69,6 +73,23 @@ export function usePlayerDatabaseSearch(searchTerm: string, filters: PlayerDatab
   const batchCounterRef = useRef(0);
   const lastGrowthDirectionRef = useRef<'forward' | 'backward'>('forward');
   const searchTokenRef = useRef(0);
+
+  const paramsChanged =
+    searchTerm !== prevSearchTerm || filters !== prevFilters || awardLookupReady !== prevAwardLookupReady;
+
+  if (paramsChanged) {
+    setPrevSearchTerm(searchTerm);
+    setPrevFilters(filters);
+    setPrevAwardLookupReady(awardLookupReady);
+
+    if (awardLookupReady) {
+      setPlayers([]);
+      setHasMore(true);
+      setHasPrevious(false);
+      setLatestBatch(null);
+      setLoading(true);
+    }
+  }
 
   const nextBatchId = useCallback(() => {
     batchCounterRef.current += 1;
@@ -153,12 +174,6 @@ export function usePlayerDatabaseSearch(searchTerm: string, filters: PlayerDatab
     isFetchingForwardRef.current = false;
     isFetchingBackwardRef.current = false;
     lastGrowthDirectionRef.current = 'forward';
-
-    setPlayers([]);
-    setHasMore(true);
-    setHasPrevious(false);
-    setLatestBatch(null);
-    setLoading(true);
 
     const expandedAwardTypeIds = expandLabels(filters.awardGroupLabels);
 

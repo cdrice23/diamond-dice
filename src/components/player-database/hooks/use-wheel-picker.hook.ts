@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
 import { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
@@ -15,16 +15,16 @@ export function useWheelPicker(
 ) {
   const translateY = useSharedValue(-selectedIndex * itemHeight);
   const dragStartY = useSharedValue(0);
-  const isInternalUpdate = useRef(false);
+  const lastCommittedIndex = useSharedValue(selectedIndex);
 
   useEffect(() => {
-    if (isInternalUpdate.current) {
-      isInternalUpdate.current = false;
-      return;
-    }
+    if (selectedIndex === lastCommittedIndex.value) return;
+     
+    lastCommittedIndex.value = selectedIndex;
 
     const targetY = -selectedIndex * itemHeight;
     if (translateY.value !== targetY) {
+       
       translateY.value = withTiming(targetY, { duration: 150 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -32,7 +32,8 @@ export function useWheelPicker(
 
   function commitIndex(index: number) {
     const clamped = Math.max(0, Math.min(itemCount - 1, index));
-    isInternalUpdate.current = true;
+    // eslint-disable-next-line react-hooks/immutability
+    lastCommittedIndex.value = clamped;
     onIndexChange(clamped);
   }
 
@@ -45,6 +46,7 @@ export function useWheelPicker(
     })
     .onUpdate((e) => {
       const raw = dragStartY.value + e.translationY;
+      // eslint-disable-next-line react-hooks/immutability
       translateY.value = Math.max(minY, Math.min(maxY, raw));
     })
     .onEnd((e) => {
@@ -64,6 +66,7 @@ export function useWheelPicker(
         Math.max(MIN_SETTLE_DURATION, itemsTraveled * DURATION_PER_ITEM)
       );
 
+      // eslint-disable-next-line react-hooks/immutability 
       translateY.value = withTiming(targetY, { duration, easing: Easing.out(Easing.cubic) });
       runOnJS(commitIndex)(safeIndex);
     });
